@@ -14,7 +14,7 @@ struct RootView: View {
         SelectionItem(isSelected: true, tag: 4)
     ]
 
-    @State private var currentTag: Int = 0
+    @State private var currentTag: Int = 4
 
 
 

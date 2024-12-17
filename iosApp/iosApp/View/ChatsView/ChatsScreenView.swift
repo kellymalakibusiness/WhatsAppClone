@@ -15,7 +15,7 @@ struct ChatsScreenView: View {
     @State private var startMinY: CGFloat = 0
     @State private var searchBarOffset: CGFloat = 0
     
-    private let searchBarPadding: CGFloat = 120
+    @State private var showSearchBar: Bool = false
     
     @Environment(\.colorScheme) var scheme
     var background: Color {
@@ -28,41 +28,58 @@ struct ChatsScreenView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                VStack {
-                    searchView
-                    HStack(spacing: 7) {
-                        MessageFilters(title: "All", isSelected: true, isIcon: false).onTapGesture {
-                            
-                        }
-                        MessageFilters(title: "Unread", isSelected: false, isIcon: false)
-                        MessageFilters(title: "Favourites", isSelected: false, isIcon: false)
-                        MessageFilters(title: "Groups", isSelected: false, isIcon: false)
-                        MessageFilters(title: "plus", isSelected: false, isIcon: true)
-                        Spacer()
-                    }.padding(.horizontal)
-                }.offset(y: -searchBarOffset)
-                .zIndex(1)
+                if(showSearchBar){
+                    VStack {
+                        searchView($searchText)
+                        HStack(spacing: 7) {
+                            MessageFilters(title: "All", isSelected: true, isIcon: false).onTapGesture {
+                                
+                            }
+                            MessageFilters(title: "Unread", isSelected: false, isIcon: false)
+                            MessageFilters(title: "Favourites", isSelected: false, isIcon: false)
+                            MessageFilters(title: "Groups", isSelected: false, isIcon: false)
+                            MessageFilters(title: "plus", isSelected: false, isIcon: true)
+                            Spacer()
+                        }.padding(.horizontal)
+                    }.offset(y: -searchBarOffset)
+                    .zIndex(1)
+                }
                 
                 VStack {
                     List {
-                        Rectangle()
-                                .frame(height: 80)
-                                .foregroundColor(background)
-                                .listRowSeparator(.hidden, edges: .top)
+                        if(showSearchBar){
+                            Rectangle()
+                                    .frame(height: 80)
+                                    .foregroundColor(background)
+                                    .listRowSeparator(.hidden, edges: .top)
+                                    .animation(.linear(duration: 1.5), value: showSearchBar)
+                        }
                         ContantView(contact: nil)
                             .overlay(content: {
                                 GeometryReader{ proxy -> Color in
                                     let minY = proxy.frame(in: .global).minY
-                                    
                                     DispatchQueue.main.async {
+                                        //First we set our offset
                                         if(startMinY == 0){
                                             startMinY = minY
                                         }
-                                        offset = startMinY - minY
-                                        if(offset < 110){
-                                            searchBarOffset = offset
-                                            print("offset: \(offset)")
+                                        
+                                        if(showSearchBar){
+                                            offset = startMinY - minY
+                                            if(offset < 110){
+                                                searchBarOffset = offset
+                                            }
+                                        } else {
+                                            //Show searchbar logic
+                                            let currentOffset = startMinY - minY
+                                            
+                                            if(currentOffset < offset && currentOffset < 20){
+                                                startMinY = 0
+                                                showSearchBar = true
+                                            }
+                                            
                                         }
+                                        
                                     }
                                     
                                     return Color.clear
@@ -71,7 +88,7 @@ struct ChatsScreenView: View {
                         
                             .listRowSeparator(.hidden, edges: .top)
                         ForEach(0 ... 10, id: \.self) { _ in
-                            ContantView(contact: Contact(image: "kevin_durant", title: "Kevin Durant", lastMessage: "I'm Kevin Durant. You know who I am. Yeah we on the building but I'm tryna take it to the top floor. I guess drama makes it for a good content.😂", lastMessageDate: "Yesterday", unreadMessages: 1))
+                            ContantView(contact: Contact(image: "kevin_durant", title: "Kevin Durant", lastMessage: "I'm Kevin Durant. You know who I am😂", lastMessageDate: "Yesterday", unreadMessages: 1))
                         }
                     }
                     .listStyle(.inset)
@@ -90,17 +107,6 @@ struct ChatsScreenView: View {
                 .navigationTitle("Chats")
             }
         }
-    }
-
-    var searchView: some View {
-        HStack {
-            Image(systemName: "magnifyingglass").foregroundColor(.secondary)
-            TextField("Search", text: $searchText)
-        }.padding(10)
-            .background(.secondary.opacity(0.15))
-            .cornerRadius(10)
-            .padding(.vertical, 5)
-            .padding(.horizontal)
     }
     
     var toolbarMoreButton: some View {

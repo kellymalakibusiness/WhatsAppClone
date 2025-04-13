@@ -11,7 +11,10 @@
 		058557D9273AAEEB004C7B11 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */; };
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
 		7555FF83242A565900829871 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* RootView.swift */; };
-		839F54212D0D70A500B90563 /* ContantView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839F54202D0D70A500B90563 /* ContantView.swift */; };
+		8325CE462D18220C00AE8FB5 /* Status.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8325CE452D18220C00AE8FB5 /* Status.swift */; };
+		839F54212D0D70A500B90563 /* ContactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 839F54202D0D70A500B90563 /* ContactView.swift */; };
+		83A0B2FC2D15855B0032B04B /* Community.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A0B2FB2D15855B0032B04B /* Community.swift */; };
+		83A0B2FE2D159CDF0032B04B /* HardCodedValues.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A0B2FD2D159CDF0032B04B /* HardCodedValues.swift */; };
 		83A87C3E2D0D83CA00F442F8 /* Contact.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A87C3D2D0D83CA00F442F8 /* Contact.swift */; };
 		83A87C402D0FFCFA00F442F8 /* CommonFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A87C3F2D0FFCF900F442F8 /* CommonFunctions.swift */; };
 		83A87C422D0FFF8100F442F8 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A87C412D0FFF8100F442F8 /* User.swift */; };
@@ -44,7 +47,10 @@
 		7555FF7B242A565900829871 /* Fake WhatsApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Fake WhatsApp.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7555FF82242A565900829871 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		7555FF8C242A565B00829871 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		839F54202D0D70A500B90563 /* ContantView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContantView.swift; sourceTree = "<group>"; };
+		8325CE452D18220C00AE8FB5 /* Status.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Status.swift; sourceTree = "<group>"; };
+		839F54202D0D70A500B90563 /* ContactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContactView.swift; sourceTree = "<group>"; };
+		83A0B2FB2D15855B0032B04B /* Community.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Community.swift; sourceTree = "<group>"; };
+		83A0B2FD2D159CDF0032B04B /* HardCodedValues.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HardCodedValues.swift; sourceTree = "<group>"; };
 		83A87C3D2D0D83CA00F442F8 /* Contact.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Contact.swift; sourceTree = "<group>"; };
 		83A87C3F2D0FFCF900F442F8 /* CommonFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommonFunctions.swift; sourceTree = "<group>"; };
 		83A87C412D0FFF8100F442F8 /* User.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
@@ -117,6 +123,7 @@
 		83A87C3B2D0D837E00F442F8 /* ViewModel */ = {
 			isa = PBXGroup;
 			children = (
+				83A0B2FD2D159CDF0032B04B /* HardCodedValues.swift */,
 			);
 			path = ViewModel;
 			sourceTree = "<group>";
@@ -126,6 +133,8 @@
 			children = (
 				83A87C3D2D0D83CA00F442F8 /* Contact.swift */,
 				83A87C412D0FFF8100F442F8 /* User.swift */,
+				83A0B2FB2D15855B0032B04B /* Community.swift */,
+				8325CE452D18220C00AE8FB5 /* Status.swift */,
 			);
 			path = Model;
 			sourceTree = "<group>";
@@ -168,7 +177,7 @@
 			children = (
 				83D0097B2D0A3F7100E380EF /* ChatsScreenView.swift */,
 				83BCB3BD2D0CC843007E8347 /* MessageFilters.swift */,
-				839F54202D0D70A500B90563 /* ContantView.swift */,
+				839F54202D0D70A500B90563 /* ContactView.swift */,
 			);
 			path = ChatsView;
 			sourceTree = "<group>";
@@ -292,13 +301,16 @@
 				83BCB3BE2D0CC843007E8347 /* MessageFilters.swift in Sources */,
 				83D0097A2D0A3F6600E380EF /* CommunitiesScreenView.swift in Sources */,
 				83D009782D0A3F4E00E380EF /* CallsScreenView.swift in Sources */,
+				83A0B2FC2D15855B0032B04B /* Community.swift in Sources */,
 				2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */,
 				7555FF83242A565900829871 /* RootView.swift in Sources */,
 				83A87C402D0FFCFA00F442F8 /* CommonFunctions.swift in Sources */,
 				83A87C3E2D0D83CA00F442F8 /* Contact.swift in Sources */,
 				83D009742D0A3AE900E380EF /* RootViewHelperFunctions.swift in Sources */,
+				8325CE462D18220C00AE8FB5 /* Status.swift in Sources */,
 				83D009762D0A3F3D00E380EF /* UpdatesScreenView.swift in Sources */,
-				839F54212D0D70A500B90563 /* ContantView.swift in Sources */,
+				839F54212D0D70A500B90563 /* ContactView.swift in Sources */,
+				83A0B2FE2D159CDF0032B04B /* HardCodedValues.swift in Sources */,
 				83D0097E2D0A3F8000E380EF /* SettingsScreenView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

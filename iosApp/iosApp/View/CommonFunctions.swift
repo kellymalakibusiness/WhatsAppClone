@@ -19,3 +19,27 @@ func searchView(_ searchText: Binding<String>) -> some View {
         .padding(.vertical, 5)
         .padding(.horizontal)
 }
+
+func drawIconImage(image: String, size: CGFloat) -> some View {
+    return Image(image)
+        .resizable()
+        .frame(width: size, height: size)
+        .aspectRatio(contentMode: .fit)
+        .cornerRadius(10)
+}
+
+func drawCircleImage(image: String, width: CGFloat) -> some View {
+    return Image(image)
+        .resizable()
+        .aspectRatio(contentMode: .fill)
+        .frame(width: width, height: width)
+        .cornerRadius(width/2)
+}
+
+func generateDateComposable(date: String, hasUnreadMessage: Bool) -> some View {
+    return Text(date)
+        .font(.caption)
+        .foregroundStyle(
+            hasUnreadMessage ? Color("IconGreen") : .secondary
+        )
+}

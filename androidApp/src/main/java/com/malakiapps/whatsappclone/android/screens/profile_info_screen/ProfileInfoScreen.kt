@@ -1,0 +1,177 @@
+package com.malakiapps.whatsappclone.android.screens.profile_info_screen
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import coil3.compose.AsyncImage
+import com.malakiapps.whatsappclone.android.FakeWhatsAppTheme
+import com.malakiapps.whatsappclone.android.R
+import com.malakiapps.whatsappclone.common.user.User
+
+@Composable
+fun ProfileInfoScreen(
+    user: User,
+    onStartClick: (String?) -> Unit) {
+    Scaffold(
+        topBar = {
+            Row(
+                horizontalArrangement = Arrangement.End,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                IconButton(
+                    onClick = {}
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.topappbar_settings),
+                        contentDescription = null
+                    )
+                }
+            }
+        }
+    ) { paddingValues ->
+        var nameValue by remember { mutableStateOf(user.name) }
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize().padding(paddingValues).imePadding()
+        ) {
+            Text(
+                text = "Profile info",
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Normal),
+                modifier = Modifier.padding(top = 32.dp)
+            )
+
+            Text(
+                text = "Please provide your name and an optional profile photo",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp),
+                textAlign = TextAlign.Center
+            )
+
+            Box {
+                if (user.imageUri == null){
+                    Icon(
+                        painter = painterResource(R.drawable.baseline_person_24),
+                        contentDescription = "Add image icon",
+                        tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
+                        modifier = Modifier
+                            .padding(top = 32.dp)
+                            .size(120.dp)
+                            .clip(CircleShape)
+                            .background(
+                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
+                            )
+                            .padding(32.dp)
+                    )
+                } else {
+                    AsyncImage(
+                        model = user.imageUri,
+                        contentDescription = "User Profile picture",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .padding(top = 32.dp)
+                            .size(120.dp)
+                            .clip(CircleShape)
+                    )
+                }
+            }
+
+            TextField(
+                value = nameValue,
+                onValueChange = {
+                    nameValue = it
+                },
+                suffix = {
+                    Box(
+                        contentAlignment = Alignment.BottomCenter
+                    ){
+                        Text(
+                            text = nameValue.count().toString(),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent
+                ),
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 32.dp)
+            )
+
+            Spacer(Modifier.weight(1f))
+
+            Button(
+                onClick = {
+                    //Do the check to confirm we're good
+                    if(nameValue.isNotBlank()){
+                        val updatedName = if(nameValue != user.name){
+                            nameValue
+                        } else {
+                            null
+                        }
+                        onStartClick(updatedName)
+                    } else {
+                        //Show error dialog with required name
+                    }
+                },
+                modifier = Modifier.fillMaxWidth().padding(16.dp)
+            ) {
+                Text(
+                    text = "Get Started",
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+            }
+
+        }
+    }
+}
+
+
+@Preview
+@Composable
+private fun ProfileInfoScreenPrev() {
+    FakeWhatsAppTheme {
+        ProfileInfoScreen(
+            onStartClick = {},
+            user = User(
+                id = "123",
+                name = "Kelly",
+                email = "emaid",
+                imageUri = null
+            )
+        )
+    }
+}

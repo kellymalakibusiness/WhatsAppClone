@@ -25,6 +25,8 @@ struct ChatsScreenView: View {
             .black
         }
     }
+    
+    let allMessages = generateMessages()
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
@@ -54,7 +56,7 @@ struct ChatsScreenView: View {
                                     .listRowSeparator(.hidden, edges: .top)
                                     .animation(.linear(duration: 1.5), value: showSearchBar)
                         }
-                        ContantView(contact: nil)
+                        ContactView(contact: nil)
                             .overlay(content: {
                                 GeometryReader{ proxy -> Color in
                                     let minY = proxy.frame(in: .global).minY
@@ -87,8 +89,8 @@ struct ChatsScreenView: View {
                             })
                         
                             .listRowSeparator(.hidden, edges: .top)
-                        ForEach(0 ... 10, id: \.self) { _ in
-                            ContantView(contact: Contact(image: "kevin_durant", title: "Kevin Durant", lastMessage: "I'm Kevin Durant. You know who I am😂", lastMessageDate: "Yesterday", unreadMessages: 1))
+                        ForEach(allMessages, id: \.self.title) { contact in
+                            ContactView(contact: contact)
                         }
                     }
                     .listStyle(.inset)

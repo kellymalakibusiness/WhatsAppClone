@@ -5,6 +5,17 @@ compose = "1.5.4"
 compose-material3 = "1.1.2"
 androidx-activityCompose = "1.8.0"
 
+lifecycleViewModel = "2.8.2"
+koin = "4.0.4"
+coil = "3.1.0"
+ktor = "3.1.2"
+datastore = "1.1.1"
+
+googleService = "4.4.2"
+firebaseBom = "33.9.0"
+firebaseAuth = "23.2.0"
+credentialsVersion = "1.5.0"
+
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
@@ -14,6 +25,35 @@ compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview"
 compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
 compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "compose-material3" }
 
+
+#DI & viewmodel
+lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "lifecycleViewModel"}
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
+koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.7.0" }
+androidx-compose-navigation = { group = "androidx.navigation", name = "navigation-compose", version="2.8.7" }
+
+
+#Datastore
+datastore = { module = "androidx.datastore:datastore", version.ref = "datastore" }
+datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastore" }
+
+#Firebase Bom
+firebase-bom = { module = "com.google.firebase:firebase-bom", version.ref = "firebaseBom" }
+firebase-analytics = { module = "com.google.firebase:firebase-analytics" }
+
+#Firebase Credential Manager
+credentials = { module = "androidx.credentials:credentials", version.ref = "credentialsVersion" }
+credentials-play-services = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentialsVersion"  }
+firebase-identity-googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version = "1.1.1" }
+firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+
+#Android - Coil Compose
+coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
+coil-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil"}
+
+
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 androidLibrary = { id = "com.android.library", version.ref = "agp" }
@@ -21,3 +61,6 @@ kotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
 kotlinMultiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
 kotlinCocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
+
+google-services = { id = "com.google.gms.google-services", version .ref = "googleService" }

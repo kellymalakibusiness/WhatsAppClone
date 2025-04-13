@@ -11,6 +11,9 @@ import SwiftUI
 struct SettingsScreenView: View {
     @State private var searchText: String = ""
     
+    @State private var startMinY: CGFloat = 0
+    @State private var offset: CGFloat = 0
+    
     @Environment(\.colorScheme) var scheme
     var background: Color {
         if(scheme == .light){
@@ -24,14 +27,29 @@ struct SettingsScreenView: View {
     var body: some View {
         NavigationStack {
             ZStack(alignment: .top) {
-                searchView($searchText).zIndex(1)
+                searchView($searchText)
+                    .zIndex(1)
+                    .offset(y: -offset)
                 
                 List {
-                    //searchView($searchText).zIndex(1).listRowBackground(Color.clear).listRowInsets(EdgeInsets(.zero))
                     Section(
                         header: Rectangle().foregroundStyle(.clear).frame(height: 40)
+                            .overlay(content: {
+                                GeometryReader{ proxy -> Color in
+                                    let minY = proxy.frame(in: .global).minY
+                                    DispatchQueue.main.async {
+                                        //First we set our offset
+                                        if(startMinY == 0){
+                                            startMinY = minY
+                                        }
+                                        offset = startMinY - minY
+                                    }
+                                    
+                                    return Color.clear
+                                }.frame(height: 0)
+                            })
                     ) {
-                        userView.listRowSeparator(.visible, edges: .bottom)
+                        userView.listRowSeparator(.hidden, edges: .bottom)
                         settingsRow(image: "avatar", value: "Avatar")
                     }
                     
@@ -76,26 +94,25 @@ struct SettingsScreenView: View {
     }
     
     var userView: some View {
-        HStack {
-            Image(user.image)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 60, height: 60)
-                .cornerRadius(40)
-                .padding(.trailing, 10)
-            
-            // Name and about
-            VStack(alignment: .leading) {
-                Text(user.name)
-                Text(user.about)
-                    .lineLimit(1)
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+        VStack {
+            HStack {
+                drawCircleImage(image: user.image, width: 60)
+                    .padding(.trailing, 10)
+                
+                // Name and about
+                VStack(alignment: .leading) {
+                    Text(user.name)
+                    Text(user.about)
+                        .lineLimit(1)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 10)
+                
+                //The Barcode thingy
+                qrCodeButton
             }
-            Spacer(minLength: 10)
-            
-            //The Barcode thingy
-            qrCodeButton
+            Divider()
         }
     }
     

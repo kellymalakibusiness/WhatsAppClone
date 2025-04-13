@@ -1,7 +1,11 @@
+import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
+
 plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlinAndroid)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -42,5 +46,13 @@ dependencies {
     implementation(libs.compose.ui.tooling.preview)
     implementation(libs.compose.material3)
     implementation(libs.androidx.activity.compose)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.androidx.compose.navigation)
+    implementation(libs.coil.compose)
+    implementation(libs.coil.okhttp)
+
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+
     debugImplementation(libs.compose.ui.tooling)
 }

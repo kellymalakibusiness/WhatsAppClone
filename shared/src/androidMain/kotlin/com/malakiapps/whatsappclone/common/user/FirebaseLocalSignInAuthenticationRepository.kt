@@ -1,13 +1,14 @@
 package com.malakiapps.whatsappclone.common.user
 
+import android.content.Context
 import com.google.firebase.Firebase
-import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.auth
 import com.google.firebase.auth.userProfileChangeRequest
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 
 class FirebaseLocalSignInAuthenticationRepository: UserAuthenticationRepository {
+    override fun initializeCredentialManager(context: Context) = Unit
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun signIn(): User? {
@@ -34,7 +35,7 @@ class FirebaseLocalSignInAuthenticationRepository: UserAuthenticationRepository 
         }
     }
 
-    override suspend fun singOut(): Boolean {
+    override suspend fun signOut(): Boolean {
         Firebase.auth.signOut()
 
         return true

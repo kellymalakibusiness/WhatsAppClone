@@ -25,9 +25,7 @@ fun Module.localModules(){
 }
 
 fun Module.prodModules(){
-    single {
-        FirebaseGoogleSignInAuthenticationRepository(get())
-    }.bind<UserAuthenticationRepository>()
+    singleOf(::FirebaseGoogleSignInAuthenticationRepository).bind<UserAuthenticationRepository>()
 }
 
 

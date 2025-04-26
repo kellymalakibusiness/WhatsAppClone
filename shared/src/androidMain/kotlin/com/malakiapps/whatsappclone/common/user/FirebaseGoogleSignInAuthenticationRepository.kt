@@ -15,17 +15,20 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.auth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.malakiapps.whatsappclone.R
-import com.malakiapps.whatsappclone.common.user.returnNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.cancellation.CancellationException
 
-class FirebaseGoogleSignInAuthenticationRepository(
-    private val context: Context
-) : UserAuthenticationRepository {
-    private val credentialManager = CredentialManager.create(context)
+class FirebaseGoogleSignInAuthenticationRepository : UserAuthenticationRepository {
+    private var credentialManager: CredentialManager? = null
     private val firebaseAuth = FirebaseAuth.getInstance()
+    private var context: Context? = null
+
+    override fun initializeCredentialManager(context: Context) {
+        credentialManager = CredentialManager.create(context)
+        this.context = context
+    }
 
     override suspend fun signIn(): User? {
         val result = try {
@@ -53,8 +56,8 @@ class FirebaseGoogleSignInAuthenticationRepository(
         }
     }
 
-    override suspend fun singOut(): Boolean {
-        credentialManager.clearCredentialState(
+    override suspend fun signOut(): Boolean {
+        credentialManager?.clearCredentialState(
             ClearCredentialStateRequest()
         )
         firebaseAuth.signOut()
@@ -124,15 +127,15 @@ class FirebaseGoogleSignInAuthenticationRepository(
             .addCredentialOption(
                 GetGoogleIdOption.Builder()
                     .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId(context.getString(R.string.web_client_id))
+                    .setServerClientId(context?.getString(R.string.web_client_id) ?: throw Error("Context not provided"))
                     .setAutoSelectEnabled(false)
                     .build()
             )
             .build()
 
-        return credentialManager.getCredential(
+        return credentialManager?.getCredential(
             request = request,
-            context = context
-        )
+            context = context!!
+        ) ?: throw Error("Credential manager not defined")
     }
 }

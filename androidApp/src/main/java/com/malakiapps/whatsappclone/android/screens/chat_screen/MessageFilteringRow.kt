@@ -51,15 +51,15 @@ fun FilteringButton(filteringOption: MessageFilteringOption, isActive: Boolean, 
     }
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(16.dp))
-            //.clip(MaterialTheme.shapes.large)
+            //.clip(RoundedCornerShape(16.dp))
+            .clip(MaterialTheme.shapes.large)
             .background(colorBackground)
-            .padding(horizontal = 12.dp, 6.dp)
             .clickable{
                 if(!isActive){
                     onClick(filteringOption)
                 }
             }
+            .padding(horizontal = 12.dp, 6.dp)
     ){
         Text(
             filteringOption.text,

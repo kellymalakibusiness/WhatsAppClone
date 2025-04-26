@@ -46,164 +46,117 @@ import com.malakiapps.whatsappclone.android.screens.dashboard.FWhatsAppBottomApp
 @Composable
 fun UpdatesScreen(
     onDashboardScreenChange: (DashboardScreenType) -> Unit,
-){
-    Scaffold(
-        topBar = {
-            UpdatesTopAppBar()
-        },
-        bottomBar = {
-            FWhatsAppBottomAppBar(
-                dashboardScreenType = DashboardScreenType.UPDATES,
-                onScreenClick = { dashboardFragment ->
-                    if(dashboardFragment != DashboardScreenType.UPDATES){
-                        onDashboardScreenChange(dashboardFragment)
-                    }
-                }
-            )
-        },
-        floatingActionButton = {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(22.dp)
-            ) {
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier
-                        .shadow(elevation = 4.dp, shape = MaterialTheme.shapes.large)
-                        .clip(MaterialTheme.shapes.large)
-                        .background(MaterialTheme.colorScheme.onSecondary)
-
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.edit),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onBackground
-                    )
-                }
-
-                IconButton(
-                    onClick = {},
-                    modifier = Modifier
-                        .shadow(elevation = 4.dp, shape = MaterialTheme.shapes.large)
-                        .clip(MaterialTheme.shapes.large)
-                        .background(MaterialTheme.colorScheme.primary)
-                        .padding(6.dp)
-
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.add_photo),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-            }
-        }
-    ) { paddingValues ->
-        Box(
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Column(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ){
-            Column(
-                modifier = Modifier.matchParentSize().verticalScroll(
+                .matchParentSize()
+                .verticalScroll(
                     state = rememberScrollState()
                 )
+        ) {
+            Text(
+                text = "Status",
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(start = 16.dp, top = 16.dp)
+            )
+            LazyRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Text(
-                    text = "Status",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(start = 16.dp, top = 16.dp)
-                )
-                LazyRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    item {
-                        StatusTab(
-                            statusCard = AddStatusCard(
-                                userProfile = R.drawable.kevin_durant
-                            )
+                item {
+                    StatusTab(
+                        statusCard = AddStatusCard(
+                            userProfile = R.drawable.kevin_durant
                         )
-                    }
-                    items(
-                        items = (1..12).map { it }
-                    ) {
-                        StatusTab(
-                            statusCard = UserStatusCard(
-                                userProfile = R.drawable.kevin_durant,
-                                statusImage = R.drawable.kevin_durant,
-                                isViewed = it % 3 == 0,
-                                name = "Kevin Durant"
-                            )
-                        )
-                    }
-                }
-
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-                ) {
-                    Text(
-                        text = "Channels",
-                        style = MaterialTheme.typography.titleMedium,
                     )
-                    Spacer(Modifier.weight(1f))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable{}
-                    ){
-                        Text(
-                            text = "Explore",
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.onTertiary,
-                            modifier = Modifier.padding(end = 4.dp)
-                        )
-                        Icon(
-                            painter = painterResource(R.drawable.keyboard_arrow_right),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onTertiary
-                        )
-                    }
                 }
-
-                Column {
-                    generateTempMessages(4).forEach { channel ->
-                        MessageRow(
-                            row = channel
-                        )
-                    }
-                }
-
-                Text(
-                    text = "Find channels to follow",
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary,
-                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp)
-                )
-
-                Column {
-                    generateTempChannelsToFollow().forEach {
-                        ChannelToFollowRow(
-                            channelToFollow = it
-                        )
-                    }
-                }
-
-                OutlinedButton(
-                    onClick = {},
-                    modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 100.dp),
+                items(
+                    items = (1..12).map { it }
                 ) {
-                    Text(
-                        text = "Explore more",
-                        color = MaterialTheme.colorScheme.onTertiary
+                    StatusTab(
+                        statusCard = UserStatusCard(
+                            userProfile = R.drawable.kevin_durant,
+                            statusImage = R.drawable.kevin_durant,
+                            isViewed = it % 3 == 0,
+                            name = "Kevin Durant"
+                        )
                     )
                 }
             }
-            //The settings dialog
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+            ) {
+                Text(
+                    text = "Channels",
+                    style = MaterialTheme.typography.titleMedium,
+                )
+                Spacer(Modifier.weight(1f))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.clickable {}
+                ) {
+                    Text(
+                        text = "Explore",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.onTertiary,
+                        modifier = Modifier.padding(end = 4.dp)
+                    )
+                    Icon(
+                        painter = painterResource(R.drawable.keyboard_arrow_right),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onTertiary
+                    )
+                }
+            }
+
+            Column {
+                generateTempMessages(4).forEach { channel ->
+                    MessageRow(
+                        row = channel
+                    )
+                }
+            }
+
+            Text(
+                text = "Find channels to follow",
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.secondary,
+                modifier = Modifier.padding(vertical = 16.dp, horizontal = 16.dp)
+            )
+
+            Column {
+                generateTempChannelsToFollow().forEach {
+                    ChannelToFollowRow(
+                        channelToFollow = it
+                    )
+                }
+            }
+
+            OutlinedButton(
+                onClick = {},
+                modifier = Modifier.padding(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 8.dp,
+                    bottom = 100.dp
+                ),
+            ) {
+                Text(
+                    text = "Explore more",
+                    color = MaterialTheme.colorScheme.onTertiary
+                )
+            }
         }
+        //The settings dialog
     }
 }
 
@@ -217,13 +170,13 @@ private fun UpdatesScreenPreview() {
     }
 }
 
-private fun generateTempChannelsToFollow(): List<ChannelToFollow>{
+private fun generateTempChannelsToFollow(): List<ChannelToFollow> {
     return (0 until 4).map {
         ChannelToFollow(
             image = R.drawable.kevin_durant,
             name = "WCB Wasafi",
             followers = "837k",
-            isVerified = it%3 == 0
+            isVerified = it % 3 == 0
         )
     }
 }

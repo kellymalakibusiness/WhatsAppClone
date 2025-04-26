@@ -4,7 +4,7 @@ package com.malakiapps.whatsappclone.android.screens
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed interface DashboardScreenContext
+data object DashboardScreenContext
 
 @Serializable
 object WelcomeLoginScreenContext
@@ -16,21 +16,11 @@ data class ProfileInfoScreenContext(
     val email: String,
 )
 
-
-@Serializable
-data object ChatScreenContext: DashboardScreenContext
-
 @Serializable
 data object ConversationScreenContext
 
 @Serializable
-data object UpdatesScreenContext: DashboardScreenContext
+data object SettingsScreenContext
 
 @Serializable
-data object CommunitiesScreenContext: DashboardScreenContext
-
-@Serializable
-data object CallScreenContext: DashboardScreenContext
-
-@Serializable
-data object SettingsScreenContext: DashboardScreenContext
+data object AccountSettingsScreenContext

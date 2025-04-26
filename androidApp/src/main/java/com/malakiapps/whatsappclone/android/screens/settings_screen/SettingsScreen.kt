@@ -1,6 +1,5 @@
 package com.malakiapps.whatsappclone.android.screens.settings_screen
 
-import android.accounts.Account
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -27,12 +26,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.malakiapps.whatsappclone.android.FakeWhatsAppTheme
-import com.malakiapps.whatsappclone.android.screens.dashboard.DashboardScreenType
 import com.malakiapps.whatsappclone.android.R
-import com.malakiapps.whatsappclone.android.screens.dashboard.FWhatsAppBottomAppBar
 
 @Composable
-fun SettingsScreen(userDetailsInfo: UserDetailsInfo, onNavigateBack: () -> Unit, modifier: Modifier = Modifier) {
+fun SettingsScreen(userDetailsInfo: UserDetailsInfo, onNavigateBack: () -> Unit, onAccountSettingsClick: () -> Unit, modifier: Modifier = Modifier) {
     Scaffold(
         modifier = modifier,
         topBar = {
@@ -54,7 +51,8 @@ fun SettingsScreen(userDetailsInfo: UserDetailsInfo, onNavigateBack: () -> Unit,
             SettingsRowOption(
                 icon = R.drawable.outline_key,
                 name = "Account",
-                description = "Security notifications, log out"
+                description = "Security notifications, log out",
+                onClick = onAccountSettingsClick
             )
 
             SettingsRowOption(
@@ -190,6 +188,7 @@ private fun SettingsRowOption(icon: Int, name: String, description: String?, onC
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         modifier = Modifier
+            .fillMaxWidth()
             .clickable{
                 onClick()
             }
@@ -233,6 +232,7 @@ private fun SettingsScreenPrev() {
                 about = "Win Some, Lose Some"
             ),
             onNavigateBack = {},
+            onAccountSettingsClick = {}
         )
     }
 }

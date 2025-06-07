@@ -1,5 +1,5 @@
 [versions]
-agp = "8.8.0-rc01"
+agp = "8.10.1"
 kotlin = "2.0.0"
 compose = "1.5.4"
 compose-material3 = "1.1.2"
@@ -15,8 +15,11 @@ googleService = "4.4.2"
 firebaseBom = "33.9.0"
 firebaseAuth = "23.2.0"
 credentialsVersion = "1.5.0"
-roomDBVersion = "2.7.1"
-kspVersion = "2.0.21-1.0.27"
+junit4 = "4.13.2"
+test-runner = "1.6.2"#"4.13.2"
+firebaseAuthKtx = "23.2.1"
+kspVersion = "2.0.0-1.0.24"
+room = "2.7.1"
 
 [libraries]
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
@@ -26,6 +29,12 @@ compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = 
 compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "compose" }
 compose-foundation = { module = "androidx.compose.foundation:foundation", version.ref = "compose" }
 compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "compose-material3" }
+
+#Testing
+androidx-test-runner = { module = "androidx.test:runner", version.ref = "test-runner" }
+junit4 = { module = "junit:junit", version.ref = "junit4" }
+compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4", version.ref = "compose" }
+compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", version.ref = "compose" }
 
 
 #DI & viewmodel
@@ -50,16 +59,17 @@ credentials = { module = "androidx.credentials:credentials", version.ref = "cred
 credentials-play-services = { module = "androidx.credentials:credentials-play-services-auth", version.ref = "credentialsVersion"  }
 firebase-identity-googleid = { module = "com.google.android.libraries.identity.googleid:googleid", version = "1.1.1" }
 firebase-auth = { group = "com.google.firebase", name = "firebase-auth", version.ref = "firebaseAuth" }
+firebase-firestore = { group = "com.google.firebase", name = "firebase-firestore" }
 
 #Android - Coil Compose
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-okhttp = { module = "io.coil-kt.coil3:coil-network-okhttp", version.ref = "coil"}
+firebase-auth-ktx = { group = "com.google.firebase", name = "firebase-auth-ktx", version.ref = "firebaseAuthKtx" }
 
-
-#RoomDB
-room-runtime = { module = "androidx.room:room-runtime", version.ref = "roomDBVersion" }
-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomDBVersion" }
-room-roomktx = {module = "androidx.room:room-ktx", version.ref = "roomDBVersion"}
+#Room
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+room-roomKtx = { module = "androidx.room:room-ktx", version.ref = "room" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
 
 
 [plugins]
@@ -71,6 +81,6 @@ kotlinCocoapods = { id = "org.jetbrains.kotlin.native.cocoapods", version.ref = 
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 
-google-services = { id = "com.google.gms.google-services", version .ref = "googleService" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "kspVersion" }
 
-ksp = { id = "com.google.devtools.ksp", version.ref = "kspVersion"}
+google-services = { id = "com.google.gms.google-services", version .ref = "googleService" }

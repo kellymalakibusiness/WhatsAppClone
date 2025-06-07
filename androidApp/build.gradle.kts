@@ -1,4 +1,3 @@
-import com.android.build.gradle.internal.cxx.configure.gradleLocalProperties
 
 plugins {
     alias(libs.plugins.androidApplication)
@@ -6,7 +5,6 @@ plugins {
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.google.services)
-    alias(libs.plugins.ksp)
 }
 
 android {
@@ -18,6 +16,7 @@ android {
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures {
         compose = true
@@ -55,10 +54,14 @@ dependencies {
 
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
+    implementation(libs.firebase.auth.ktx)
+
+    testImplementation(libs.junit4)
+
+    androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.junit4)
+    androidTestImplementation(libs.compose.ui.test.junit4)
 
     debugImplementation(libs.compose.ui.tooling)
-
-    implementation(libs.room.runtime)
-    implementation(libs.room.roomktx)
-    ksp(libs.room.compiler)
+    debugImplementation(libs.compose.ui.test.manifest)
 }

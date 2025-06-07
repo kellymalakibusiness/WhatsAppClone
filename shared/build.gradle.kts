@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.ksp)
 }
 
 val webClientId = gradleLocalProperties(rootDir, providers).getProperty("web_client_id", "{add web-client-id from firebase to make authentication work}")
@@ -60,10 +61,15 @@ android {
 
 dependencies {
     implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
     implementation(libs.credentials)
     implementation(libs.credentials.play.services)
     implementation(libs.firebase.identity.googleid)
+
+    implementation(libs.room.runtime)
+    implementation(libs.room.roomKtx)
+    ksp(libs.room.compiler)
 }

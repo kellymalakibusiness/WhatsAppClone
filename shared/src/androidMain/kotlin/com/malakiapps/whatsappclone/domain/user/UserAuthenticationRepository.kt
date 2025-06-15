@@ -2,8 +2,8 @@ package com.malakiapps.whatsappclone.domain.user
 
 import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
-import com.malakiapps.whatsappclone.common.AuthenticationError
-import com.malakiapps.whatsappclone.common.Response
+import com.malakiapps.whatsappclone.domain.common.AuthenticationError
+import com.malakiapps.whatsappclone.domain.common.Response
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.callbackFlow
 actual interface UserAuthenticationRepository {
     val firebaseAuth: FirebaseAuth
     fun initializeCredentialManager(context: Context)
+
+    actual fun getUser(): AuthenticationUser?
 
     actual suspend fun signIn(): Response<AuthenticationUser, AuthenticationError>
 
@@ -20,7 +22,7 @@ actual interface UserAuthenticationRepository {
 
     actual suspend fun updateProfile(name: String?): Boolean
 
-    actual fun getCurrentUser(): Flow<AuthenticationUser?>
+    actual fun getUserState(): Flow<AuthenticationUser?>
 }
 
 fun UserAuthenticationRepository.getCurrentUserImplementation(): Flow<AuthenticationUser?> =

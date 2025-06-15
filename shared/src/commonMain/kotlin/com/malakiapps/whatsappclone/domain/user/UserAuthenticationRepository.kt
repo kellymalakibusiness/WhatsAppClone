@@ -1,10 +1,12 @@
 package com.malakiapps.whatsappclone.domain.user
 
-import com.malakiapps.whatsappclone.common.AuthenticationError
-import com.malakiapps.whatsappclone.common.Response
+import com.malakiapps.whatsappclone.domain.common.AuthenticationError
+import com.malakiapps.whatsappclone.domain.common.Response
 import kotlinx.coroutines.flow.Flow
 
 expect interface UserAuthenticationRepository {
+
+    fun getUser(): AuthenticationUser?
 
     suspend fun signIn(): Response<AuthenticationUser, AuthenticationError>
 
@@ -14,5 +16,5 @@ expect interface UserAuthenticationRepository {
 
     suspend fun updateProfile(name: String?): Boolean
 
-    fun getCurrentUser(): Flow<AuthenticationUser?>
+    fun getUserState(): Flow<AuthenticationUser?>
 }

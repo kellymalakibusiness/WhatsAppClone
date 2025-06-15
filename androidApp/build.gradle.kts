@@ -9,7 +9,7 @@ plugins {
 
 android {
     namespace = "com.malakiapps.whatsappclone.android"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         applicationId = "com.malakiapps.whatsappclone.android"
         minSdk = 24
@@ -28,7 +28,7 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            isMinifyEnabled = false 
             signingConfig = signingConfigs.getByName("debug")
         }
     }

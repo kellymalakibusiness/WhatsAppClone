@@ -1,10 +1,10 @@
 package com.malakiapps.whatsappclone.domain.user
 
-import com.malakiapps.whatsappclone.common.CreateUserError
-import com.malakiapps.whatsappclone.common.DeleteUserError
-import com.malakiapps.whatsappclone.common.GetUserError
-import com.malakiapps.whatsappclone.common.Response
-import com.malakiapps.whatsappclone.common.UpdateUserError
+import com.malakiapps.whatsappclone.domain.common.CreateUserError
+import com.malakiapps.whatsappclone.domain.common.DeleteUserError
+import com.malakiapps.whatsappclone.domain.common.GetUserError
+import com.malakiapps.whatsappclone.domain.common.Response
+import com.malakiapps.whatsappclone.domain.common.UpdateUserError
 
 expect interface UserStorageRepository {
     suspend fun createUser(email: String, authenticationUser: AuthenticationUser): Response<User, CreateUserError>

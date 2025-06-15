@@ -47,7 +47,7 @@ kotlin {
 
 android {
     namespace = "com.malakiapps.whatsappclone"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         minSdk = 24
         resValue(type = "string", name = "web_client_id", value = webClientId)

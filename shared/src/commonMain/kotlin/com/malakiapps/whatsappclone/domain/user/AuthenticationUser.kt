@@ -6,7 +6,7 @@ expect class AuthenticationUser {
     val type: UserType
 }
 
-interface AuthenticationUserState
+sealed interface AuthenticationUserState
 
 data object NotInitialized: AuthenticationUserState
 

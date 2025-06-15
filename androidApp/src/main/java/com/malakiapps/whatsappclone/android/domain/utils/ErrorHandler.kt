@@ -1,12 +1,13 @@
 package com.malakiapps.whatsappclone.android.domain.utils
 
-import com.malakiapps.whatsappclone.common.AuthenticationException
-import com.malakiapps.whatsappclone.common.AuthenticationUserNotFound
-import com.malakiapps.whatsappclone.common.UnknownError
-import com.malakiapps.whatsappclone.common.UpdateUserException
-import com.malakiapps.whatsappclone.common.UserNotFound
-import com.malakiapps.whatsappclone.common.UserParsingError
-import com.malakiapps.whatsappclone.common.Error
+import com.malakiapps.whatsappclone.domain.common.AuthenticationException
+import com.malakiapps.whatsappclone.domain.common.AuthenticationUserNotFound
+import com.malakiapps.whatsappclone.domain.common.EmailNotFound
+import com.malakiapps.whatsappclone.domain.common.UnknownError
+import com.malakiapps.whatsappclone.domain.common.UpdateUserException
+import com.malakiapps.whatsappclone.domain.common.UserNotFound
+import com.malakiapps.whatsappclone.domain.common.UserParsingError
+import com.malakiapps.whatsappclone.domain.common.Error
 
 fun Error.getErrorMessageObject(): ScreenError {
     return when(this){
@@ -45,6 +46,13 @@ fun Error.getErrorMessageObject(): ScreenError {
             ScreenError(
                 message = "An error occurred while updating User Profile.",
                 dismissButton = "Close"
+            )
+        }
+
+        EmailNotFound -> {
+            ScreenError(
+                message = "User was authenticated but email wasn't found. Please try again",
+                dismissButton = "Okay"
             )
         }
     }

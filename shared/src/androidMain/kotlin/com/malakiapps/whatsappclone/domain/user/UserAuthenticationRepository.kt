@@ -2,9 +2,11 @@ package com.malakiapps.whatsappclone.domain.user
 
 import android.content.Context
 import com.google.firebase.auth.FirebaseAuth
+import com.malakiapps.whatsappclone.data.common.generateBase64ImageFromUrlUri
 import com.malakiapps.whatsappclone.domain.common.AuthenticationError
 import com.malakiapps.whatsappclone.domain.common.Response
 import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
@@ -14,7 +16,7 @@ actual interface UserAuthenticationRepository {
 
     actual fun getUser(): AuthenticationUser?
 
-    actual suspend fun signIn(): Response<AuthenticationUser, AuthenticationError>
+    actual suspend fun signIn(): Response<SignInResponse, AuthenticationError>
 
     actual suspend fun anonymousSignIn(): Response<AuthenticationUser, AuthenticationError>
 
@@ -36,7 +38,6 @@ fun UserAuthenticationRepository.getCurrentUserImplementation(): Flow<Authentica
                     }else {
                         null
                     },
-                    initialImage = currentUser.photoUrl,
                     type = UserType.REAL
                 )
             }

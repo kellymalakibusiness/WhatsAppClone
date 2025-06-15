@@ -25,9 +25,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,13 +45,40 @@ import coil3.compose.AsyncImage
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.compose.common.NoProfileImage
+import com.malakiapps.whatsappclone.android.presentation.compose.common.base64ToUri
+import com.malakiapps.whatsappclone.domain.user.User
+import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileInfoScreen(
-    isUserItemAvailable: Boolean,
+    userState: User?,
     initialName: String,
-    initialImage: Uri?,
-    onStartClick: (String, Uri?) -> Unit) {
+    initialBase64Image: String?,
+    convertUriToBase64Image: suspend (Uri) -> String?,
+    onStartClick: (String, String?) -> Unit) {
+    val scope = rememberCoroutineScope()
+    var nameValue by remember { mutableStateOf(initialName) }
+    var selectedImage by remember { mutableStateOf(initialBase64Image) }
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let { imageUri ->
+                scope.launch {
+                    selectedImage = convertUriToBase64Image(imageUri)
+                }
+            }
+        }
+    )
+
+    LaunchedEffect(userState) {
+        if(userState?.image != null){
+            selectedImage = userState.image
+        }
+        if(userState?.name != null){
+            nameValue = userState.name
+        }
+    }
+
     Scaffold(
         topBar = {
             Row(
@@ -67,16 +96,6 @@ fun ProfileInfoScreen(
             }
         }
     ) { paddingValues ->
-        var nameValue by remember { mutableStateOf(initialName) }
-        var selectedImage by remember { mutableStateOf(initialImage) }
-        val photoPickerLauncher = rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.PickVisualMedia(),
-            onResult = { uri ->
-                uri?.let {
-                    selectedImage = it
-                }
-            }
-        )
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize().padding(paddingValues).imePadding()
@@ -106,27 +125,9 @@ fun ProfileInfoScreen(
                             }
                             .size(120.dp)
                     )
-                    /*Icon(
-                        painter = painterResource(R.drawable.baseline_person_24),
-                        contentDescription = "Add image icon",
-                        tint = MaterialTheme.colorScheme.secondary.copy(alpha = 0.8f),
-                        modifier = Modifier
-                            .padding(top = 32.dp)
-                            .clickable {
-                                photoPickerLauncher.launch(
-                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
-                                )
-                            }
-                            .size(120.dp)
-                            .clip(CircleShape)
-                            .background(
-                                color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f)
-                            )
-                            .padding(32.dp)
-                    )*/
                 } else {
                     AsyncImage(
-                        model = selectedImage,
+                        model = selectedImage?.base64ToUri(),
                         contentDescription = "User Profile picture",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -177,7 +178,7 @@ fun ProfileInfoScreen(
                         //TODO("Show error dialog with required name")
                     }
                 },
-                enabled = isUserItemAvailable,
+                enabled = userState != null,
                 modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
                 Text(
@@ -197,9 +198,10 @@ private fun ProfileInfoScreenPrev() {
     FakeWhatsAppTheme {
         ProfileInfoScreen(
             initialName = "Kelly",
-            initialImage = null,
+            initialBase64Image = null,
+            convertUriToBase64Image = { _ -> "" },
             onStartClick = {_, _ -> },
-            isUserItemAvailable = true
+            userState = null
         )
     }
 }

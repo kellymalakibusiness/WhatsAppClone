@@ -8,7 +8,7 @@ expect interface UserAuthenticationRepository {
 
     fun getUser(): AuthenticationUser?
 
-    suspend fun signIn(): Response<AuthenticationUser, AuthenticationError>
+    suspend fun signIn(): Response<SignInResponse, AuthenticationError>
 
     suspend fun anonymousSignIn(): Response<AuthenticationUser, AuthenticationError>
 

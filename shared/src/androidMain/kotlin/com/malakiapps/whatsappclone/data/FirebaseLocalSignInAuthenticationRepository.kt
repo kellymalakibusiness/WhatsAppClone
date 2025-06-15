@@ -3,18 +3,19 @@ package com.malakiapps.whatsappclone.data
 import android.content.Context
 import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.auth.auth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.malakiapps.whatsappclone.domain.common.AuthenticationError
 import com.malakiapps.whatsappclone.domain.common.Response
-import com.malakiapps.whatsappclone.domain.user.AuthenticationUser
 import com.malakiapps.whatsappclone.domain.user.UserAuthenticationRepository
 import com.malakiapps.whatsappclone.domain.user.UserType
 import com.malakiapps.whatsappclone.domain.user.getCurrentUserImplementation
 import com.malakiapps.whatsappclone.domain.common.handleOnCompleteSignIn
 import com.malakiapps.whatsappclone.domain.common.handleOnFailureResponse
+import com.malakiapps.whatsappclone.domain.user.AuthenticationUser
+import com.malakiapps.whatsappclone.domain.user.SignInResponse
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.suspendCancellableCoroutine
 
@@ -26,23 +27,25 @@ class FirebaseLocalSignInAuthenticationRepository : UserAuthenticationRepository
         return firebaseAuth.currentUser?.let { currentUser ->
             AuthenticationUser(
                 name = currentUser.displayName ?: "",
-                email = if(currentUser.email?.isNotBlank() == true){
+                email = if (currentUser.email?.isNotBlank() == true) {
                     currentUser.email
-                }else {
+                } else {
                     null
                 },
-                initialImage = currentUser.photoUrl,
                 type = UserType.REAL
             )
         }
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun signIn(): Response<AuthenticationUser, AuthenticationError> {
+    override suspend fun signIn(): Response<SignInResponse, AuthenticationError> {
         return suspendCancellableCoroutine { cont ->
             firebaseAuth.createUserWithEmailAndPassword("kellySerdadu@gmail.com", "boobies123")
                 .addOnCompleteListener { task ->
-                    cont.handleOnCompleteSignIn(task)
+                    cont.handleOnCompleteSignIn(
+                        task = task,
+                        initialBase64Image = null
+                        )
                 }
                 .addOnFailureListener { error ->
                     cont.handleOnFailureResponse(error)
@@ -58,7 +61,6 @@ class FirebaseLocalSignInAuthenticationRepository : UserAuthenticationRepository
                     val authenticationUser = AuthenticationUser(
                         name = "Anonymous User",
                         email = null,
-                        initialImage = null,
                         type = UserType.ANONYMOUS
                     )
                     cont.resume(Response.Success(authenticationUser), null)

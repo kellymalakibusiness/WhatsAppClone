@@ -19,7 +19,8 @@ data class UpdatingEvent(
 ): Event
 
 data class NavigateToProfileInfo(
-    val authenticationUser: AuthenticationUser
+    val authenticationUser: AuthenticationUser,
+    val initialImage: String?
 ): AuthenticationEvent, NavigationEvent
 
 data class NavigateToDashboard(

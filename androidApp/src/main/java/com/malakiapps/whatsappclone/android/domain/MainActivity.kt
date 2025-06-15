@@ -50,7 +50,7 @@ class MainActivity : ComponentActivity() {
                 //Listen for logout
                 LaunchedEffect(userAuthState) {
                     //If not initialized, the initial check hasn't complete yet
-                    if (userAuthState is Initialized){
+                    if (userAuthState is Initialized) {
                         (userAuthState as Initialized).value?.let {
                             //User logged in
                             //Prepare all view models
@@ -65,7 +65,10 @@ class MainActivity : ComponentActivity() {
                 }
 
                 ComposeApp(
-                    eventChannel = merge(authenticationViewModel.eventsChannelFlow, userViewModel.eventsChannelFlow),
+                    eventChannel = merge(
+                        authenticationViewModel.eventsChannelFlow,
+                        userViewModel.eventsChannelFlow
+                    ),
                     userState = userState,
                     dashboardOnSignInWithGoogleClick = {
                         authenticationViewModel.signInWithGoogle()
@@ -73,25 +76,21 @@ class MainActivity : ComponentActivity() {
                     dashboardOnContinueWithoutSignInClick = {
                         authenticationViewModel.anonymousSignIn()
                     },
+                    convertUriToBase64Image = { imageUri ->
+                        authenticationViewModel.setLoading(true)
+                        val base64Image = compressImageToBase64(
+                            image = imageUri,
+                            contentResolver = contentResolver
+                        )
+                        authenticationViewModel.setLoading(false)
+                        base64Image
+                    },
                     profileOnContinueClick = { email, name, image ->
-                        lifecycle.coroutineScope.launch {
-                            authenticationViewModel.setLoading(true)
-                            val base64Image = image?.let { providedImage ->
-                                if(!providedImage.isUriAUrl()){
-                                    compressImageToBase64(providedImage)
-                                } else {
-                                    generateBase64ImageFromUrlUri(
-                                        uri = image
-                                    )
-                                }
-                            }
-                            authenticationViewModel.setLoading(false)
-                            userViewModel.initialUpdateUserProfile(
-                                name = name,
-                                image = base64Image,
-                                email = email
-                            )
-                        }
+                        userViewModel.initialUpdateUserProfile(
+                            name = name,
+                            image = image,
+                            email = email
+                        )
                     },
                     onLogOut = {
                         authenticationViewModel.logOut()
@@ -106,7 +105,10 @@ class MainActivity : ComponentActivity() {
                                 //Update user profile picture
                                 lifecycle.coroutineScope.launch {
                                     authenticationViewModel.setLoading(true)
-                                    val base64Image = compressImageToBase64(userUpdate.image)
+                                    val base64Image = compressImageToBase64(
+                                        image = userUpdate.image,
+                                        contentResolver = contentResolver
+                                    )
                                     authenticationViewModel.setLoading(false)
                                     userViewModel.updateUserImage(
                                         image = base64Image,

@@ -14,9 +14,9 @@ import com.malakiapps.whatsappclone.domain.use_cases.GetUserAuthenticationStateU
 import com.malakiapps.whatsappclone.domain.use_cases.InitialAuthenticationCheckUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.LogoutUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.SignInUseCase
-import com.malakiapps.whatsappclone.domain.user.AuthenticationUser
 import com.malakiapps.whatsappclone.domain.user.AuthenticationUserState
 import com.malakiapps.whatsappclone.domain.user.NotInitialized
+import com.malakiapps.whatsappclone.domain.user.SignInResponse
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -100,7 +100,7 @@ class AuthenticationViewModel(
         }
     }
 
-    private suspend fun signIn(repositoryCall: suspend () -> Response<AuthenticationUser, Error>) {
+    private suspend fun signIn(repositoryCall: suspend () -> Response<SignInResponse, Error>) {
         _eventChannel.send(LoadingEvent(true))
 
         val useCaseResponse = repositoryCall()
@@ -111,7 +111,8 @@ class AuthenticationViewModel(
             success = {
                 _eventChannel.send(
                     NavigateToProfileInfo(
-                        authenticationUser = it
+                        authenticationUser = it.authenticationUser,
+                        initialImage = it.initialBase64ProfileImage
                     )
                 )
             },

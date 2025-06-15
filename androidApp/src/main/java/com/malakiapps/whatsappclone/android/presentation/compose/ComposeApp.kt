@@ -13,7 +13,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.repeatOnLifecycle
@@ -75,7 +74,8 @@ fun ComposeApp(
     eventChannel: Flow<Event>,
     dashboardOnSignInWithGoogleClick: () -> Unit,
     dashboardOnContinueWithoutSignInClick: () -> Unit,
-    profileOnContinueClick: (String?, String, Uri?) -> Unit,
+    convertUriToBase64Image: suspend (Uri) -> String?,
+    profileOnContinueClick: (String?, String, String?) -> Unit,
     onLogOut: () -> Unit,
     onUserUpdate: (UserUpdateType) -> Unit
 ) {
@@ -105,7 +105,7 @@ fun ComposeApp(
                             ProfileInfoScreenContext(
                                 email = event.authenticationUser.email,
                                 name = event.authenticationUser.name,
-                                image = event.authenticationUser.initialImage?.toString()
+                                image = event.initialImage
                             )
                         )
                     }
@@ -164,9 +164,10 @@ fun ComposeApp(
                 val data = requireNotNull(backStackEntry.toRoute<ProfileInfoScreenContext>())
 
                 ProfileInfoScreen(
-                    isUserItemAvailable = userState != null,
+                    userState = userState,
                     initialName = data.name,
-                    initialImage = data.image?.toUri(),
+                    initialBase64Image = data.image,
+                    convertUriToBase64Image = convertUriToBase64Image,
                     onStartClick = { name, image ->
                         profileOnContinueClick(data.email, name, image)
                     }

@@ -10,33 +10,44 @@ class OnLoginUpdateAccountUseCase(
     val userStorageRepository: UserStorageRepository,
     val anonymousUserStorageRepository: UserStorageRepository,
 ) {
-    suspend operator fun invoke(email: String?, name: String? = null, image: String? = null): Response<User, Error> {
-        val nameUpdate = name?.let {
-            Pair(it, true)
-        } ?: Pair("", false)
+    suspend operator fun invoke(currentUser: User?, email: String?, name: String, image: String?): Response<User, Error> {
+        //Check if the user updated anything before making the update call
+        return if(currentUser?.name == name && currentUser.image == image){
+            //Same user just logged in
+            Response.Success(data = currentUser)
+        } else {
+            //Something was updated, we make the update call
+            val nameUpdate = if(name != currentUser?.name){
+                Pair(name, true)
+            } else {
+                Pair("", false)
+            }
 
-        val imageUpdate = image?.let {
-            Pair(it, true)
-        } ?: Pair("", false)
+            val imageUpdate = if(image != currentUser?.image){
+                Pair(image, true)
+            } else {
+                Pair("", false)
+            }
 
-        return email?.let { existingEmail ->
-            //If email exists, then the user authenticated. Use primary storage repository
-            userStorageRepository.updateUser(
-                userUpdate = UserUpdate(
-                    email = existingEmail,
-                    name = nameUpdate,
-                    image = imageUpdate
+            email?.let { existingEmail ->
+                //If email exists, then the user authenticated. Use primary storage repository
+                userStorageRepository.updateUser(
+                    userUpdate = UserUpdate(
+                        email = existingEmail,
+                        name = nameUpdate,
+                        image = imageUpdate
+                    )
                 )
-            )
-        } ?: run {
-            //If no email, use anonymous repository
-            anonymousUserStorageRepository.updateUser(
-                userUpdate = UserUpdate(
-                    email = "anonymous",
-                    name = nameUpdate,
-                    image = imageUpdate
+            } ?: run {
+                //If no email, use anonymous repository
+                anonymousUserStorageRepository.updateUser(
+                    userUpdate = UserUpdate(
+                        email = "anonymous",
+                        name = nameUpdate,
+                        image = imageUpdate
+                    )
                 )
-            )
+            }
         }
     }
 }

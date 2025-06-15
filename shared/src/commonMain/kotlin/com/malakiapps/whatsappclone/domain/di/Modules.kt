@@ -9,6 +9,8 @@ import com.malakiapps.whatsappclone.domain.use_cases.OnLoginUpdateAccountUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.SignInUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.UpdateUserUseCase
 import com.malakiapps.whatsappclone.presentation.view_models.AuthenticationViewModel
+import com.malakiapps.whatsappclone.presentation.view_models.ContactsViewModel
+import com.malakiapps.whatsappclone.presentation.view_models.MessagesViewModel
 import com.malakiapps.whatsappclone.presentation.view_models.UserViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
@@ -74,4 +76,6 @@ val sharedModule = module {
     //View models
     singleOf(::AuthenticationViewModel)
     singleOf(::UserViewModel)
+    singleOf(::ContactsViewModel)
+    singleOf(::MessagesViewModel)
 }

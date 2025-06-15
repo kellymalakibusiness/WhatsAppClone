@@ -66,10 +66,11 @@ class UserViewModel(
         }
     }
 
-    fun initialUpdateUserProfile(email: String?, name: String? = null, image: String? = null) {
+    fun initialUpdateUserProfile(email: String?, name: String, image: String?) {
         viewModelScope.launch {
             _eventChannel.send(UpdatingEvent(true))
             val useCaseResponse = onLoginUpdateAccountUseCase(
+                currentUser = userState.value,
                 email = email,
                 name = name,
                 image = image

@@ -1,13 +1,13 @@
 package com.malakiapps.whatsappclone.domain.user
 
-expect class User {
-    val name: String
-    val email: String
-    val about: String
-    val image: String?
-    val contacts: List<String>
+data class User (
+    val name: String,
+    val email: String,
+    val about: String,
+    val image: String?,
+    val contacts: List<String>,
     val type: UserType
-}
+    )
 
 enum class UserType {
     REAL,

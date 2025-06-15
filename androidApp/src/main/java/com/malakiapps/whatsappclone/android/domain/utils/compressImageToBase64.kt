@@ -1,5 +1,6 @@
 package com.malakiapps.whatsappclone.android.domain.utils
 
+import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -9,7 +10,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
-suspend fun Context.compressImageToBase64(image: Uri): String? = withContext(Dispatchers.IO){
+suspend fun compressImageToBase64(image: Uri, contentResolver: ContentResolver): String? = withContext(Dispatchers.IO){
     val maxSizeInKb = 60
 
     val stream = contentResolver.openInputStream(image) ?: return@withContext null

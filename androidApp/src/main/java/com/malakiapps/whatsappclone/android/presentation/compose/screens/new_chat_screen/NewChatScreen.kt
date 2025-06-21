@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.compose.common.TopAppBarButton
+import com.malakiapps.whatsappclone.domain.user.Name
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -72,7 +73,7 @@ fun NewChatScreen(contacts: List<String>, onBackPress: () -> Unit, modifier: Mod
             item {
                 ContactRow(
                     image = null,
-                    name = "Kelly Malaki (You)",
+                    name = Name("Kelly Malaki (You)"),
                     about = "Message yourself",
                     onClick = {}
                 )
@@ -81,7 +82,7 @@ fun NewChatScreen(contacts: List<String>, onBackPress: () -> Unit, modifier: Mod
             item {
                 ContactRow(
                     image = null,
-                    name = "Batman",
+                    name = Name("Batman"),
                     about = "Hi, I'm batman",
                     onClick = {}
                 )

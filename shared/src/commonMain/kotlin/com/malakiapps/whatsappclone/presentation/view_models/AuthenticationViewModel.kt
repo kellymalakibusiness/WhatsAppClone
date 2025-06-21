@@ -10,11 +10,11 @@ import com.malakiapps.whatsappclone.domain.common.NavigateToProfileInfo
 import com.malakiapps.whatsappclone.domain.common.OnError
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.onEachSuspending
-import com.malakiapps.whatsappclone.domain.use_cases.GetUserAuthenticationStateUseCase
+import com.malakiapps.whatsappclone.domain.use_cases.GetAuthenticationContextStateUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.InitialAuthenticationCheckUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.LogoutUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.SignInUseCase
-import com.malakiapps.whatsappclone.domain.user.AuthenticationUserState
+import com.malakiapps.whatsappclone.domain.user.AuthenticationContextState
 import com.malakiapps.whatsappclone.domain.user.NotInitialized
 import com.malakiapps.whatsappclone.domain.user.SignInResponse
 import kotlinx.coroutines.channels.Channel
@@ -28,12 +28,12 @@ class AuthenticationViewModel(
     val signInUseCase: SignInUseCase,
     val logoutUseCase: LogoutUseCase,
     val initialAuthenticationCheckUseCase: InitialAuthenticationCheckUseCase,
-    getUserAuthenticationStateUseCase: GetUserAuthenticationStateUseCase,
+    getAuthenticationContextStateUseCase: GetAuthenticationContextStateUseCase,
 ): ViewModel() {
     private val _eventChannel = Channel<Event>()
     val eventsChannelFlow = _eventChannel.receiveAsFlow()
 
-    val userAuthenticationState: StateFlow<AuthenticationUserState> = getUserAuthenticationStateUseCase()
+    val authenticationContextState: StateFlow<AuthenticationContextState> = getAuthenticationContextStateUseCase()
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
@@ -44,7 +44,7 @@ class AuthenticationViewModel(
         //First lets check if the user is authenticated
         viewModelScope.launch {
             val useCaseResponse = initialAuthenticationCheckUseCase(
-                userAuthenticationState = userAuthenticationState
+                userAuthenticationState = authenticationContextState
             )
 
             //React to the result from use case
@@ -111,7 +111,7 @@ class AuthenticationViewModel(
             success = {
                 _eventChannel.send(
                     NavigateToProfileInfo(
-                        authenticationUser = it.authenticationUser,
+                        authenticationContext = it.authenticationContext,
                         initialImage = it.initialBase64ProfileImage
                     )
                 )

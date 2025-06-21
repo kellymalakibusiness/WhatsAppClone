@@ -41,6 +41,8 @@ import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.compose.common.NoProfileImage
 import com.malakiapps.whatsappclone.android.presentation.compose.common.base64ToUri
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.UserDetailsInfo
+import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Name
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -79,7 +81,7 @@ fun SharedTransitionScope.SettingsProfileScreen(
             ) {
                 if (userDetailsInfo.image != null) {
                     AsyncImage(
-                        model = userDetailsInfo.image.base64ToUri(),
+                        model = userDetailsInfo.image.base64ToUri().value,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = sharedElementModifier
@@ -121,7 +123,7 @@ fun SharedTransitionScope.SettingsProfileScreen(
                 Spacer(Modifier.height(16.dp))
                 UserElementRow(
                     userElement = UserElement.NAME,
-                    value = userDetailsInfo.name,
+                    value = userDetailsInfo.name.value,
                     onClick = onNamePress
                 )
                 UserElementRow(
@@ -131,7 +133,7 @@ fun SharedTransitionScope.SettingsProfileScreen(
                 )
                 UserElementRow(
                     userElement = UserElement.EMAIL,
-                    value = userDetailsInfo.email,
+                    value = userDetailsInfo.email.value,
                     onClick = {},
                     isClickable = false
                 )
@@ -244,8 +246,8 @@ private fun ProfileScreenPrev() {
                 SettingsProfileScreen(
                     userDetailsInfo = UserDetailsInfo(
                         image = null,
-                        name = "Kelly",
-                        email = "one@two.com",
+                        name = Name("Kelly"),
+                        email = Email("one@two.com"),
                         about = "Hey there! I'm using WhatsApp"
                     ),
                     sharedElementModifier = Modifier,

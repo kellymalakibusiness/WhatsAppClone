@@ -12,10 +12,11 @@ import com.malakiapps.whatsappclone.domain.user.UserType
 import com.malakiapps.whatsappclone.domain.user.getCurrentUserImplementation
 import com.malakiapps.whatsappclone.domain.common.handleOnCompleteSignIn
 import com.malakiapps.whatsappclone.domain.common.handleOnFailureResponse
-import com.malakiapps.whatsappclone.domain.user.AuthenticationUser
+import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
+import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Name
 import com.malakiapps.whatsappclone.domain.user.SignInResponse
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.suspendCancellableCoroutine
 
@@ -23,12 +24,12 @@ class FirebaseLocalSignInAuthenticationRepository : UserAuthenticationRepository
     override val firebaseAuth: FirebaseAuth = Firebase.auth
     override fun initializeCredentialManager(context: Context) = Unit
 
-    override fun getUser(): AuthenticationUser? {
+    override fun getAuthContext(): AuthenticationContext? {
         return firebaseAuth.currentUser?.let { currentUser ->
-            AuthenticationUser(
-                name = currentUser.displayName ?: "",
+            AuthenticationContext(
+                name = Name(currentUser.displayName ?: ""),
                 email = if (currentUser.email?.isNotBlank() == true) {
-                    currentUser.email
+                    currentUser.email?.let { Email(it) }
                 } else {
                     null
                 },
@@ -54,16 +55,16 @@ class FirebaseLocalSignInAuthenticationRepository : UserAuthenticationRepository
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun anonymousSignIn(): Response<AuthenticationUser, AuthenticationError> {
+    override suspend fun anonymousSignIn(): Response<AuthenticationContext, AuthenticationError> {
         return suspendCancellableCoroutine { cont ->
             firebaseAuth.signInAnonymously()
                 .addOnCompleteListener { task ->
-                    val authenticationUser = AuthenticationUser(
-                        name = "Anonymous User",
+                    val authenticationContext = AuthenticationContext(
+                        name = Name("Anonymous User"),
                         email = null,
                         type = UserType.ANONYMOUS
                     )
-                    cont.resume(Response.Success(authenticationUser), null)
+                    cont.resume(Response.Success(authenticationContext), null)
                 }
                 .addOnFailureListener { error ->
                     cont.handleOnFailureResponse(error)
@@ -97,5 +98,5 @@ class FirebaseLocalSignInAuthenticationRepository : UserAuthenticationRepository
         }
     }
 
-    override fun getUserState(): Flow<AuthenticationUser?> = getCurrentUserImplementation()
+    override fun getAuthContextState(): Flow<AuthenticationContext?> = getCurrentUserImplementation()
 }

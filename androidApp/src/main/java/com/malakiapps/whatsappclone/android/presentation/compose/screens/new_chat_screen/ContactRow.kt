@@ -27,9 +27,11 @@ import coil3.compose.AsyncImage
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.presentation.compose.common.NoProfileImage
 import com.malakiapps.whatsappclone.android.presentation.compose.common.base64ToUri
+import com.malakiapps.whatsappclone.domain.user.Image
+import com.malakiapps.whatsappclone.domain.user.Name
 
 @Composable
-fun ContactRow(image: String?, name: String, about: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun ContactRow(image: Image?, name: Name, about: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier
             .clickable{
@@ -59,7 +61,7 @@ fun ContactRow(image: String?, name: String, about: String, onClick: () -> Unit,
             modifier = Modifier.padding(top = 4.dp, bottom = 4.dp, start = 16.dp)
         ) {
             Text(
-                text = name,
+                text = name.value,
                 style = MaterialTheme.typography.bodyMedium
             )
             Text(
@@ -79,7 +81,7 @@ private fun ContactRowPrev() {
         Surface {
             ContactRow(
                 image = null,
-                name = "Batman",
+                name = Name("Batman"),
                 about = "Hi, I'm batman",
                 onClick = {}
             )

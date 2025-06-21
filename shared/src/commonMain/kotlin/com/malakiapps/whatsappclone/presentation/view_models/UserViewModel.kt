@@ -15,7 +15,12 @@ import com.malakiapps.whatsappclone.domain.use_cases.InitializeUserUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.GetUserUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.OnLoginUpdateAccountUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.UpdateUserUseCase
-import com.malakiapps.whatsappclone.domain.user.AuthenticationUser
+import com.malakiapps.whatsappclone.domain.user.ANONYMOUS_EMAIL
+import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
+import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Image
+import com.malakiapps.whatsappclone.domain.user.Name
+import com.malakiapps.whatsappclone.domain.user.Update
 import com.malakiapps.whatsappclone.domain.user.User
 import com.malakiapps.whatsappclone.domain.user.UserUpdate
 import kotlinx.coroutines.channels.Channel
@@ -39,22 +44,22 @@ class UserViewModel(
     private val _userState: MutableStateFlow<User?> = MutableStateFlow(null)
     val userState: StateFlow<User?> = _userState
 
-    private var authenticationUserState: AuthenticationUser? = null
+    private var authenticationContextState: AuthenticationContext? = null
 
-    fun initializeUserItem(authenticationUser: AuthenticationUser){
+    fun initializeUserItem(authenticationContext: AuthenticationContext){
         viewModelScope.launch {
-            if (userState.value == null || userState.value?.email != authenticationUser.email){
-                val createUserResponse = initializeUserUseCase(authenticationUser)
+            if (userState.value == null || userState.value?.email != authenticationContext.email){
+                val createUserResponse = initializeUserUseCase(authenticationContext)
                 createUserResponse.onEachSuspending(
                     success = { user ->
-                        authenticationUserState = authenticationUser
+                        authenticationContextState = authenticationContext
                         _userState.update {
                             user
                         }
                     },
                     failure = {
                         //Something went wrong
-                        authenticationUserState = null
+                        authenticationContextState = null
                         _eventChannel.send(LogOut)
                         _eventChannel.send(NavigateToLogin)
                         _eventChannel.send(
@@ -66,7 +71,7 @@ class UserViewModel(
         }
     }
 
-    fun initialUpdateUserProfile(email: String?, name: String, image: String?) {
+    fun initialUpdateUserProfile(email: Email?, name: Name, image: Image?) {
         viewModelScope.launch {
             _eventChannel.send(UpdatingEvent(true))
             val useCaseResponse = onLoginUpdateAccountUseCase(
@@ -97,18 +102,18 @@ class UserViewModel(
         }
     }
 
-    fun updateUserImage(image: String?) {
+    fun updateUserImage(image: Image?) {
         viewModelScope.launch {
             _eventChannel.send(UpdatingEvent(true))
-            val currentUser = getUser()
+            val currentUser = getAuthenticationContext()
 
             val userUpdate = UserUpdate(
-                email = currentUser.email ?: "anonymous",
-                image = Pair(image, true)
+                email = currentUser.email ?: ANONYMOUS_EMAIL,
+                image = Update(image)
             )
 
             val useCaseResponse = updateUserUseCase(
-                authenticationUser = currentUser,
+                authenticationContext = currentUser,
                 userUpdate = userUpdate
             )
 
@@ -126,18 +131,18 @@ class UserViewModel(
         }
     }
 
-    fun updateUserName(name: String) {
+    fun updateUserName(name: Name) {
         viewModelScope.launch {
             _eventChannel.send(UpdatingEvent(true))
-            val currentUser = getUser()
+            val currentAuthCtx = getAuthenticationContext()
 
             val userUpdate = UserUpdate(
-                email = currentUser.email ?: "anonymous",
-                name = Pair(name, true)
+                email = currentAuthCtx.email ?: ANONYMOUS_EMAIL,
+                name = Update(name)
             )
 
             val useCaseResponse = updateUserUseCase(
-                authenticationUser = currentUser,
+                authenticationContext = currentAuthCtx,
                 userUpdate = userUpdate
             )
 
@@ -159,15 +164,15 @@ class UserViewModel(
         viewModelScope.launch {
             _eventChannel.send(UpdatingEvent(true))
 
-            val currentUser = getUser()
+            val currentAuthCtx = getAuthenticationContext()
 
             val userUpdate = UserUpdate(
-                email = currentUser.email ?: "anonymous",
-                about = Pair(about, true)
+                email = currentAuthCtx.email ?: ANONYMOUS_EMAIL,
+                about = Update(about)
             )
 
             val useCaseResponse = updateUserUseCase(
-                authenticationUser = currentUser,
+                authenticationContext = currentAuthCtx,
                 userUpdate = userUpdate
             )
 
@@ -186,8 +191,8 @@ class UserViewModel(
     }
 
 
-    fun getUser(): AuthenticationUser {
-        return authenticationUserState ?: throw CancellationException("User not authenticated")
+    fun getAuthenticationContext(): AuthenticationContext {
+        return authenticationContextState ?: throw CancellationException("User not authenticated")
     }
 
     private suspend fun <R> Response<R, Error>.getOrElse(onError: suspend (Response.Failure<R, Error>) -> Unit): Response.Success<R, Error> {

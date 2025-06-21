@@ -1,6 +1,7 @@
 package com.malakiapps.whatsappclone.domain.common
 
-import com.malakiapps.whatsappclone.domain.user.AuthenticationUser
+import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
+import com.malakiapps.whatsappclone.domain.user.Image
 import com.malakiapps.whatsappclone.domain.user.User
 
 //Categories
@@ -19,8 +20,8 @@ data class UpdatingEvent(
 ): Event
 
 data class NavigateToProfileInfo(
-    val authenticationUser: AuthenticationUser,
-    val initialImage: String?
+    val authenticationContext: AuthenticationContext,
+    val initialImage: Image?
 ): AuthenticationEvent, NavigationEvent
 
 data class NavigateToDashboard(

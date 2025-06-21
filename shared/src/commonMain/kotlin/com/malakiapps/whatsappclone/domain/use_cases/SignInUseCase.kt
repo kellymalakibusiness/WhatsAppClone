@@ -2,7 +2,7 @@ package com.malakiapps.whatsappclone.domain.use_cases
 
 import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.Response
-import com.malakiapps.whatsappclone.domain.user.AuthenticationUser
+import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
 import com.malakiapps.whatsappclone.domain.user.SignInResponse
 import com.malakiapps.whatsappclone.domain.user.UserAuthenticationRepository
 
@@ -18,11 +18,11 @@ class SignInUseCase(
         val response = authenticationRepository.anonymousSignIn()
 
         return when(response){
-            is Response.Failure<AuthenticationUser, Error> -> Response.Failure(response.error)
-            is Response.Success<AuthenticationUser, Error> -> {
+            is Response.Failure<AuthenticationContext, Error> -> Response.Failure(response.error)
+            is Response.Success<AuthenticationContext, Error> -> {
                 Response.Success(
                     SignInResponse(
-                        authenticationUser = response.data,
+                        authenticationContext = response.data,
                         initialBase64ProfileImage = null
                     )
                 )

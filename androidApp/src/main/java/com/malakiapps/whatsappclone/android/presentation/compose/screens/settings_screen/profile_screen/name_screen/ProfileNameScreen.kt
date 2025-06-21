@@ -32,16 +32,17 @@ import androidx.compose.ui.unit.dp
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.compose.common.NameBackPressTopAppBar
+import com.malakiapps.whatsappclone.domain.user.Name
 
 @Composable
-fun ProfileNameScreen(name: String?, onBackPress: () -> Unit, onSaveClick: (String) -> Unit, modifier: Modifier = Modifier) {
+fun ProfileNameScreen(name: Name?, onBackPress: () -> Unit, onSaveClick: (Name) -> Unit, modifier: Modifier = Modifier) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     var currentName by remember {
         mutableStateOf(
             TextFieldValue(
-                text = name ?: "",
-                selection = TextRange(name?.length ?: 0)
+                text = name?.value ?: "",
+                selection = TextRange(name?.value?.length ?: 0)
             )
         )
     }
@@ -103,9 +104,9 @@ fun ProfileNameScreen(name: String?, onBackPress: () -> Unit, onSaveClick: (Stri
             Button(
                 onClick = {
                     focusManager.clearFocus()
-                    onSaveClick(currentName.text)
+                    onSaveClick(Name(currentName.text))
                 },
-                enabled = name != null && (name != currentName.text) && currentName.text.isNotBlank(),
+                enabled = name != null && (name.value != currentName.text) && currentName.text.isNotBlank(),
                 shape = CircleShape,
                 modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp, horizontal = 32.dp)
             ) {
@@ -120,7 +121,7 @@ fun ProfileNameScreen(name: String?, onBackPress: () -> Unit, onSaveClick: (Stri
 private fun ProfileNameScreenPrev() {
     FakeWhatsAppTheme {
         ProfileNameScreen(
-            name = "Kelly",
+            name = Name("Kelly"),
             onBackPress = {},
             onSaveClick = {}
         )

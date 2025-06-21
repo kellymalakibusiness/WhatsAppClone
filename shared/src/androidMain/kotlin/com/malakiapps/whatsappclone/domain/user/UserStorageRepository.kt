@@ -7,11 +7,11 @@ import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.UpdateUserError
 
 actual interface UserStorageRepository {
-    actual suspend fun createUser(email: String, authenticationUser: AuthenticationUser): Response<User, CreateUserError>
+    actual suspend fun createUser(email: Email, authenticationContext: AuthenticationContext): Response<User, CreateUserError>
 
-    actual suspend fun getUser(email: String): Response<User, GetUserError>
+    actual suspend fun getUser(email: Email): Response<User, GetUserError>
 
     actual suspend fun updateUser(userUpdate: UserUpdate): Response<User, UpdateUserError>
 
-    actual suspend fun deleteUser(email: String): Response<Unit, DeleteUserError>
+    actual suspend fun deleteUser(email: Email): Response<Unit, DeleteUserError>
 }

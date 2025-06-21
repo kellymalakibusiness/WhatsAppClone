@@ -8,6 +8,7 @@ import com.malakiapps.whatsappclone.domain.common.UpdateUserException
 import com.malakiapps.whatsappclone.domain.common.UserNotFound
 import com.malakiapps.whatsappclone.domain.common.UserParsingError
 import com.malakiapps.whatsappclone.domain.common.Error
+import com.malakiapps.whatsappclone.domain.common.InvalidUpdate
 
 fun Error.getErrorMessageObject(): ScreenError {
     return when(this){
@@ -53,6 +54,13 @@ fun Error.getErrorMessageObject(): ScreenError {
             ScreenError(
                 message = "User was authenticated but email wasn't found. Please try again",
                 dismissButton = "Okay"
+            )
+        }
+
+        is InvalidUpdate -> {
+            ScreenError(
+                message = "Update error: ${this.message}",
+                dismissButton = "Got it!"
             )
         }
     }

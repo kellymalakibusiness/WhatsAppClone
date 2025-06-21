@@ -3,27 +3,21 @@ package com.malakiapps.whatsappclone.data.room
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverter
+import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Image
+import com.malakiapps.whatsappclone.domain.user.Name
 import com.malakiapps.whatsappclone.domain.user.User
 import com.malakiapps.whatsappclone.domain.user.UserType
 
 @Entity
 data class UserEntity(
     @PrimaryKey(autoGenerate = false)
-    val email: String,
-    val name: String,
+    val email: Email,
+    val name: Name,
     val about: String,
-    val image: String?,
-    val contacts: List<String>
+    val image: Image?,
+    val contacts: List<Email>
 )
-
-class ContactsConverter {
-    @TypeConverter
-    fun fromList(value: List<String>): String = value.joinToString(",")
-
-    @TypeConverter
-    fun toList(value: String): List<String> =
-        if (value.isEmpty()) emptyList() else value.split(",")
-}
 
 
 fun UserEntity.toUser(): User {
@@ -45,4 +39,37 @@ fun User.toUserEntity(): UserEntity {
         contacts = contacts,
         image = image
     )
+}
+
+class EmailConverter {
+    @TypeConverter
+    fun from(value: Email): String = value.value
+
+    @TypeConverter
+    fun to(value: String): Email = Email(value)
+}
+
+class NameConverter {
+    @TypeConverter
+    fun from(value: Name): String = value.value
+
+    @TypeConverter
+    fun to(value: String): Name = Name(value)
+}
+
+class ImageConverter {
+    @TypeConverter
+    fun from(value: Image): String = value.value
+
+    @TypeConverter
+    fun to(value: String): Image = Image(value)
+}
+
+class ContactsConverter {
+    @TypeConverter
+    fun fromList(value: List<Email>): String = value.joinToString(",") { it.value }
+
+    @TypeConverter
+    fun toList(value: String): List<Email> =
+        if (value.isEmpty()) emptyList() else value.split(",").map { Email(it) }
 }

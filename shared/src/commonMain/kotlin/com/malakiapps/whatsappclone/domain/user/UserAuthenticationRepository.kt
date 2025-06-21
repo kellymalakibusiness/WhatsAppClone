@@ -6,15 +6,15 @@ import kotlinx.coroutines.flow.Flow
 
 expect interface UserAuthenticationRepository {
 
-    fun getUser(): AuthenticationUser?
+    fun getAuthContext(): AuthenticationContext?
 
     suspend fun signIn(): Response<SignInResponse, AuthenticationError>
 
-    suspend fun anonymousSignIn(): Response<AuthenticationUser, AuthenticationError>
+    suspend fun anonymousSignIn(): Response<AuthenticationContext, AuthenticationError>
 
     suspend fun signOut()
 
     suspend fun updateProfile(name: String?): Boolean
 
-    fun getUserState(): Flow<AuthenticationUser?>
+    fun getAuthContextState(): Flow<AuthenticationContext?>
 }

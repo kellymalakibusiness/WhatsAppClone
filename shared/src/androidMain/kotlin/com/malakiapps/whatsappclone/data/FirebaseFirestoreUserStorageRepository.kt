@@ -22,7 +22,11 @@ import com.malakiapps.whatsappclone.domain.common.UserParsingError
 import com.malakiapps.whatsappclone.domain.common.getOrNull
 import com.malakiapps.whatsappclone.domain.common.USERS_COLLECTION_NAME
 import com.malakiapps.whatsappclone.domain.common.UserAttributeKeys
-import com.malakiapps.whatsappclone.domain.user.AuthenticationUser
+import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
+import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Image
+import com.malakiapps.whatsappclone.domain.user.Name
+import com.malakiapps.whatsappclone.domain.user.Update
 import com.malakiapps.whatsappclone.domain.user.User
 import com.malakiapps.whatsappclone.domain.user.UserStorageRepository
 import com.malakiapps.whatsappclone.domain.user.UserType
@@ -47,10 +51,10 @@ class FirebaseFirestoreUserStorageRepository : UserStorageRepository {
     }
 
     override suspend fun createUser(
-        email: String,
-        authenticationUser: AuthenticationUser
+        email: Email,
+        authenticationContext: AuthenticationContext
     ): Response<User, CreateUserError> {
-        val mapUser = authenticationUser.toCreateUserHashMap(actualEmail = email)
+        val mapUser = authenticationContext.toCreateUserHashMap(actualEmail = email)
         val result: Response<Unit, CreateUserError> = suspendCancellableCoroutine { cont ->
             getUserReference(email = email)
                 .set(mapUser, SetOptions.merge())
@@ -66,7 +70,7 @@ class FirebaseFirestoreUserStorageRepository : UserStorageRepository {
 
     }
 
-    override suspend fun getUser(email: String): Response<User, GetUserError> {
+    override suspend fun getUser(email: Email): Response<User, GetUserError> {
         return suspendCancellableCoroutine { cont ->
             getUserReference(email = email)
                 .get(/*Source.CACHE*/)
@@ -102,7 +106,7 @@ class FirebaseFirestoreUserStorageRepository : UserStorageRepository {
         return result.getUpdateUser(userUpdate.email)
     }
 
-    override suspend fun deleteUser(email: String): Response<Unit, DeleteUserError> {
+    override suspend fun deleteUser(email: Email): Response<Unit, DeleteUserError> {
         return suspendCancellableCoroutine { cont ->
             getUserReference(email = email)
                 .delete()
@@ -115,7 +119,7 @@ class FirebaseFirestoreUserStorageRepository : UserStorageRepository {
         }
     }
 
-    private suspend fun <E : Error> Response<Unit, E>.getUpdateUser(email: String): Response<User, E> {
+    private suspend fun <E : Error> Response<Unit, E>.getUpdateUser(email: Email): Response<User, E> {
         return when (this) {
             is Response.Failure<Unit, E> -> Response.Failure(error)
             is Response.Success<Unit, E> -> {
@@ -126,12 +130,12 @@ class FirebaseFirestoreUserStorageRepository : UserStorageRepository {
         }
     }
 
-    private fun getUserReference(email: String): DocumentReference {
-        return firestore.collection(USERS_COLLECTION_NAME).document(email)
+    private fun getUserReference(email: Email): DocumentReference {
+        return firestore.collection(USERS_COLLECTION_NAME).document(email.value)
     }
 }
 
-private fun AuthenticationUser.toCreateUserHashMap(actualEmail: String): HashMap<String, Any> {
+private fun AuthenticationContext.toCreateUserHashMap(actualEmail: Email): HashMap<String, Any> {
     return hashMapOf(
         UserAttributeKeys.NAME to name,
         UserAttributeKeys.EMAIL to actualEmail,
@@ -141,16 +145,16 @@ private fun AuthenticationUser.toCreateUserHashMap(actualEmail: String): HashMap
 private fun Task<DocumentSnapshot>.toUser(): Response<User, GetUserError> {
     return result.data.let { document ->
         val user = User(
-            name = document?.get(UserAttributeKeys.NAME) as? String ?: return Response.Failure(
+            name = (document?.get(UserAttributeKeys.NAME) as? String)?.let { Name(it) } ?: return Response.Failure(
                 UserParsingError(UserAttributeKeys.NAME)
             ),
-            email = document[UserAttributeKeys.EMAIL] as? String ?: return Response.Failure(
+            email = (document[UserAttributeKeys.EMAIL] as? String)?.let { Email(it) } ?: return Response.Failure(
                 UserParsingError(UserAttributeKeys.EMAIL)
             ),
             about = document[UserAttributeKeys.ABOUT] as? String
                 ?: "Hey there! I'm using Fake WhatsApp.",
-            image = document[UserAttributeKeys.IMAGE] as? String,
-            contacts = document[UserAttributeKeys.CONTACTS] as? List<String> ?: emptyList(),
+            image = (document[UserAttributeKeys.IMAGE] as? String)?.let { Image(it) },
+            contacts = (document[UserAttributeKeys.CONTACTS] as? List<String>)?.let { response -> response.map { Email(it) } } ?: emptyList(),
             type = UserType.REAL
         )
 
@@ -160,24 +164,24 @@ private fun Task<DocumentSnapshot>.toUser(): Response<User, GetUserError> {
 
 private fun UserUpdate.toUpdateUserHashMap(): Map<String, Any?> {
     return buildMap {
-        if (name.second) {
-            put(UserAttributeKeys.NAME, name.first)
+        if (name is Update) {
+            put(UserAttributeKeys.NAME, name.value)
         }
 
-        if (about.second) {
-            put(UserAttributeKeys.ABOUT, about.first)
+        if (about is Update) {
+            put(UserAttributeKeys.ABOUT, about.value)
         }
 
-        if (image.second) {
-            put(UserAttributeKeys.IMAGE, image.first)
+        if (image is Update) {
+            put(UserAttributeKeys.IMAGE, image.value)
         }
 
-        if (addContact.second) {
-            put(UserAttributeKeys.CONTACTS, FieldValue.arrayUnion(addContact.first))
+        if (addContact is Update) {
+            put(UserAttributeKeys.CONTACTS, FieldValue.arrayUnion(addContact.value))
         }
 
-        if (removeContact.second) {
-            put(UserAttributeKeys.CONTACTS, FieldValue.arrayRemove(removeContact.first))
+        if (removeContact is Update) {
+            put(UserAttributeKeys.CONTACTS, FieldValue.arrayRemove(removeContact.value))
         }
     }
 }

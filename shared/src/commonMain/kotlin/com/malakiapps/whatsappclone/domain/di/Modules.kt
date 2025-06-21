@@ -1,7 +1,7 @@
 package com.malakiapps.whatsappclone.domain.di
 
 import com.malakiapps.whatsappclone.domain.use_cases.InitializeUserUseCase
-import com.malakiapps.whatsappclone.domain.use_cases.GetUserAuthenticationStateUseCase
+import com.malakiapps.whatsappclone.domain.use_cases.GetAuthenticationContextStateUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.GetUserUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.InitialAuthenticationCheckUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.LogoutUseCase
@@ -31,7 +31,7 @@ val sharedModule = module {
     }
 
     single {
-        GetUserAuthenticationStateUseCase(
+        GetAuthenticationContextStateUseCase(
             authenticationRepository = get()
         )
     }

@@ -3,7 +3,8 @@ package com.malakiapps.whatsappclone.domain.use_cases
 import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.isSuccess
-import com.malakiapps.whatsappclone.domain.user.AuthenticationUser
+import com.malakiapps.whatsappclone.domain.user.ANONYMOUS_EMAIL
+import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
 import com.malakiapps.whatsappclone.domain.user.User
 import com.malakiapps.whatsappclone.domain.user.UserStorageRepository
 
@@ -12,13 +13,13 @@ class InitializeUserUseCase(
     val userStorageRepository: UserStorageRepository,
 
 ) {
-    suspend operator fun invoke(authenticationUser: AuthenticationUser): Response<User, Error> {
+    suspend operator fun invoke(authenticationContext: AuthenticationContext): Response<User, Error> {
         //We first try to read the user if they exist
-        val availableUser = authenticationUser.email?.let { availableEmail ->
+        val availableUser = authenticationContext.email?.let { availableEmail ->
             //Firebase user
             userStorageRepository.getUser(email = availableEmail)
         } ?: run {
-            anonymousUserStorageRepository.getUser(email = "anonymous")
+            anonymousUserStorageRepository.getUser(email = ANONYMOUS_EMAIL)
         }
 
         //Check if user item already exists
@@ -26,16 +27,16 @@ class InitializeUserUseCase(
             return availableUser
         } else {
             //It's a new user, we need to create one
-            createNewUserItem(authenticationUser)
+            createNewUserItem(authenticationContext)
         }
     }
 
-    suspend fun createNewUserItem(authenticationUser: AuthenticationUser): Response<User, Error> {
-        return authenticationUser.email?.let { availableEmail ->
+    suspend fun createNewUserItem(authenticationContext: AuthenticationContext): Response<User, Error> {
+        return authenticationContext.email?.let { availableEmail ->
             //Firebase user
-            userStorageRepository.createUser(email = availableEmail, authenticationUser = authenticationUser)
+            userStorageRepository.createUser(email = availableEmail, authenticationContext = authenticationContext)
         } ?: run {
-            anonymousUserStorageRepository.createUser(email = "anonymous", authenticationUser = authenticationUser)
+            anonymousUserStorageRepository.createUser(email = ANONYMOUS_EMAIL, authenticationContext = authenticationContext)
         }
     }
 }

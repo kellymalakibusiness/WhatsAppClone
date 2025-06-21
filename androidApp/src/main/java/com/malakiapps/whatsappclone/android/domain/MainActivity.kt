@@ -20,8 +20,6 @@ import com.malakiapps.whatsappclone.android.domain.utils.UserAboutUpdate
 import com.malakiapps.whatsappclone.android.domain.utils.UserImageUpdate
 import com.malakiapps.whatsappclone.android.domain.utils.UserNameUpdate
 import com.malakiapps.whatsappclone.android.domain.utils.compressImageToBase64
-import com.malakiapps.whatsappclone.android.domain.utils.generateBase64ImageFromUrlUri
-import com.malakiapps.whatsappclone.android.domain.utils.isUriAUrl
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.domain.user.Initialized
 import com.malakiapps.whatsappclone.presentation.view_models.ContactsViewModel
@@ -44,23 +42,29 @@ class MainActivity : ComponentActivity() {
                 val contactsViewModel: ContactsViewModel = koinInject()
                 val messagesViewModel: MessagesViewModel = koinInject()
 
-                val userAuthState by authenticationViewModel.userAuthenticationState.collectAsState()
+                val authCtxState by authenticationViewModel.authenticationContextState.collectAsState()
                 val userState by userViewModel.userState.collectAsState()
 
                 //Listen for logout
-                LaunchedEffect(userAuthState) {
+                LaunchedEffect(authCtxState) {
                     //If not initialized, the initial check hasn't complete yet
-                    if (userAuthState is Initialized) {
-                        (userAuthState as Initialized).value?.let {
+                    if (authCtxState is Initialized) {
+                        (authCtxState as Initialized).value?.let {
                             //User logged in
                             //Prepare all view models
                             userViewModel.initializeUserItem(it)
-                            contactsViewModel.initializeContacts(it)
                             messagesViewModel.initializeMessages(it)
                         } ?: run {
                             //User logged out
                             authenticationViewModel.logOut()
                         }
+                    }
+                }
+
+                //Listen for the user object
+                LaunchedEffect(userState) {
+                    userState?.let { availableUser ->
+                        contactsViewModel.initializeContacts(availableUser)
                     }
                 }
 

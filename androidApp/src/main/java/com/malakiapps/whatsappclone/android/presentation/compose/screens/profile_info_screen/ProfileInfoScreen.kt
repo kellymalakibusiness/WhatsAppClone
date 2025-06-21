@@ -46,18 +46,20 @@ import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.compose.common.NoProfileImage
 import com.malakiapps.whatsappclone.android.presentation.compose.common.base64ToUri
+import com.malakiapps.whatsappclone.domain.user.Image
+import com.malakiapps.whatsappclone.domain.user.Name
 import com.malakiapps.whatsappclone.domain.user.User
 import kotlinx.coroutines.launch
 
 @Composable
 fun ProfileInfoScreen(
     userState: User?,
-    initialName: String,
-    initialBase64Image: String?,
-    convertUriToBase64Image: suspend (Uri) -> String?,
-    onStartClick: (String, String?) -> Unit) {
+    initialName: Name,
+    initialBase64Image: Image?,
+    convertUriToBase64Image: suspend (Uri) -> Image?,
+    onStartClick: (Name, Image?) -> Unit) {
     val scope = rememberCoroutineScope()
-    var nameValue by remember { mutableStateOf(initialName) }
+    var nameValue by remember { mutableStateOf(initialName.value) }
     var selectedImage by remember { mutableStateOf(initialBase64Image) }
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -75,7 +77,7 @@ fun ProfileInfoScreen(
             selectedImage = userState.image
         }
         if(userState?.name != null){
-            nameValue = userState.name
+            nameValue = userState.name.value
         }
     }
 
@@ -127,7 +129,7 @@ fun ProfileInfoScreen(
                     )
                 } else {
                     AsyncImage(
-                        model = selectedImage?.base64ToUri(),
+                        model = selectedImage?.base64ToUri()?.value,
                         contentDescription = "User Profile picture",
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -173,7 +175,7 @@ fun ProfileInfoScreen(
                 onClick = {
                     //Do the check to confirm we're good
                     if(nameValue.isNotBlank()){
-                        onStartClick(nameValue, selectedImage)
+                        onStartClick(Name(nameValue), selectedImage)
                     } else {
                         //TODO("Show error dialog with required name")
                     }
@@ -197,9 +199,9 @@ fun ProfileInfoScreen(
 private fun ProfileInfoScreenPrev() {
     FakeWhatsAppTheme {
         ProfileInfoScreen(
-            initialName = "Kelly",
+            initialName = Name("Kelly"),
             initialBase64Image = null,
-            convertUriToBase64Image = { _ -> "" },
+            convertUriToBase64Image = { _ -> Image("") },
             onStartClick = {_, _ -> },
             userState = null
         )

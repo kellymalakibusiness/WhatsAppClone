@@ -11,21 +11,23 @@ import com.malakiapps.whatsappclone.data.room.UserDao
 import com.malakiapps.whatsappclone.data.room.UserEntity
 import com.malakiapps.whatsappclone.data.room.toUser
 import com.malakiapps.whatsappclone.data.room.toUserEntity
-import com.malakiapps.whatsappclone.domain.user.AuthenticationUser
+import com.malakiapps.whatsappclone.domain.user.ANONYMOUS_EMAIL
+import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
+import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Update
 import com.malakiapps.whatsappclone.domain.user.User
 import com.malakiapps.whatsappclone.domain.user.UserStorageRepository
 import com.malakiapps.whatsappclone.domain.user.UserType
 import com.malakiapps.whatsappclone.domain.user.UserUpdate
 
-const val EMAIL_VALUE = "anonymous"
 class AnonymousLocalUserStorageRepository(
     private val userDao: UserDao
 ) : UserStorageRepository {
     override suspend fun createUser(
-        email: String,
-        authenticationUser: AuthenticationUser
+        email: Email,
+        authenticationContext: AuthenticationContext
     ): Response<User, CreateUserError> {
-        val user = authenticationUser.toUser(email = EMAIL_VALUE)
+        val user = authenticationContext.toUser(email = ANONYMOUS_EMAIL)
         return try {
             userDao.upsertUser(userEntity = user.toUserEntity())
             Response.Success(user)
@@ -34,7 +36,7 @@ class AnonymousLocalUserStorageRepository(
         }
     }
 
-    override suspend fun getUser(email: String): Response<User, GetUserError> {
+    override suspend fun getUser(email: Email): Response<User, GetUserError> {
         val user = userDao.getUser(email)
 
         return user?.toUser()?.let {
@@ -57,7 +59,7 @@ class AnonymousLocalUserStorageRepository(
         }
     }
 
-    override suspend fun deleteUser(email: String): Response<Unit, DeleteUserError> {
+    override suspend fun deleteUser(email: Email): Response<Unit, DeleteUserError> {
         userDao.getUser(email)?.let {
             userDao.deleteUser(it)
         }
@@ -65,7 +67,7 @@ class AnonymousLocalUserStorageRepository(
         return Response.Success(Unit)
     }
 
-    private fun AuthenticationUser.toUser(email: String): User {
+    private fun AuthenticationContext.toUser(email: Email): User {
         return User(
             email = email,
             name = name,
@@ -78,30 +80,30 @@ class AnonymousLocalUserStorageRepository(
 
     private fun UserUpdate.toUpdatedUser(oldUser: UserEntity): UserEntity {
         val contactsUpdate = buildList {
-            if (removeContact.second){
-                addAll(oldUser.contacts.filter { it != removeContact.first })
+            if (removeContact is Update){
+                addAll(oldUser.contacts.filter { it != removeContact.value })
             } else {
                 addAll(oldUser.contacts)
             }
-            if(addContact.second){
-                add(addContact.first)
+            if(addContact is Update){
+                add(addContact.value)
             }
         }
         return UserEntity(
             email = email,
-            name = if (name.second) {
-                name.first
+            name = if (name is Update) {
+                name.value
             } else {
                 oldUser.name
             },
-            about = if (about.second) {
-                about.first
+            about = if (about is Update) {
+                about.value
             } else {
                 oldUser.about
             },
             contacts = contactsUpdate,
-            image = if (image.second) {
-                image.first
+            image = if (image is Update) {
+                image.value
             } else {
                 oldUser.image
             }

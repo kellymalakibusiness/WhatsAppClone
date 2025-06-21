@@ -2,6 +2,12 @@ package com.malakiapps.whatsappclone.domain.use_cases
 
 import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.Response
+import com.malakiapps.whatsappclone.domain.user.ANONYMOUS_EMAIL
+import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Image
+import com.malakiapps.whatsappclone.domain.user.Name
+import com.malakiapps.whatsappclone.domain.user.None
+import com.malakiapps.whatsappclone.domain.user.Update
 import com.malakiapps.whatsappclone.domain.user.User
 import com.malakiapps.whatsappclone.domain.user.UserStorageRepository
 import com.malakiapps.whatsappclone.domain.user.UserUpdate
@@ -10,7 +16,7 @@ class OnLoginUpdateAccountUseCase(
     val userStorageRepository: UserStorageRepository,
     val anonymousUserStorageRepository: UserStorageRepository,
 ) {
-    suspend operator fun invoke(currentUser: User?, email: String?, name: String, image: String?): Response<User, Error> {
+    suspend operator fun invoke(currentUser: User?, email: Email?, name: Name, image: Image?): Response<User, Error> {
         //Check if the user updated anything before making the update call
         return if(currentUser?.name == name && currentUser.image == image){
             //Same user just logged in
@@ -18,15 +24,15 @@ class OnLoginUpdateAccountUseCase(
         } else {
             //Something was updated, we make the update call
             val nameUpdate = if(name != currentUser?.name){
-                Pair(name, true)
+                Update(name)
             } else {
-                Pair("", false)
+                None
             }
 
             val imageUpdate = if(image != currentUser?.image){
-                Pair(image, true)
+                Update(image)
             } else {
-                Pair("", false)
+                None
             }
 
             email?.let { existingEmail ->
@@ -42,7 +48,7 @@ class OnLoginUpdateAccountUseCase(
                 //If no email, use anonymous repository
                 anonymousUserStorageRepository.updateUser(
                     userUpdate = UserUpdate(
-                        email = "anonymous",
+                        email = ANONYMOUS_EMAIL,
                         name = nameUpdate,
                         image = imageUpdate
                     )

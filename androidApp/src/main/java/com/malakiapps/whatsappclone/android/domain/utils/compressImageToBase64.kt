@@ -6,11 +6,12 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.util.Base64
+import com.malakiapps.whatsappclone.domain.user.Image
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 
-suspend fun compressImageToBase64(image: Uri, contentResolver: ContentResolver): String? = withContext(Dispatchers.IO){
+suspend fun compressImageToBase64(image: Uri, contentResolver: ContentResolver): Image? = withContext(Dispatchers.IO){
     val maxSizeInKb = 60
 
     val stream = contentResolver.openInputStream(image) ?: return@withContext null
@@ -26,5 +27,5 @@ suspend fun compressImageToBase64(image: Uri, contentResolver: ContentResolver):
         quality -= 5
     } while (outputStream.size() > maxSizeInKb * 1024 && quality > 10)
 
-    Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP)
+    Image(Base64.encodeToString(outputStream.toByteArray(), Base64.NO_WRAP))
 }

@@ -64,6 +64,9 @@ import com.malakiapps.whatsappclone.domain.common.NavigateToProfileInfo
 import com.malakiapps.whatsappclone.domain.common.NavigationEvent
 import com.malakiapps.whatsappclone.domain.common.OnError
 import com.malakiapps.whatsappclone.domain.common.UpdatingEvent
+import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Image
+import com.malakiapps.whatsappclone.domain.user.Name
 import com.malakiapps.whatsappclone.domain.user.User
 import kotlinx.coroutines.flow.Flow
 
@@ -74,8 +77,8 @@ fun ComposeApp(
     eventChannel: Flow<Event>,
     dashboardOnSignInWithGoogleClick: () -> Unit,
     dashboardOnContinueWithoutSignInClick: () -> Unit,
-    convertUriToBase64Image: suspend (Uri) -> String?,
-    profileOnContinueClick: (String?, String, String?) -> Unit,
+    convertUriToBase64Image: suspend (Uri) -> Image?,
+    profileOnContinueClick: (Email?, Name, Image?) -> Unit,
     onLogOut: () -> Unit,
     onUserUpdate: (UserUpdateType) -> Unit
 ) {
@@ -103,9 +106,9 @@ fun ComposeApp(
                     is NavigateToProfileInfo -> {
                         navController.navigateToOurPage(
                             ProfileInfoScreenContext(
-                                email = event.authenticationUser.email,
-                                name = event.authenticationUser.name,
-                                image = event.initialImage
+                                email = event.authenticationContext.email?.value,
+                                name = event.authenticationContext.name.value,
+                                image = event.initialImage?.value
                             )
                         )
                     }
@@ -163,13 +166,17 @@ fun ComposeApp(
             composable<ProfileInfoScreenContext> { backStackEntry ->
                 val data = requireNotNull(backStackEntry.toRoute<ProfileInfoScreenContext>())
 
+                val name = Name(data.name)
+                val image = data.image?.let { Image(it) }
+                val email = data.email?.let { Email(it)}
+
                 ProfileInfoScreen(
                     userState = userState,
-                    initialName = data.name,
-                    initialBase64Image = data.image,
+                    initialName = name,
+                    initialBase64Image = image,
                     convertUriToBase64Image = convertUriToBase64Image,
                     onStartClick = { name, image ->
-                        profileOnContinueClick(data.email, name, image)
+                        profileOnContinueClick(email, name, image)
                     }
                 )
             }

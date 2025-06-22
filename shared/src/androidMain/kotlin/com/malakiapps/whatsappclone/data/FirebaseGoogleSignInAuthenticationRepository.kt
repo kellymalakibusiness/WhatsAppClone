@@ -19,7 +19,7 @@ import com.malakiapps.whatsappclone.domain.common.AuthenticationError
 import com.malakiapps.whatsappclone.domain.common.AuthenticationException
 import com.malakiapps.whatsappclone.domain.common.AuthenticationUserNotFound
 import com.malakiapps.whatsappclone.domain.common.Response
-import com.malakiapps.whatsappclone.domain.user.UserAuthenticationRepository
+import com.malakiapps.whatsappclone.domain.user.AuthenticationRepository
 import com.malakiapps.whatsappclone.domain.user.UserType
 import com.malakiapps.whatsappclone.domain.user.getCurrentUserImplementation
 import com.malakiapps.whatsappclone.domain.common.handleOnFailureResponse
@@ -33,7 +33,7 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.cancellation.CancellationException
 
-class FirebaseGoogleSignInAuthenticationRepository : UserAuthenticationRepository {
+class FirebaseGoogleSignInAuthenticationRepository : AuthenticationRepository {
     private var credentialManager: CredentialManager? = null
     override val firebaseAuth = Firebase.auth
     private var context: Context? = null

@@ -26,10 +26,10 @@ suspend fun <R, E: Error> Response<R, E>.onEachSuspending(success: suspend (R) -
     }
 }
 
-fun <R, E: Error> Response<R, E>.isSuccess(): Boolean{
+fun <R, E: Error> Response<R, E>.isSuccess(): Boolean {
     return this is Response.Success
 }
 
-fun <R, E: Error> Response<R, E>.isFailure(): Boolean{
+fun <R, E: Error> Response<R, E>.isFailure(): Boolean {
     return this is Response.Failure
 }

@@ -8,7 +8,7 @@ import com.malakiapps.whatsappclone.data.FirebaseFirestoreUserStorageRepository
 import com.malakiapps.whatsappclone.data.FirebaseGoogleSignInAuthenticationRepository
 import com.malakiapps.whatsappclone.data.FirebaseLocalSignInAuthenticationRepository
 import com.malakiapps.whatsappclone.data.room.LocalUserDatabase
-import com.malakiapps.whatsappclone.domain.user.UserAuthenticationRepository
+import com.malakiapps.whatsappclone.domain.user.AuthenticationRepository
 import com.malakiapps.whatsappclone.domain.user.UserStorageRepository
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
@@ -45,11 +45,11 @@ fun Module.localModules(){
     //Activate the local server
     Firebase.auth.useEmulator("10.0.2.2", 9099)
 
-    singleOf(::FirebaseLocalSignInAuthenticationRepository).bind<UserAuthenticationRepository>()
+    singleOf(::FirebaseLocalSignInAuthenticationRepository).bind<AuthenticationRepository>()
 }
 
 fun Module.prodModules(){
-    singleOf(::FirebaseGoogleSignInAuthenticationRepository).bind<UserAuthenticationRepository>()
+    singleOf(::FirebaseGoogleSignInAuthenticationRepository).bind<AuthenticationRepository>()
 }
 
 

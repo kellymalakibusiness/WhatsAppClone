@@ -4,10 +4,10 @@ import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
 import com.malakiapps.whatsappclone.domain.user.SignInResponse
-import com.malakiapps.whatsappclone.domain.user.UserAuthenticationRepository
+import com.malakiapps.whatsappclone.domain.user.AuthenticationRepository
 
 class SignInUseCase(
-    val authenticationRepository: UserAuthenticationRepository
+    val authenticationRepository: AuthenticationRepository
 ) {
 
     suspend fun signInWithGoogle(): Response<SignInResponse, Error> {

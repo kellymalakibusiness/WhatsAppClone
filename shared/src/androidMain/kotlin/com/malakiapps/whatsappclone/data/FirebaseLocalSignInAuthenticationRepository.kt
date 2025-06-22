@@ -7,7 +7,7 @@ import com.google.firebase.auth.auth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.malakiapps.whatsappclone.domain.common.AuthenticationError
 import com.malakiapps.whatsappclone.domain.common.Response
-import com.malakiapps.whatsappclone.domain.user.UserAuthenticationRepository
+import com.malakiapps.whatsappclone.domain.user.AuthenticationRepository
 import com.malakiapps.whatsappclone.domain.user.UserType
 import com.malakiapps.whatsappclone.domain.user.getCurrentUserImplementation
 import com.malakiapps.whatsappclone.domain.common.handleOnCompleteSignIn
@@ -20,7 +20,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.suspendCancellableCoroutine
 
-class FirebaseLocalSignInAuthenticationRepository : UserAuthenticationRepository {
+class FirebaseLocalSignInAuthenticationRepository : AuthenticationRepository {
     override val firebaseAuth: FirebaseAuth = Firebase.auth
     override fun initializeCredentialManager(context: Context) = Unit
 

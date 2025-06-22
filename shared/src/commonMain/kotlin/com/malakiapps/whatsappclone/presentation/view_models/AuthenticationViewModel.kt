@@ -10,41 +10,34 @@ import com.malakiapps.whatsappclone.domain.common.NavigateToProfileInfo
 import com.malakiapps.whatsappclone.domain.common.OnError
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.onEachSuspending
-import com.malakiapps.whatsappclone.domain.use_cases.GetAuthenticationContextStateUseCase
+import com.malakiapps.whatsappclone.domain.managers.AuthenticationContextManager
 import com.malakiapps.whatsappclone.domain.use_cases.InitialAuthenticationCheckUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.LogoutUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.SignInUseCase
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContextState
-import com.malakiapps.whatsappclone.domain.user.NotInitialized
+import com.malakiapps.whatsappclone.domain.user.HasValue
 import com.malakiapps.whatsappclone.domain.user.SignInResponse
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class AuthenticationViewModel(
     val signInUseCase: SignInUseCase,
     val logoutUseCase: LogoutUseCase,
     val initialAuthenticationCheckUseCase: InitialAuthenticationCheckUseCase,
-    getAuthenticationContextStateUseCase: GetAuthenticationContextStateUseCase,
+    authenticationContextManager: AuthenticationContextManager,
 ): ViewModel() {
     private val _eventChannel = Channel<Event>()
     val eventsChannelFlow = _eventChannel.receiveAsFlow()
 
-    val authenticationContextState: StateFlow<AuthenticationContextState> = getAuthenticationContextStateUseCase()
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = NotInitialized
-        )
+    private val _authenticationContextState: StateFlow<AuthenticationContextState> = authenticationContextManager.authenticationContextState
 
     init {
         //First lets check if the user is authenticated
         viewModelScope.launch {
             val useCaseResponse = initialAuthenticationCheckUseCase(
-                userAuthenticationState = authenticationContextState
+                userAuthenticationState = _authenticationContextState
             )
 
             //React to the result from use case
@@ -67,6 +60,13 @@ class AuthenticationViewModel(
                     )
                 }
             )
+
+            //Add a listener for logout
+            _authenticationContextState.collect { onEachValue ->
+                if(onEachValue is HasValue && onEachValue.value == null){
+                    logOut()
+                }
+            }
         }
     }
 

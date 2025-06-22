@@ -10,63 +10,68 @@ import com.malakiapps.whatsappclone.domain.common.NavigateToLogin
 import com.malakiapps.whatsappclone.domain.common.OnError
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.UpdatingEvent
+import com.malakiapps.whatsappclone.domain.common.UserNotFound
 import com.malakiapps.whatsappclone.domain.common.onEachSuspending
+import com.malakiapps.whatsappclone.domain.managers.AuthenticationContextManager
+import com.malakiapps.whatsappclone.domain.managers.UserManager
 import com.malakiapps.whatsappclone.domain.use_cases.InitializeUserUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.GetUserUseCase
+import com.malakiapps.whatsappclone.domain.use_cases.InitialAuthenticationCheckUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.OnLoginUpdateAccountUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.UpdateUserUseCase
 import com.malakiapps.whatsappclone.domain.user.ANONYMOUS_EMAIL
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
+import com.malakiapps.whatsappclone.domain.user.HasValue
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Image
 import com.malakiapps.whatsappclone.domain.user.Name
 import com.malakiapps.whatsappclone.domain.user.Update
 import com.malakiapps.whatsappclone.domain.user.User
+import com.malakiapps.whatsappclone.domain.user.UserState
 import com.malakiapps.whatsappclone.domain.user.UserUpdate
+import com.malakiapps.whatsappclone.domain.user.UserValue
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
 class UserViewModel(
-    val getUserUseCase: GetUserUseCase,
-    val initializeUserUseCase: InitializeUserUseCase,
-    val onLoginUpdateAccountUseCase: OnLoginUpdateAccountUseCase,
-    val updateUserUseCase: UpdateUserUseCase,
+    val userManager: UserManager,
 ): ViewModel() {
 
     private val _eventChannel = Channel<Event>()
     val eventsChannelFlow = _eventChannel.receiveAsFlow()
 
-    private val _userState: MutableStateFlow<User?> = MutableStateFlow(null)
-    val userState: StateFlow<User?> = _userState
+    private val _userState: StateFlow<UserState> = userManager.userState
+    val userState: StateFlow<User?> = _userState.map { userState ->
+        if(userState is UserValue){
+            userState.value
+        } else {
+            null
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = null
+    )
 
-    private var authenticationContextState: AuthenticationContext? = null
-
-    fun initializeUserItem(authenticationContext: AuthenticationContext){
+    init {
         viewModelScope.launch {
-            if (userState.value == null || userState.value?.email != authenticationContext.email){
-                val createUserResponse = initializeUserUseCase(authenticationContext)
-                createUserResponse.onEachSuspending(
-                    success = { user ->
-                        authenticationContextState = authenticationContext
-                        _userState.update {
-                            user
-                        }
-                    },
-                    failure = {
-                        //Something went wrong
-                        authenticationContextState = null
-                        _eventChannel.send(LogOut)
-                        _eventChannel.send(NavigateToLogin)
-                        _eventChannel.send(
-                            OnError(it)
-                        )
-                    }
-                )
+            //Check for when we don't have the user item
+            _userState.collect { currentState ->
+                if (currentState is UserValue && currentState.value == null) {
+                    _eventChannel.send(LogOut)
+                    _eventChannel.send(NavigateToLogin)
+                    _eventChannel.send(
+                        OnError(UserNotFound)
+                    )
+                }
             }
         }
     }
@@ -74,19 +79,11 @@ class UserViewModel(
     fun initialUpdateUserProfile(email: Email?, name: Name, image: Image?) {
         viewModelScope.launch {
             _eventChannel.send(UpdatingEvent(true))
-            val useCaseResponse = onLoginUpdateAccountUseCase(
-                currentUser = userState.value,
-                email = email,
-                name = name,
-                image = image
-            )
+            val response = userManager.initialUpdateUserProfile(email = email, name = name, image = image)
 
-            //React to the result from use case
-            useCaseResponse.onEachSuspending(
+            //React to the result
+            response.onEachSuspending(
                 success = { user ->
-                    //Update our userState with the new one
-                    _userState.update { user }
-
                     _eventChannel.send(
                         NavigateToDashboard(
                             user = user
@@ -105,22 +102,12 @@ class UserViewModel(
     fun updateUserImage(image: Image?) {
         viewModelScope.launch {
             _eventChannel.send(UpdatingEvent(true))
-            val currentUser = getAuthenticationContext()
 
-            val userUpdate = UserUpdate(
-                email = currentUser.email ?: ANONYMOUS_EMAIL,
-                image = Update(image)
+            val response = userManager.updateUser(
+                imageUpdate = Update(image)
             )
 
-            val useCaseResponse = updateUserUseCase(
-                authenticationContext = currentUser,
-                userUpdate = userUpdate
-            )
-
-            useCaseResponse.onEachSuspending(
-                success = { user ->
-                    _userState.update { user }
-                },
+            response.onEachSuspending(
                 failure = { error ->
                     _eventChannel.send(
                         OnError(error)
@@ -134,22 +121,12 @@ class UserViewModel(
     fun updateUserName(name: Name) {
         viewModelScope.launch {
             _eventChannel.send(UpdatingEvent(true))
-            val currentAuthCtx = getAuthenticationContext()
 
-            val userUpdate = UserUpdate(
-                email = currentAuthCtx.email ?: ANONYMOUS_EMAIL,
-                name = Update(name)
+            val response = userManager.updateUser(
+                nameUpdate = Update(name)
             )
 
-            val useCaseResponse = updateUserUseCase(
-                authenticationContext = currentAuthCtx,
-                userUpdate = userUpdate
-            )
-
-            useCaseResponse.onEachSuspending(
-                success = { user ->
-                    _userState.update { user }
-                },
+            response.onEachSuspending(
                 failure = { error ->
                     _eventChannel.send(
                         OnError(error)
@@ -164,22 +141,11 @@ class UserViewModel(
         viewModelScope.launch {
             _eventChannel.send(UpdatingEvent(true))
 
-            val currentAuthCtx = getAuthenticationContext()
-
-            val userUpdate = UserUpdate(
-                email = currentAuthCtx.email ?: ANONYMOUS_EMAIL,
-                about = Update(about)
+            val response = userManager.updateUser(
+                aboutUpdate = Update(about)
             )
 
-            val useCaseResponse = updateUserUseCase(
-                authenticationContext = currentAuthCtx,
-                userUpdate = userUpdate
-            )
-
-            useCaseResponse.onEachSuspending(
-                success = { user ->
-                    _userState.update { user }
-                },
+            response.onEachSuspending(
                 failure = { error ->
                     _eventChannel.send(
                         OnError(error)
@@ -188,11 +154,6 @@ class UserViewModel(
             )
             _eventChannel.send(UpdatingEvent(false))
         }
-    }
-
-
-    fun getAuthenticationContext(): AuthenticationContext {
-        return authenticationContextState ?: throw CancellationException("User not authenticated")
     }
 
     private suspend fun <R> Response<R, Error>.getOrElse(onError: suspend (Response.Failure<R, Error>) -> Unit): Response.Success<R, Error> {

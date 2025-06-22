@@ -8,7 +8,7 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 
-actual interface UserAuthenticationRepository {
+actual interface AuthenticationRepository {
     val firebaseAuth: FirebaseAuth
     fun initializeCredentialManager(context: Context)
 
@@ -25,7 +25,7 @@ actual interface UserAuthenticationRepository {
     actual fun getAuthContextState(): Flow<AuthenticationContext?>
 }
 
-fun UserAuthenticationRepository.getCurrentUserImplementation(): Flow<AuthenticationContext?> =
+fun AuthenticationRepository.getCurrentUserImplementation(): Flow<AuthenticationContext?> =
     callbackFlow {
         val listener = FirebaseAuth.AuthStateListener { updatedAuth ->
             val currentUser = updatedAuth.currentUser?.let { currentUser ->

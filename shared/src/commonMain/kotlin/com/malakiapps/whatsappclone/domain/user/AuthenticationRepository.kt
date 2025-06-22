@@ -4,7 +4,7 @@ import com.malakiapps.whatsappclone.domain.common.AuthenticationError
 import com.malakiapps.whatsappclone.domain.common.Response
 import kotlinx.coroutines.flow.Flow
 
-expect interface UserAuthenticationRepository {
+expect interface AuthenticationRepository {
 
     fun getAuthContext(): AuthenticationContext?
 

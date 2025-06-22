@@ -12,6 +12,12 @@ data class User (
     val type: UserType
     )
 
+sealed interface UserState
+
+data object UserLoading: UserState
+
+data class UserValue(val value: User?): UserState
+
 @JvmInline
 @Serializable
 value class Name(

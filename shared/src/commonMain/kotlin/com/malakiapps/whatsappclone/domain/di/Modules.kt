@@ -1,7 +1,9 @@
 package com.malakiapps.whatsappclone.domain.di
 
 import com.malakiapps.whatsappclone.domain.use_cases.InitializeUserUseCase
-import com.malakiapps.whatsappclone.domain.use_cases.GetAuthenticationContextStateUseCase
+import com.malakiapps.whatsappclone.domain.managers.AuthenticationContextManager
+import com.malakiapps.whatsappclone.domain.managers.ContactsManager
+import com.malakiapps.whatsappclone.domain.managers.UserManager
 import com.malakiapps.whatsappclone.domain.use_cases.GetUserUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.InitialAuthenticationCheckUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.LogoutUseCase
@@ -31,7 +33,7 @@ val sharedModule = module {
     }
 
     single {
-        GetAuthenticationContextStateUseCase(
+        AuthenticationContextManager(
             authenticationRepository = get()
         )
     }
@@ -72,6 +74,11 @@ val sharedModule = module {
             userStorageRepository = get(named("authenticated_user_repository")),
         )
     }
+
+    //Managers
+    singleOf(::UserManager)
+    singleOf(::AuthenticationContextManager)
+    singleOf(::ContactsManager)
 
     //View models
     singleOf(::AuthenticationViewModel)

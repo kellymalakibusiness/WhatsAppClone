@@ -13,8 +13,12 @@ data class SignInResponse(
 
 sealed interface AuthenticationContextState
 
-data object NotInitialized: AuthenticationContextState
+data object InitialLoading: AuthenticationContextState
 
-data class Initialized(val value: AuthenticationContext?): AuthenticationContextState
+data class HasValue(val value: AuthenticationContext?): AuthenticationContextState{
+    fun isValid(): Boolean {
+        return value != null
+    }
+}
 
 val ANONYMOUS_EMAIL = Email("anonymous")

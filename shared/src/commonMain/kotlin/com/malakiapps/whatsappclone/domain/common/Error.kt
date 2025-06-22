@@ -35,7 +35,3 @@ data class InvalidUpdate(val message: String): UpdateUserError
 
 //DELETE USER
 sealed interface DeleteUserError: Error
-
-
-//CONNECTIONS
-sealed interface ConnectionError: Error

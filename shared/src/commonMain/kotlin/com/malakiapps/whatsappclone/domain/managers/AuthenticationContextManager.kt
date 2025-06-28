@@ -4,10 +4,10 @@ import com.malakiapps.whatsappclone.domain.common.AuthenticationError
 import com.malakiapps.whatsappclone.domain.common.AuthenticationUserNotFound
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
-import com.malakiapps.whatsappclone.domain.user.AuthenticationContextState
 import com.malakiapps.whatsappclone.domain.user.AuthenticationRepository
-import com.malakiapps.whatsappclone.domain.user.HasValue
-import com.malakiapps.whatsappclone.domain.user.InitialLoading
+import com.malakiapps.whatsappclone.domain.user.StateLoading
+import com.malakiapps.whatsappclone.domain.user.StateValue
+import com.malakiapps.whatsappclone.domain.user.UserState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -17,12 +17,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class AuthenticationContextManager(
-    val authenticationRepository: AuthenticationRepository,
+    private val authenticationRepository: AuthenticationRepository,
 ) {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    private val _authenticationContextState = MutableStateFlow<AuthenticationContextState>(InitialLoading)
-    val authenticationContextState: StateFlow<AuthenticationContextState> = _authenticationContextState
+    private val _authenticationContextState = MutableStateFlow<UserState<AuthenticationContext?>>(StateLoading)
+    val authenticationContextState: StateFlow<UserState<AuthenticationContext?>> = _authenticationContextState
 
     init {
         scope.launch {
@@ -30,7 +30,7 @@ class AuthenticationContextManager(
                 .getAuthContextState()
                 .collect { newValue ->
                     _authenticationContextState.update {
-                        HasValue(newValue)
+                        StateValue(newValue)
                     }
                 }
         }

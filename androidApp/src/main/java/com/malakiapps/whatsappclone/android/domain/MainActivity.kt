@@ -5,101 +5,59 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.lifecycle.coroutineScope
-import com.malakiapps.whatsappclone.domain.user.AuthenticationRepository
-import com.malakiapps.whatsappclone.presentation.view_models.AuthenticationViewModel
 import androidx.compose.runtime.getValue
-import kotlinx.coroutines.launch
-import org.koin.android.ext.android.inject
 import org.koin.compose.koinInject
 import com.malakiapps.whatsappclone.android.presentation.compose.ComposeApp
-import com.malakiapps.whatsappclone.android.domain.utils.UserAboutUpdate
-import com.malakiapps.whatsappclone.android.domain.utils.UserImageUpdate
-import com.malakiapps.whatsappclone.android.domain.utils.UserNameUpdate
 import com.malakiapps.whatsappclone.android.domain.utils.compressImageToBase64
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
-import com.malakiapps.whatsappclone.presentation.view_models.ContactsViewModel
-import com.malakiapps.whatsappclone.presentation.view_models.MessagesViewModel
-import com.malakiapps.whatsappclone.presentation.view_models.UserViewModel
+import com.malakiapps.whatsappclone.presentation.view_models.MainViewModel
+import com.malakiapps.whatsappclone.presentation.view_modules.AuthenticationViewModel
 import kotlinx.coroutines.flow.merge
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val authenticationRepository: AuthenticationRepository by inject()
-        authenticationRepository.initializeCredentialManager(context = this)
-
         setContent {
             FakeWhatsAppTheme {
                 //Root view models
+                val mainViewModel: MainViewModel = koinInject()
                 val authenticationViewModel: AuthenticationViewModel = koinInject()
-                val userViewModel: UserViewModel = koinInject()
-                val contactsViewModel: ContactsViewModel = koinInject()
-                val messagesViewModel: MessagesViewModel = koinInject()
 
-                val userState by userViewModel.userState.collectAsState()
-
+                val userState by mainViewModel.selfProfileState.collectAsState()
                 ComposeApp(
-                    eventChannel = merge(
-                        authenticationViewModel.eventsChannelFlow,
-                        userViewModel.eventsChannelFlow
-                    ),
-                    userState = userState,
-                    dashboardOnSignInWithGoogleClick = {
-                        authenticationViewModel.signInWithGoogle()
-                    },
-                    dashboardOnContinueWithoutSignInClick = {
-                        authenticationViewModel.anonymousSignIn()
-                    },
+                    rootEvents = merge(mainViewModel.eventsChannelFlow, authenticationViewModel.eventsChannelFlow),
+                    profileState = userState,
                     convertUriToBase64Image = { imageUri ->
-                        authenticationViewModel.setLoading(true)
+                        mainViewModel.setLoading(true)
                         val base64Image = compressImageToBase64(
                             image = imageUri,
                             contentResolver = contentResolver
                         )
-                        authenticationViewModel.setLoading(false)
+                        mainViewModel.setLoading(false)
                         base64Image
                     },
-                    profileOnContinueClick = { email, name, image ->
-                        userViewModel.initialUpdateUserProfile(
-                            name = name,
-                            image = image,
-                            email = email
+                    generateBase64Image = { imageUri ->
+                        mainViewModel.setLoading(true)
+                        val base64Image = compressImageToBase64(
+                            image = imageUri,
+                            contentResolver = contentResolver
                         )
+                        mainViewModel.setLoading(false)
+                        base64Image
+                    },
+                    signInWithGoogle = {
+                        authenticationViewModel.signInWithGoogle(this)
+                    },
+                    anonymousSignIn = {
+                        authenticationViewModel.anonymousSignIn()
                     },
                     onLogOut = {
-                        authenticationViewModel.logOut()
-                    },
-                    onUserUpdate = { userUpdate ->
-                        when (userUpdate) {
-                            is UserAboutUpdate -> {
-                                userViewModel.updateUserAbout(about = userUpdate.value)
-                            }
-
-                            is UserImageUpdate -> {
-                                //Update user profile picture
-                                lifecycle.coroutineScope.launch {
-                                    authenticationViewModel.setLoading(true)
-                                    val base64Image = compressImageToBase64(
-                                        image = userUpdate.image,
-                                        contentResolver = contentResolver
-                                    )
-                                    authenticationViewModel.setLoading(false)
-                                    userViewModel.updateUserImage(
-                                        image = base64Image,
-                                    )
-                                }
-                            }
-
-                            is UserNameUpdate -> {
-                                userViewModel.updateUserName(name = userUpdate.value)
-                            }
-                        }
+                        authenticationViewModel.logOut(this)
                     }
+
                 )
             }
         }

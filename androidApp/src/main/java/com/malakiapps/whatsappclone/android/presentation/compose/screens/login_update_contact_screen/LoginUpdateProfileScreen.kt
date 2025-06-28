@@ -1,4 +1,4 @@
-package com.malakiapps.whatsappclone.android.presentation.compose.screens.profile_info_screen
+package com.malakiapps.whatsappclone.android.presentation.compose.screens.login_update_contact_screen
 
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -48,16 +48,17 @@ import com.malakiapps.whatsappclone.android.presentation.compose.common.NoProfil
 import com.malakiapps.whatsappclone.android.presentation.compose.common.base64ToUri
 import com.malakiapps.whatsappclone.domain.user.Image
 import com.malakiapps.whatsappclone.domain.user.Name
-import com.malakiapps.whatsappclone.domain.user.User
+import com.malakiapps.whatsappclone.domain.user.Profile
 import kotlinx.coroutines.launch
 
 @Composable
-fun ProfileInfoScreen(
-    userState: User?,
+fun LoginUpdateProfileScreen(
+    profileState: Profile?,
     initialName: Name,
     initialBase64Image: Image?,
     convertUriToBase64Image: suspend (Uri) -> Image?,
-    onStartClick: (Name, Image?) -> Unit) {
+    onStartClick: (Name, Image?) -> Unit
+    ) {
     val scope = rememberCoroutineScope()
     var nameValue by remember { mutableStateOf(initialName.value) }
     var selectedImage by remember { mutableStateOf(initialBase64Image) }
@@ -72,12 +73,13 @@ fun ProfileInfoScreen(
         }
     )
 
-    LaunchedEffect(userState) {
-        if(userState?.image != null){
-            selectedImage = userState.image
+    LaunchedEffect(profileState) {
+        println("MALAKA: On the screen we have $profileState")
+        if(profileState?.image != null){
+            selectedImage = profileState.image
         }
-        if(userState?.name != null){
-            nameValue = userState.name.value
+        if(profileState?.name != null){
+            nameValue = profileState.name.value
         }
     }
 
@@ -180,7 +182,7 @@ fun ProfileInfoScreen(
                         //TODO("Show error dialog with required name")
                     }
                 },
-                enabled = userState != null,
+                enabled = profileState != null,
                 modifier = Modifier.fillMaxWidth().padding(16.dp)
             ) {
                 Text(
@@ -198,12 +200,12 @@ fun ProfileInfoScreen(
 @Composable
 private fun ProfileInfoScreenPrev() {
     FakeWhatsAppTheme {
-        ProfileInfoScreen(
+        LoginUpdateProfileScreen(
             initialName = Name("Kelly"),
             initialBase64Image = null,
             convertUriToBase64Image = { _ -> Image("") },
-            onStartClick = {_, _ -> },
-            userState = null
+            profileState = null,
+            onStartClick = { _, _ -> }
         )
     }
 }

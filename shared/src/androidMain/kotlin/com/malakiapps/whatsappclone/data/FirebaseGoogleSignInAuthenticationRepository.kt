@@ -1,47 +1,20 @@
 package com.malakiapps.whatsappclone.data
 
-import android.content.Context
-import androidx.credentials.ClearCredentialStateRequest
-import androidx.credentials.CredentialManager
-import androidx.credentials.CustomCredential
-import androidx.credentials.GetCredentialRequest
-import androidx.credentials.GetCredentialResponse
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
-import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.auth.userProfileChangeRequest
 import com.google.firebase.ktx.Firebase
-import com.malakiapps.whatsappclone.R
-import com.malakiapps.whatsappclone.data.common.generateBase64ImageFromUrlUri
-import com.malakiapps.whatsappclone.domain.common.AuthenticationError
-import com.malakiapps.whatsappclone.domain.common.AuthenticationException
-import com.malakiapps.whatsappclone.domain.common.AuthenticationUserNotFound
-import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.user.AuthenticationRepository
 import com.malakiapps.whatsappclone.domain.user.UserType
-import com.malakiapps.whatsappclone.domain.user.getCurrentUserImplementation
-import com.malakiapps.whatsappclone.domain.common.handleOnFailureResponse
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Name
-import com.malakiapps.whatsappclone.domain.user.SignInResponse
+import com.malakiapps.whatsappclone.domain.user.getCurrentUserImplementation
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.suspendCancellableCoroutine
-import kotlinx.coroutines.tasks.await
-import kotlin.coroutines.cancellation.CancellationException
 
 class FirebaseGoogleSignInAuthenticationRepository : AuthenticationRepository {
-    private var credentialManager: CredentialManager? = null
     override val firebaseAuth = Firebase.auth
-    private var context: Context? = null
-
-    override fun initializeCredentialManager(context: Context) {
-        credentialManager = CredentialManager.Companion.create(context)
-        this.context = context
-    }
 
     override fun getAuthContext(): AuthenticationContext? {
         return firebaseAuth.currentUser?.let { currentUser ->
@@ -55,47 +28,6 @@ class FirebaseGoogleSignInAuthenticationRepository : AuthenticationRepository {
                 type = UserType.REAL
             )
         }
-    }
-
-    override suspend fun signIn(): Response<SignInResponse, AuthenticationError> {
-        val result = try {
-            buildCredentialRequest()
-        } catch (e: Exception) {
-            e.printStackTrace()
-
-            //Don't prevent the coroutine from being cancelled
-            if (e is CancellationException) {
-                throw e
-            }
-            return Response.Failure(AuthenticationException(e.message ?: "Unknown error"))
-        }
-
-        return result.handleSignIn()
-    }
-
-    @OptIn(ExperimentalCoroutinesApi::class)
-    override suspend fun anonymousSignIn(): Response<AuthenticationContext, AuthenticationError> {
-        return suspendCancellableCoroutine { cont ->
-            firebaseAuth.signInAnonymously()
-                .addOnCompleteListener { task ->
-                    val authenticationContext = AuthenticationContext(
-                        name = Name("Anonymous User"),
-                        email = null,
-                        type = UserType.ANONYMOUS
-                    )
-                    cont.resume(Response.Success(authenticationContext), null)
-                }
-                .addOnFailureListener { error ->
-                    cont.handleOnFailureResponse(error)
-                }
-        }
-    }
-
-    override suspend fun signOut() {
-        credentialManager?.clearCredentialState(
-            ClearCredentialStateRequest()
-        )
-        firebaseAuth.signOut()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -122,55 +54,5 @@ class FirebaseGoogleSignInAuthenticationRepository : AuthenticationRepository {
 
     override fun getAuthContextState(): Flow<AuthenticationContext?> {
         return getCurrentUserImplementation()
-    }
-
-    private suspend fun GetCredentialResponse.handleSignIn(): Response<SignInResponse, AuthenticationError> {
-        if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
-            try {
-                val tokenCredential = GoogleIdTokenCredential.Companion.createFrom(credential.data)
-
-                val authCredential = GoogleAuthProvider.getCredential(tokenCredential.idToken, null)
-                val authResult = firebaseAuth.signInWithCredential(authCredential).await()
-
-                return authResult.user?.let { currentUser ->
-                    val authenticationContext = AuthenticationContext(
-                        name = Name(currentUser.displayName ?: ""),
-                        email = Email(currentUser.email ?: ""),
-                        type = UserType.REAL
-                    )
-                    val initialImage = currentUser.photoUrl?.generateBase64ImageFromUrlUri()
-                    Response.Success(
-                        SignInResponse(
-                            authenticationContext = authenticationContext,
-                            initialBase64ProfileImage = initialImage
-                        )
-                    )
-                } ?: Response.Failure(AuthenticationUserNotFound)
-            } catch (e: GoogleIdTokenParsingException) {
-                return Response.Failure(AuthenticationException(e.message ?: "Unknown error"))
-            }
-        } else {
-            return Response.Failure(AuthenticationException("Incorrect credential"))
-        }
-    }
-
-    private suspend fun buildCredentialRequest(): GetCredentialResponse {
-        val request = GetCredentialRequest.Builder()
-            .addCredentialOption(
-                GetGoogleIdOption.Builder()
-                    .setFilterByAuthorizedAccounts(false)
-                    .setServerClientId(
-                        context?.getString(R.string.web_client_id)
-                            ?: throw Error("Context not provided")
-                    )
-                    .setAutoSelectEnabled(false)
-                    .build()
-            )
-            .build()
-
-        return credentialManager?.getCredential(
-            request = request,
-            context = context!!
-        ) ?: throw Error("Credential manager not defined")
     }
 }

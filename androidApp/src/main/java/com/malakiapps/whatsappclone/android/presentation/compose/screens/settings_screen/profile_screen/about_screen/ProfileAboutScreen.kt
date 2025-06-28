@@ -44,6 +44,7 @@ import androidx.compose.ui.unit.sp
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.compose.common.NameBackPressTopAppBar
+import com.malakiapps.whatsappclone.domain.user.About
 
 val aboutList = listOf(
     "Available",
@@ -61,88 +62,100 @@ val aboutList = listOf(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileAboutScreen(currentValue: String?, onSelect: (String) -> Unit, onBackPress: () -> Unit, modifier: Modifier = Modifier) {
+fun ProfileAboutScreen(
+    currentValue: About?,
+    onSelect: (About) -> Unit,
+    onBackPress: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     var showAboutEditorSheet by remember { mutableStateOf(false) }
-    var bottomSheetState = rememberModalBottomSheetState()
+    val bottomSheetState = rememberModalBottomSheetState()
     val focusRequester = remember { FocusRequester() }
-    var aboutUpdatedTextFieldValue by remember { mutableStateOf(
-        TextFieldValue(
-            text = currentValue ?: "",
-            selection = TextRange(0, currentValue?.length ?: 0)
-            )) }
+    var aboutUpdatedTextFieldValue by remember {
+        mutableStateOf(
+            TextFieldValue(
+                text = currentValue?.value ?: "",
+                selection = TextRange(0, currentValue?.value?.length ?: 0)
+            )
+        )
+    }
 
     Box(
         modifier = modifier.fillMaxSize()
-    ){
+    ) {
         Scaffold(
-        modifier = modifier,
-        topBar = {
-            NameBackPressTopAppBar(
-                name = "About",
-                onBackPress = onBackPress
-            )
-        }
-    ) { paddingValues ->
-        val horizontalPaddingModifier = Modifier.padding(horizontal = 16.dp)
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-        ) {
-            Text(
-                text = "Currently set to",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = horizontalPaddingModifier.padding(top = 16.dp)
-            )
-            Row(
+            modifier = modifier,
+            topBar = {
+                NameBackPressTopAppBar(
+                    name = "About",
+                    onBackPress = onBackPress
+                )
+            }
+        ) { paddingValues ->
+            val horizontalPaddingModifier = Modifier.padding(horizontal = 16.dp)
+            Column(
                 modifier = Modifier
-                    .clickable {
-                        showAboutEditorSheet = true
-                    }
-                    .padding(horizontal = 16.dp, vertical = 16.dp)
-                    .fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+                    .fillMaxSize()
+                    .padding(paddingValues)
             ) {
                 Text(
-                    text = currentValue ?: "",
-                    style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp)
+                    text = "Currently set to",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.secondary,
+                    modifier = horizontalPaddingModifier.padding(top = 16.dp)
                 )
-                Spacer(Modifier.weight(1f))
-                IconButton(
-                    onClick = {
-                        showAboutEditorSheet = true
-                    }
+                Row(
+                    modifier = Modifier
+                        .clickable {
+                            showAboutEditorSheet = true
+                        }
+                        .padding(horizontal = 16.dp, vertical = 16.dp)
+                        .fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.outline_edit_24),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary
+                    Text(
+                        text = currentValue?.value ?: "",
+                        style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp)
                     )
+                    Spacer(Modifier.weight(1f))
+                    IconButton(
+                        onClick = {
+                            showAboutEditorSheet = true
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.outline_edit_24),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
-            }
-            Divider(
-                modifier = Modifier.fillMaxWidth(),
-                color = DividerDefaults.color.copy(alpha = 0.3f)
-            )
-            Text(
-                text = "Select About",
-                style = MaterialTheme.typography.labelLarge,
-                modifier = horizontalPaddingModifier.padding(vertical = 16.dp),
-                color = MaterialTheme.colorScheme.secondary
-            )
+                Divider(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = DividerDefaults.color.copy(alpha = 0.3f)
+                )
+                Text(
+                    text = "Select About",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = horizontalPaddingModifier.padding(vertical = 16.dp),
+                    color = MaterialTheme.colorScheme.secondary
+                )
 
-            Column(
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                aboutList.forEach {
-                    AboutElement(element = it, isSelected = it == currentValue, onSelect = onSelect)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    aboutList.forEach {
+                        AboutElement(
+                            element = About(it),
+                            isSelected = it == currentValue?.value,
+                            onSelect = onSelect
+                        )
+                    }
                 }
             }
         }
-    }
 
-        if(showAboutEditorSheet){
+        if (showAboutEditorSheet) {
             LaunchedEffect(Unit) {
                 focusRequester.requestFocus()
             }
@@ -179,7 +192,7 @@ fun ProfileAboutScreen(currentValue: String?, onSelect: (String) -> Unit, onBack
                                 modifier = Modifier.focusRequester(focusRequester)
                             )
                             Spacer(Modifier.width(16.dp))
-                            if (aboutUpdatedTextFieldValue.text.isNotBlank()){
+                            if (aboutUpdatedTextFieldValue.text.isNotBlank()) {
                                 Text(
                                     text = (139 - aboutUpdatedTextFieldValue.text.length).toString(),
                                     style = MaterialTheme.typography.labelMedium,
@@ -211,7 +224,8 @@ fun ProfileAboutScreen(currentValue: String?, onSelect: (String) -> Unit, onBack
                             Spacer(Modifier.width(16.dp))
                             TextButton(
                                 onClick = {
-                                    onSelect(aboutUpdatedTextFieldValue.text)
+                                    val about = About(aboutUpdatedTextFieldValue.text)
+                                    onSelect(about)
                                     showAboutEditorSheet = false
                                 }
                             ) {
@@ -226,7 +240,7 @@ fun ProfileAboutScreen(currentValue: String?, onSelect: (String) -> Unit, onBack
 }
 
 @Composable
-private fun AboutElement(element: String, isSelected: Boolean, onSelect: (String) -> Unit) {
+private fun AboutElement(element: About, isSelected: Boolean, onSelect: (About) -> Unit) {
     Row(
         modifier = Modifier
             .clickable {
@@ -235,11 +249,11 @@ private fun AboutElement(element: String, isSelected: Boolean, onSelect: (String
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(
-            text = element,
+            text = element.value,
             style = MaterialTheme.typography.bodyMedium.copy(fontSize = 16.sp)
         )
         Spacer(Modifier.weight(1f))
-        if(isSelected){
+        if (isSelected) {
             Icon(
                 painter = painterResource(R.drawable.outline_check_24),
                 contentDescription = null,
@@ -254,7 +268,7 @@ private fun AboutElement(element: String, isSelected: Boolean, onSelect: (String
 fun ProfileAboutScreenPrev(modifier: Modifier = Modifier) {
     FakeWhatsAppTheme {
         ProfileAboutScreen(
-            currentValue = "Hey there,",
+            currentValue = About("Hey there,"),
             onSelect = {},
             onBackPress = {}
         )

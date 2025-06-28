@@ -37,6 +37,7 @@ import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.compose.common.NoProfileImage
 import com.malakiapps.whatsappclone.android.presentation.compose.common.base64ToUri
 import com.malakiapps.whatsappclone.android.presentation.compose.common.shimmerEffect
+import com.malakiapps.whatsappclone.domain.user.About
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Name
 
@@ -205,7 +206,7 @@ private fun UserDetailsRow(
                         color = MaterialTheme.colorScheme.secondary
                     )
                     Text(
-                        text = userDetailsInfo.about,
+                        text = userDetailsInfo.about.value,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.secondary
                     )
@@ -299,7 +300,7 @@ private fun SettingsScreenPrev() {
                         image = null,
                         name = Name("Malaki"),
                         email = Email("kellymalaki@gmail.com"),
-                        about = "Hey there, blah blah blah"
+                        about = About("Hey there, blah blah blah")
                     ),
                     onProfileClick = {},
                     onNavigateBack = {},

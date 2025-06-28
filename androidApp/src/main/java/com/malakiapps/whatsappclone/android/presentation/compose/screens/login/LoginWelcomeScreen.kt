@@ -38,7 +38,7 @@ import com.malakiapps.whatsappclone.android.R
 const val URL_LINK = "https://youtu.be/SV-eOBr6VC4?si=nD6QGV3_UBRaAw23"
 
 @Composable
-fun LoginScreen(
+fun LoginWelcomeScreen(
     onContinueWithGoogleClick: () -> Unit,
     onContinueWithoutSigningInClick: () -> Unit
 ) {
@@ -139,7 +139,7 @@ fun LoginScreen(
 @Composable
 fun DefaultPreview() {
     FakeWhatsAppTheme {
-        LoginScreen(
+        LoginWelcomeScreen(
             onContinueWithoutSigningInClick = {},
             onContinueWithGoogleClick = {}
         )

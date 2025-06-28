@@ -6,35 +6,35 @@ sealed interface ScreenDestination
 
 
 @Serializable
-data object DashboardScreenContext: ScreenDestination
+data object DashboardScreenRoute: ScreenDestination
 
 @Serializable
-object WelcomeLoginScreenContext: ScreenDestination
+object LoginWelcomeScreenRoute: ScreenDestination
 
 @Serializable
-data class ProfileInfoScreenContext(
+data class LoginUpdateProfileScreenRoute(
     val email: String?,
     val name: String,
     val image: String?,
 ): ScreenDestination
 
 @Serializable
-object ConversationScreenContext: ScreenDestination
+object ConversationScreenRoute: ScreenDestination
 
 @Serializable
-object SettingsScreenContext: ScreenDestination
+object SettingsScreenRoute: ScreenDestination
 
 @Serializable
-object AccountSettingsScreenContext: ScreenDestination
+object AccountSettingsScreenRoute: ScreenDestination
 
 @Serializable
-object ProfileSettingsScreenContext: ScreenDestination
+object ProfileSettingsScreenRoute: ScreenDestination
 
 @Serializable
-object SettingsProfileUpdateNameScreenContext: ScreenDestination
+object SettingsProfileUpdateNameScreenRoute: ScreenDestination
 
 @Serializable
-object SettingsProfileUpdateAboutScreenContext: ScreenDestination
+object SettingsProfileUpdateAboutScreenRoute: ScreenDestination
 
 @Serializable
-object NewChatScreenContext: ScreenDestination
+object SelectContactScreenRoute: ScreenDestination

@@ -36,6 +36,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.lifecycle.viewmodel)
+            implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
             implementation(libs.kotlinx.serialization.json)
         }
@@ -60,6 +61,11 @@ android {
 }
 
 dependencies {
+    implementation(libs.koin.android)
+    implementation(libs.koin.compose)
+    implementation(libs.koin.viewmodel)
+    implementation(libs.koin.viewmodel.navigation)
+
     implementation(libs.firebase.auth)
     implementation(libs.firebase.firestore)
 

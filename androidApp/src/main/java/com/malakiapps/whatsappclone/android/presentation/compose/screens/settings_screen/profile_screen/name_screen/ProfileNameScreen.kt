@@ -35,7 +35,7 @@ import com.malakiapps.whatsappclone.android.presentation.compose.common.NameBack
 import com.malakiapps.whatsappclone.domain.user.Name
 
 @Composable
-fun ProfileNameScreen(name: Name?, onBackPress: () -> Unit, onSaveClick: (Name) -> Unit, modifier: Modifier = Modifier) {
+fun ProfileNameScreen(name: Name?, onSaveClick: (Name) -> Unit, onBackPress: () -> Unit, modifier: Modifier = Modifier) {
     val focusRequester = remember { FocusRequester() }
     val focusManager = LocalFocusManager.current
     var currentName by remember {
@@ -122,8 +122,8 @@ private fun ProfileNameScreenPrev() {
     FakeWhatsAppTheme {
         ProfileNameScreen(
             name = Name("Kelly"),
+            onSaveClick = {},
             onBackPress = {},
-            onSaveClick = {}
         )
     }
 }

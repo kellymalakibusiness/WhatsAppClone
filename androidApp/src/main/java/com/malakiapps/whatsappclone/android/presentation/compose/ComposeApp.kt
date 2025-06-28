@@ -10,6 +10,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -26,35 +27,31 @@ import com.malakiapps.whatsappclone.android.presentation.compose.common.LoadingD
 import com.malakiapps.whatsappclone.android.presentation.compose.common.UpdatingDialog
 import com.malakiapps.whatsappclone.android.domain.utils.ScreenError
 import com.malakiapps.whatsappclone.android.domain.utils.getErrorMessageObject
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.AccountSettingsScreenContext
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.ConversationScreenContext
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.DashboardScreenContext
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.NewChatScreenContext
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.ProfileInfoScreenContext
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.AccountSettingsScreenRoute
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.ConversationScreenRoute
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.DashboardScreenRoute
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.SelectContactScreenRoute
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.LoginUpdateProfileScreenRoute
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.ScreenDestination
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.ProfileSettingsScreenContext
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.SettingsProfileUpdateAboutScreenContext
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.SettingsProfileUpdateNameScreenContext
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.SettingsScreenContext
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.WelcomeLoginScreenContext
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.ProfileSettingsScreenRoute
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.SettingsProfileUpdateAboutScreenRoute
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.SettingsProfileUpdateNameScreenRoute
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.SettingsScreenRoute
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.LoginWelcomeScreenRoute
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.data.LastMessageWas
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.data.ReceivedMessageItem
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.ui.ConversationScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.dashboard.DashboardScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.dashboard.DashboardScreenType
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.login.LoginScreen
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.new_chat_screen.NewChatScreen
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.profile_info_screen.ProfileInfoScreen
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.login.LoginWelcomeScreen
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.new_chat_screen.SelectContactScreen
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.login_update_contact_screen.LoginUpdateProfileScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.SettingsScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.UserDetailsInfo.Companion.toUserDetailsInfo
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.account_screen.AccountSettingsScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.profile_screen.SettingsProfileScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.profile_screen.about_screen.ProfileAboutScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.profile_screen.name_screen.ProfileNameScreen
-import com.malakiapps.whatsappclone.android.domain.utils.UserAboutUpdate
-import com.malakiapps.whatsappclone.android.domain.utils.UserImageUpdate
-import com.malakiapps.whatsappclone.android.domain.utils.UserNameUpdate
-import com.malakiapps.whatsappclone.android.domain.utils.UserUpdateType
 import com.malakiapps.whatsappclone.domain.common.Event
 import com.malakiapps.whatsappclone.domain.common.LoadingEvent
 import com.malakiapps.whatsappclone.domain.common.LogOut
@@ -67,20 +64,27 @@ import com.malakiapps.whatsappclone.domain.common.UpdatingEvent
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Image
 import com.malakiapps.whatsappclone.domain.user.Name
-import com.malakiapps.whatsappclone.domain.user.User
+import com.malakiapps.whatsappclone.domain.user.Profile
+import com.malakiapps.whatsappclone.presentation.view_models.LoginUpdateContactViewModel
+import com.malakiapps.whatsappclone.presentation.view_models.SelectContactViewModel
+import com.malakiapps.whatsappclone.presentation.view_models.UpdateUserProfileViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun ComposeApp(
-    userState: User?,
-    eventChannel: Flow<Event>,
-    dashboardOnSignInWithGoogleClick: () -> Unit,
-    dashboardOnContinueWithoutSignInClick: () -> Unit,
+    profileState: Profile?,
+    rootEvents: Flow<Event>,
     convertUriToBase64Image: suspend (Uri) -> Image?,
-    profileOnContinueClick: (Email?, Name, Image?) -> Unit,
-    onLogOut: () -> Unit,
-    onUserUpdate: (UserUpdateType) -> Unit
+    generateBase64Image: suspend (Uri) -> Image?,
+    signInWithGoogle: () -> Unit,
+    anonymousSignIn: () -> Unit,
+    onLogOut: () -> Unit
 ) {
     val navController = rememberNavController()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -93,10 +97,11 @@ fun ComposeApp(
     var error: ScreenError? by rememberSaveable {
         mutableStateOf(null)
     }
+    val viewModelEvents = Channel<Event>()
 
     LaunchedEffect(lifecycleOwner.lifecycle) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            eventChannel.collect { event ->
+            merge(rootEvents, viewModelEvents.receiveAsFlow()).collect { event ->
                 //Remove the loading in the case of navigating to another screen
                 if (event is NavigationEvent || event is OnError) {
                     isLoading = false
@@ -105,7 +110,7 @@ fun ComposeApp(
                 when (event) {
                     is NavigateToProfileInfo -> {
                         navController.navigateToOurPage(
-                            ProfileInfoScreenContext(
+                            LoginUpdateProfileScreenRoute(
                                 email = event.authenticationContext.email?.value,
                                 name = event.authenticationContext.name.value,
                                 image = event.initialImage?.value
@@ -123,14 +128,14 @@ fun ComposeApp(
 
                     is NavigateToDashboard -> {
                         navController.navigateToOurPage(
-                            DashboardScreenContext,
+                            DashboardScreenRoute,
                             removeAllBackstackScreens = true
                         )
                     }
 
                     NavigateToLogin -> {
                         navController.navigateToOurPage(
-                            WelcomeLoginScreenContext,
+                            LoginWelcomeScreenRoute,
                             removeAllBackstackScreens = true
                         )
                     }
@@ -150,44 +155,50 @@ fun ComposeApp(
     SharedTransitionLayout {
         NavHost(
             navController = navController,
-            startDestination = DashboardScreenContext//SettingsProfileUpdateAboutScreenContext//DashboardScreenContext
+            startDestination = DashboardScreenRoute
         ) {
-            composable<WelcomeLoginScreenContext> {
-                LoginScreen(
+            composable<LoginWelcomeScreenRoute> {
+                LoginWelcomeScreen(
                     onContinueWithGoogleClick = {
-                        dashboardOnSignInWithGoogleClick()
+                        signInWithGoogle()
                     },
                     onContinueWithoutSigningInClick = {
-                        dashboardOnContinueWithoutSignInClick()
+                        anonymousSignIn()
                     }
                 )
             }
 
-            composable<ProfileInfoScreenContext> { backStackEntry ->
-                val data = requireNotNull(backStackEntry.toRoute<ProfileInfoScreenContext>())
-
+            composable<LoginUpdateProfileScreenRoute> { backStackEntry ->
+                val data = requireNotNull(backStackEntry.toRoute<LoginUpdateProfileScreenRoute>())
                 val name = Name(data.name)
                 val image = data.image?.let { Image(it) }
-                val email = data.email?.let { Email(it)}
+                val email = data.email?.let { Email(it) }
 
-                ProfileInfoScreen(
-                    userState = userState,
+                val loginUpdateContactViewModel : LoginUpdateContactViewModel = koinViewModel<LoginUpdateContactViewModel>()
+
+                LaunchedEffect(true) {
+                    loginUpdateContactViewModel.eventsChannelFlow.collect {
+                        viewModelEvents.send(it)
+                    }
+                }
+
+                LoginUpdateProfileScreen(
+                    profileState = profileState,
                     initialName = name,
                     initialBase64Image = image,
                     convertUriToBase64Image = convertUriToBase64Image,
-                    onStartClick = { name, image ->
-                        profileOnContinueClick(email, name, image)
+                    onStartClick = { selectedName, selectedImage ->
+                        loginUpdateContactViewModel.updateUserProfile(email = email, name = selectedName, image = selectedImage)
                     }
                 )
             }
 
-            composable<DashboardScreenContext> { backStackEntry ->
-                //val data = requireNotNull(backStackEntry.toRoute<DashboardScreenContext>())
+            composable<DashboardScreenRoute> {
                 DashboardScreen(
                     onPrimaryFloatingButtonPress = { dashboardScreenType ->
                         when(dashboardScreenType){
                             DashboardScreenType.CHATS -> {
-                                navController.navigateToOurPage(NewChatScreenContext)
+                                navController.navigateToOurPage(SelectContactScreenRoute)
                             }
                             DashboardScreenType.UPDATES -> {
                                 //TODO()
@@ -206,12 +217,12 @@ fun ComposeApp(
                         }
                     },
                     openSettings = {
-                        navController.navigateToOurPage(SettingsScreenContext)
+                        navController.navigateToOurPage(SettingsScreenRoute)
                     }
                 )
             }
 
-            composable<ConversationScreenContext> {
+            composable<ConversationScreenRoute> {
                 ConversationScreen(
                     messageItems = listOf(
                         ReceivedMessageItem(
@@ -228,7 +239,7 @@ fun ComposeApp(
                 )
             }
 
-            composable<SettingsScreenContext>(
+            composable<SettingsScreenRoute>(
                 enterTransition = {
                     slideInHorizontally { it }
                 },
@@ -242,21 +253,21 @@ fun ComposeApp(
                         animatedVisibilityScope = this
                     )
                 SettingsScreen(
-                    userDetailsInfo = userState?.toUserDetailsInfo(),
+                    userDetailsInfo = profileState?.toUserDetailsInfo(),
                     sharedElementModifier = sharedElementModifier,
                     onProfileClick = {
-                        navController.navigateToOurPage(ProfileSettingsScreenContext)
+                        navController.navigateToOurPage(ProfileSettingsScreenRoute)
                     },
                     onNavigateBack = {
                         navController.navigateUp()
                     },
                     onAccountSettingsClick = {
-                        navController.navigateToOurPage(AccountSettingsScreenContext)
+                        navController.navigateToOurPage(AccountSettingsScreenRoute)
                     }
                 )
             }
 
-            composable<AccountSettingsScreenContext>(
+            composable<AccountSettingsScreenRoute>(
                 enterTransition = {
                     slideInHorizontally { it }
                 },
@@ -274,75 +285,101 @@ fun ComposeApp(
                 )
             }
 
-            composable<ProfileSettingsScreenContext> {
+            composable<ProfileSettingsScreenRoute> {
                 val sharedElementModifier = Modifier
                     .sharedElement(
                         state = rememberSharedContentState(key = "profileImage"),
                         animatedVisibilityScope = this
                     )
+
+                val imageProcessingScope = rememberCoroutineScope()
+
+                val updateUserProfileViewModel = koinViewModel<UpdateUserProfileViewModel>()
+
+                LaunchedEffect(true) {
+                    updateUserProfileViewModel.eventsChannelFlow.collect {
+                        viewModelEvents.send(it)
+                    }
+                }
+
                 SettingsProfileScreen(
-                    userDetailsInfo = userState?.toUserDetailsInfo(),
+                    userDetailsInfo = profileState?.toUserDetailsInfo(),
                     sharedElementModifier = sharedElementModifier,
                     onBackPress = {
                         navController.navigateUp()
                     },
-                    onImageUpdate = { image ->
-                        onUserUpdate(
-                            UserImageUpdate(image)
-                        )
-                    },
                     onNamePress = {
-                        navController.navigateToOurPage(SettingsProfileUpdateNameScreenContext)
+                        navController.navigateToOurPage(SettingsProfileUpdateNameScreenRoute)
                     },
                     onAboutPress = {
-                        navController.navigateToOurPage(SettingsProfileUpdateAboutScreenContext)
-                    }
+                        navController.navigateToOurPage(SettingsProfileUpdateAboutScreenRoute)
+                    },
+                    onImageUpdate = { imageUri ->
+                        imageProcessingScope.launch {
+                            val processedImage = generateBase64Image(imageUri)
+                            updateUserProfileViewModel.updateUserImage(processedImage)
+                        }
+                    },
                 )
             }
 
-            composable<SettingsProfileUpdateNameScreenContext>(
+            composable<SettingsProfileUpdateNameScreenRoute>(
                 enterTransition = {
                     slideInHorizontally { it }
                 },
                 exitTransition = {
                     slideOutHorizontally { it }
                 }
-            ) {
+            ) { screenRootEntry ->
+                val navBackStackEntry = remember(screenRootEntry) { navController.getBackStackEntry(ProfileSettingsScreenRoute) }
+                val updateUserProfileViewModel = koinViewModel<UpdateUserProfileViewModel>(viewModelStoreOwner = navBackStackEntry)
+
+                LaunchedEffect(true) {
+                    updateUserProfileViewModel.eventsChannelFlow.collect {
+                        viewModelEvents.send(it)
+                    }
+                }
+
                 ProfileNameScreen(
-                    name = userState?.name,
-                    onBackPress = {
-                        navController.navigateUp()
-                    },
+                    name = profileState?.name,
                     onSaveClick = {
-                        onUserUpdate(
-                            UserNameUpdate(it)
-                        )
-                    }
-                )
-            }
-
-            composable<SettingsProfileUpdateAboutScreenContext>(
-                enterTransition = {
-                    slideInHorizontally { it }
-                },
-                exitTransition = {
-                    slideOutHorizontally { it }
-                }
-            ) {
-                ProfileAboutScreen(
-                    currentValue = userState?.about,
+                        updateUserProfileViewModel.updateUserName(it)
+                    },
                     onBackPress = {
                         navController.navigateUp()
                     },
+                )
+            }
+
+            composable<SettingsProfileUpdateAboutScreenRoute>(
+                enterTransition = {
+                    slideInHorizontally { it }
+                },
+                exitTransition = {
+                    slideOutHorizontally { it }
+                }
+            ) { screenRootEntry ->
+                val navBackStackEntry = remember(screenRootEntry) { navController.getBackStackEntry(ProfileSettingsScreenRoute) }
+                val updateUserProfileViewModel = koinViewModel<UpdateUserProfileViewModel>(viewModelStoreOwner = navBackStackEntry)
+
+                LaunchedEffect(true) {
+                    updateUserProfileViewModel.eventsChannelFlow.collect {
+                        viewModelEvents.send(it)
+                    }
+                }
+
+                ProfileAboutScreen(
+                    currentValue = profileState?.about,
                     onSelect = {
-                        onUserUpdate(
-                            UserAboutUpdate(it)
-                        )
+                        updateUserProfileViewModel.updateUserAbout(it)
+                    },
+                    onBackPress = {
+                        navController.navigateUp()
                     },
                 )
             }
 
-            composable<NewChatScreenContext>(
+            composable<SelectContactScreenRoute>(
                 enterTransition = {
                     slideInHorizontally { it }
                 },
@@ -350,7 +387,14 @@ fun ComposeApp(
                     slideOutHorizontally { it }
                 }
             ) {
-                NewChatScreen(
+                val selectContactViewModel = koinViewModel<SelectContactViewModel>()
+
+                LaunchedEffect(true) {
+                    selectContactViewModel.eventsChannelFlow.collect {
+                        viewModelEvents.send(it)
+                    }
+                }
+                SelectContactScreen(
                     contacts = emptyList(),
                     onBackPress = {
                         navController.navigateUp()
@@ -358,8 +402,6 @@ fun ComposeApp(
 
                 )
             }
-
-
         }
     }
 

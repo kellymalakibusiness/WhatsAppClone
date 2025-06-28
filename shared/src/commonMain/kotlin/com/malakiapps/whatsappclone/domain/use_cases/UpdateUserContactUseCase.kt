@@ -4,39 +4,40 @@ import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.InvalidUpdate
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.user.ANONYMOUS_EMAIL
+import com.malakiapps.whatsappclone.domain.user.AnonymousUserAccountRepository
+import com.malakiapps.whatsappclone.domain.user.AuthenticatedUserAccountRepository
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
-import com.malakiapps.whatsappclone.domain.user.User
-import com.malakiapps.whatsappclone.domain.user.UserStorageRepository
-import com.malakiapps.whatsappclone.domain.user.UserUpdate
+import com.malakiapps.whatsappclone.domain.user.Profile
+import com.malakiapps.whatsappclone.domain.user.UserContactUpdate
 import com.malakiapps.whatsappclone.domain.user.isNameUpdateValid
 import com.malakiapps.whatsappclone.domain.user.isAboutUpdateValid
 import com.malakiapps.whatsappclone.domain.user.isImageUpdateValid
 
-class UpdateUserUseCase(
-    val userStorageRepository: UserStorageRepository,
-    val anonymousUserStorageRepository: UserStorageRepository,
+class UpdateUserContactUseCase(
+    private val anonymousUserAccountRepository: AnonymousUserAccountRepository,
+    private val authenticatedUserAccountRepository: AuthenticatedUserAccountRepository,
 ) {
 
-    suspend operator fun invoke(authenticationContext: AuthenticationContext, userUpdate: UserUpdate): Response<User, Error>{
+    suspend operator fun invoke(authenticationContext: AuthenticationContext, userContactUpdate: UserContactUpdate): Response<Profile, Error>{
         //Check if the update is valid
-        if(!userUpdate.name.isNameUpdateValid()){
+        if(!userContactUpdate.name.isNameUpdateValid()){
             return Response.Failure(InvalidUpdate("Unsupported character length for name"))
         }
-        if(!userUpdate.about.isAboutUpdateValid()){
+        if(!userContactUpdate.about.isAboutUpdateValid()){
             return Response.Failure(InvalidUpdate("Unsupported character length for about"))
         }
-        if(!userUpdate.image.isImageUpdateValid()){
+        if(!userContactUpdate.image.isImageUpdateValid()){
             return Response.Failure(InvalidUpdate("Unsupported image type"))
         }
         return if (authenticationContext.email != null) {
             //Real user update
-            userStorageRepository.updateUser(
-                userUpdate = userUpdate
+            authenticatedUserAccountRepository.updateContact(
+                userContactUpdate = userContactUpdate
             )
         } else {
             //Anonymous user update
-            anonymousUserStorageRepository.updateUser(
-                userUpdate = userUpdate.copy(email = ANONYMOUS_EMAIL)
+            anonymousUserAccountRepository.updateAccount(
+                userContactUpdate = userContactUpdate.copy(email = ANONYMOUS_EMAIL)
             )
         }
     }

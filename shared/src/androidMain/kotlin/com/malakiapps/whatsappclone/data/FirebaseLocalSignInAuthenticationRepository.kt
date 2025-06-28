@@ -22,7 +22,6 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 
 class FirebaseLocalSignInAuthenticationRepository : AuthenticationRepository {
     override val firebaseAuth: FirebaseAuth = Firebase.auth
-    override fun initializeCredentialManager(context: Context) = Unit
 
     override fun getAuthContext(): AuthenticationContext? {
         return firebaseAuth.currentUser?.let { currentUser ->
@@ -38,7 +37,7 @@ class FirebaseLocalSignInAuthenticationRepository : AuthenticationRepository {
         }
     }
 
-    @OptIn(ExperimentalCoroutinesApi::class)
+    /*@OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun signIn(): Response<SignInResponse, AuthenticationError> {
         return suspendCancellableCoroutine { cont ->
             firebaseAuth.createUserWithEmailAndPassword("kellySerdadu@gmail.com", "boobies123")
@@ -74,7 +73,7 @@ class FirebaseLocalSignInAuthenticationRepository : AuthenticationRepository {
 
     override suspend fun signOut() {
         firebaseAuth.signOut()
-    }
+    }*/
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun updateProfile(name: String?): Boolean {

@@ -51,10 +51,11 @@ dependencies {
     implementation(libs.androidx.compose.navigation)
     implementation(libs.coil.compose)
     implementation(libs.coil.okhttp)
+    implementation(libs.firebase.auth.ktx)
 
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
-    implementation(libs.firebase.auth.ktx)
+    implementation(libs.koin.androidx.compose.navigation)
 
     testImplementation(libs.junit4)
 

@@ -4,9 +4,6 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,18 +38,18 @@ import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.compose.common.NoProfileImage
 import com.malakiapps.whatsappclone.android.presentation.compose.common.base64ToUri
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.UserDetailsInfo
+import com.malakiapps.whatsappclone.domain.user.About
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Name
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
-fun SharedTransitionScope.SettingsProfileScreen(
+fun SettingsProfileScreen(
     userDetailsInfo: UserDetailsInfo?,
     sharedElementModifier: Modifier,
-    onImageUpdate: (Uri) -> Unit,
     onBackPress: () -> Unit,
     onNamePress: () -> Unit,
     onAboutPress: () -> Unit,
+    onImageUpdate: (Uri) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -128,7 +125,7 @@ fun SharedTransitionScope.SettingsProfileScreen(
                 )
                 UserElementRow(
                     userElement = UserElement.ABOUT,
-                    value = userDetailsInfo.about,
+                    value = userDetailsInfo.about.value,
                     onClick = onAboutPress
                 )
                 UserElementRow(
@@ -236,27 +233,22 @@ fun UserElementRow(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Preview
 @Composable
 private fun ProfileScreenPrev() {
     FakeWhatsAppTheme {
-        SharedTransitionScope {
-            AnimatedVisibility(true) {
-                SettingsProfileScreen(
-                    userDetailsInfo = UserDetailsInfo(
-                        image = null,
-                        name = Name("Kelly"),
-                        email = Email("one@two.com"),
-                        about = "Hey there! I'm using WhatsApp"
-                    ),
-                    sharedElementModifier = Modifier,
-                    onImageUpdate = {},
-                    onBackPress = {},
-                    onNamePress = {},
-                    onAboutPress = {}
-                )
-            }
-        }
+        SettingsProfileScreen(
+            userDetailsInfo = UserDetailsInfo(
+                image = null,
+                name = Name("Kelly"),
+                email = Email("one@two.com"),
+                about = About("Hey there! I'm using WhatsApp")
+            ),
+            sharedElementModifier = Modifier,
+            onBackPress = {},
+            onNamePress = {},
+            onAboutPress = {},
+            onImageUpdate = {}
+        )
     }
 }

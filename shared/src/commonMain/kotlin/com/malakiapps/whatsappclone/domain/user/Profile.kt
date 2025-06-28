@@ -3,20 +3,12 @@ package com.malakiapps.whatsappclone.domain.user
 import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmInline
 
-data class User (
+data class Profile(
     val name: Name,
     val email: Email,
-    val about: String,
-    val image: Image?,
-    val contacts: List<Email>,
-    val type: UserType
-    )
-
-sealed interface UserState
-
-data object UserLoading: UserState
-
-data class UserValue(val value: User?): UserState
+    val about: About,
+    val image: Image?
+)
 
 @JvmInline
 @Serializable
@@ -36,7 +28,7 @@ value class Image(
     val value: String
 )
 
-enum class UserType {
-    REAL,
-    ANONYMOUS
-}
+@JvmInline
+value class About(
+    val value: String
+)

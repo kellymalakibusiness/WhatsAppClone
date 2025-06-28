@@ -8,12 +8,6 @@ expect interface AuthenticationRepository {
 
     fun getAuthContext(): AuthenticationContext?
 
-    suspend fun signIn(): Response<SignInResponse, AuthenticationError>
-
-    suspend fun anonymousSignIn(): Response<AuthenticationContext, AuthenticationError>
-
-    suspend fun signOut()
-
     suspend fun updateProfile(name: String?): Boolean
 
     fun getAuthContextState(): Flow<AuthenticationContext?>

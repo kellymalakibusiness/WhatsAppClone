@@ -3,16 +3,23 @@ package com.malakiapps.whatsappclone.domain.di
 import androidx.room.Room
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.malakiapps.whatsappclone.data.AnonymousLocalUserStorageRepository
-import com.malakiapps.whatsappclone.data.FirebaseFirestoreUserStorageRepository
+import com.malakiapps.whatsappclone.data.AnonymousLocalUserAccountRepository
+import com.malakiapps.whatsappclone.data.FirebaseFirestoreContactsRepository
+import com.malakiapps.whatsappclone.data.FirebaseFirestoreUserAccountRepository
 import com.malakiapps.whatsappclone.data.FirebaseGoogleSignInAuthenticationRepository
 import com.malakiapps.whatsappclone.data.FirebaseLocalSignInAuthenticationRepository
 import com.malakiapps.whatsappclone.data.room.LocalUserDatabase
+import com.malakiapps.whatsappclone.domain.contacts.ContactsRepository
+import com.malakiapps.whatsappclone.domain.user.AnonymousUserAccountRepository
+import com.malakiapps.whatsappclone.domain.user.AuthenticatedUserAccountRepository
 import com.malakiapps.whatsappclone.domain.user.AuthenticationRepository
-import com.malakiapps.whatsappclone.domain.user.UserStorageRepository
+import com.malakiapps.whatsappclone.presentation.view_models.LoginUpdateContactViewModel
+import com.malakiapps.whatsappclone.presentation.view_models.SelectContactViewModel
+import com.malakiapps.whatsappclone.presentation.view_models.UpdateUserProfileViewModel
+import com.malakiapps.whatsappclone.presentation.view_modules.AuthenticationViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
-import org.koin.core.qualifier.named
+import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
@@ -32,13 +39,19 @@ fun Module.androidModules(appBuildMode: AppBuildMode){
         ).build()
     }
 
-    single<UserStorageRepository>(named("authenticated_user_repository")){
-        FirebaseFirestoreUserStorageRepository()
-    }.bind<UserStorageRepository>()
+    singleOf(::FirebaseFirestoreUserAccountRepository).bind<AuthenticatedUserAccountRepository>()
 
-    single<UserStorageRepository>(named("anonymous_user_repository")) {
-        AnonymousLocalUserStorageRepository(get<LocalUserDatabase>().dao)
-    }.bind<UserStorageRepository>()
+    single<AnonymousUserAccountRepository> {
+        AnonymousLocalUserAccountRepository(get<LocalUserDatabase>().dao)
+    }.bind<AnonymousUserAccountRepository>()
+
+    singleOf(::FirebaseFirestoreContactsRepository).bind<ContactsRepository>()
+
+    //Screen View models
+    viewModelOf(::LoginUpdateContactViewModel)
+    viewModelOf(::UpdateUserProfileViewModel)
+    viewModelOf(::AuthenticationViewModel)
+    viewModelOf(::SelectContactViewModel)
 }
 
 fun Module.localModules(){

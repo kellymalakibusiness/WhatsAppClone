@@ -4,19 +4,17 @@ import com.malakiapps.whatsappclone.domain.use_cases.InitializeUserUseCase
 import com.malakiapps.whatsappclone.domain.managers.AuthenticationContextManager
 import com.malakiapps.whatsappclone.domain.managers.ContactsManager
 import com.malakiapps.whatsappclone.domain.managers.UserManager
-import com.malakiapps.whatsappclone.domain.use_cases.GetUserUseCase
+import com.malakiapps.whatsappclone.domain.use_cases.GetFriendsUseCase
+import com.malakiapps.whatsappclone.domain.use_cases.GetUserContactUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.InitialAuthenticationCheckUseCase
-import com.malakiapps.whatsappclone.domain.use_cases.LogoutUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.OnLoginUpdateAccountUseCase
-import com.malakiapps.whatsappclone.domain.use_cases.SignInUseCase
-import com.malakiapps.whatsappclone.domain.use_cases.UpdateUserUseCase
-import com.malakiapps.whatsappclone.presentation.view_models.AuthenticationViewModel
+import com.malakiapps.whatsappclone.domain.use_cases.UpdateUserContactUseCase
+import com.malakiapps.whatsappclone.domain.use_cases.UpdateUserDetailsUseCase
 import com.malakiapps.whatsappclone.presentation.view_models.ContactsViewModel
 import com.malakiapps.whatsappclone.presentation.view_models.MessagesViewModel
-import com.malakiapps.whatsappclone.presentation.view_models.UserViewModel
+import com.malakiapps.whatsappclone.presentation.view_models.MainViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
-import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 
@@ -25,64 +23,24 @@ expect val platformModule: Module
 
 val sharedModule = module {
     //Use cases
-    single {
-        InitializeUserUseCase(
-            anonymousUserStorageRepository = get(named("anonymous_user_repository")),
-            userStorageRepository = get(named("authenticated_user_repository")),
-        )
-    }
+    singleOf(::InitializeUserUseCase)
+    singleOf(::AuthenticationContextManager)
+    singleOf(::GetUserContactUseCase)
+    singleOf(::InitialAuthenticationCheckUseCase)
 
-    single {
-        AuthenticationContextManager(
-            authenticationRepository = get()
-        )
-    }
+    singleOf(::OnLoginUpdateAccountUseCase)
+    singleOf(::UpdateUserContactUseCase)
+    singleOf(::UpdateUserDetailsUseCase)
 
-    single {
-        GetUserUseCase(
-            userStorageRepository = get(named("authenticated_user_repository")),
-            anonymousUserStorageRepository = get(named("anonymous_user_repository"))
-        )
-    }
-
-    single {
-        InitialAuthenticationCheckUseCase()
-    }
-
-    single {
-        LogoutUseCase(
-            authenticationRepository = get()
-        )
-    }
-
-    single {
-        OnLoginUpdateAccountUseCase(
-            userStorageRepository = get(named("authenticated_user_repository")),
-            anonymousUserStorageRepository = get(named("anonymous_user_repository"))
-        )
-    }
-
-    single {
-        SignInUseCase(
-            authenticationRepository = get()
-        )
-    }
-
-    single {
-        UpdateUserUseCase(
-            anonymousUserStorageRepository = get(named("anonymous_user_repository")),
-            userStorageRepository = get(named("authenticated_user_repository")),
-        )
-    }
+    singleOf(::GetFriendsUseCase)
 
     //Managers
     singleOf(::UserManager)
     singleOf(::AuthenticationContextManager)
     singleOf(::ContactsManager)
 
-    //View models
-    singleOf(::AuthenticationViewModel)
-    singleOf(::UserViewModel)
+    //Global View models
+    singleOf(::MainViewModel)
     singleOf(::ContactsViewModel)
     singleOf(::MessagesViewModel)
 }

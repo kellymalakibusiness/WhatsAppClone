@@ -35,3 +35,5 @@ data class InvalidUpdate(val message: String): UpdateUserError
 
 //DELETE USER
 sealed interface DeleteUserError: Error
+
+data object ForbiddenRequest: Error

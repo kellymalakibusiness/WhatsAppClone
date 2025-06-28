@@ -4,39 +4,80 @@ import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.isSuccess
 import com.malakiapps.whatsappclone.domain.user.ANONYMOUS_EMAIL
+import com.malakiapps.whatsappclone.domain.user.AnonymousUserAccountRepository
+import com.malakiapps.whatsappclone.domain.user.AuthenticatedUserAccountRepository
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
-import com.malakiapps.whatsappclone.domain.user.User
-import com.malakiapps.whatsappclone.domain.user.UserStorageRepository
+import com.malakiapps.whatsappclone.domain.user.Profile
+import com.malakiapps.whatsappclone.domain.user.UserDetails
+import com.malakiapps.whatsappclone.domain.user.UserType
 
 class InitializeUserUseCase(
-    val anonymousUserStorageRepository: UserStorageRepository,
-    val userStorageRepository: UserStorageRepository,
-
+    val anonymousUserAccountRepository: AnonymousUserAccountRepository,
+    val authenticatedUserAccountRepository: AuthenticatedUserAccountRepository,
 ) {
-    suspend operator fun invoke(authenticationContext: AuthenticationContext): Response<User, Error> {
+    suspend operator fun invoke(authenticationContext: AuthenticationContext): Response<Pair<Profile, UserDetails>, Error> {
         //We first try to read the user if they exist
-        val availableUser = authenticationContext.email?.let { availableEmail ->
+        val availableUserContact = authenticationContext.email?.let { availableEmail ->
             //Firebase user
-            userStorageRepository.getUser(email = availableEmail)
+            authenticatedUserAccountRepository.getContact(email = availableEmail)
         } ?: run {
-            anonymousUserStorageRepository.getUser(email = ANONYMOUS_EMAIL)
+            anonymousUserAccountRepository.getContact(email = ANONYMOUS_EMAIL)
         }
 
         //Check if user item already exists
-        return if(availableUser.isSuccess()){
-            return availableUser
+        val user = if (availableUserContact.isSuccess()) {
+            availableUserContact
         } else {
             //It's a new user, we need to create one
             createNewUserItem(authenticationContext)
         }
+
+        when (user) {
+            is Response.Failure<*, Error> -> {
+                return Response.Failure(user.error)
+            }
+
+            is Response.Success<Profile, Error> -> {
+                val userDetails = getUserDetails(authenticationContext)
+
+                return when (userDetails) {
+                    is Response.Failure<UserDetails, Error> -> {
+                        Response.Failure(userDetails.error)
+                    }
+
+                    is Response.Success<UserDetails, Error> -> {
+                        Response.Success(data = Pair(user.data, userDetails.data))
+                    }
+                }
+            }
+        }
     }
 
-    suspend fun createNewUserItem(authenticationContext: AuthenticationContext): Response<User, Error> {
+    private suspend fun createNewUserItem(authenticationContext: AuthenticationContext): Response<Profile, Error> {
         return authenticationContext.email?.let { availableEmail ->
             //Firebase user
-            userStorageRepository.createUser(email = availableEmail, authenticationContext = authenticationContext)
+            authenticatedUserAccountRepository.createContact(
+                email = availableEmail,
+                authenticationContext = authenticationContext
+            )
         } ?: run {
-            anonymousUserStorageRepository.createUser(email = ANONYMOUS_EMAIL, authenticationContext = authenticationContext)
+            anonymousUserAccountRepository.createAccount(
+                email = ANONYMOUS_EMAIL,
+                authenticationContext = authenticationContext
+            )
+        }
+    }
+
+    private suspend fun getUserDetails(authenticationContext: AuthenticationContext): Response<UserDetails, Error> {
+        return authenticationContext.email?.let { availableEmail ->
+            authenticatedUserAccountRepository.getUserDetails(email = availableEmail)
+        } ?: run {
+            Response.Success(
+                UserDetails(
+                    type = UserType.ANONYMOUS,
+                    contacts = emptyList()
+                )
+            )
         }
     }
 }

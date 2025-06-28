@@ -12,21 +12,21 @@ import com.malakiapps.whatsappclone.data.room.UserEntity
 import com.malakiapps.whatsappclone.data.room.toUser
 import com.malakiapps.whatsappclone.data.room.toUserEntity
 import com.malakiapps.whatsappclone.domain.user.ANONYMOUS_EMAIL
+import com.malakiapps.whatsappclone.domain.user.About
+import com.malakiapps.whatsappclone.domain.user.AnonymousUserAccountRepository
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
 import com.malakiapps.whatsappclone.domain.user.Email
-import com.malakiapps.whatsappclone.domain.user.Update
-import com.malakiapps.whatsappclone.domain.user.User
-import com.malakiapps.whatsappclone.domain.user.UserStorageRepository
-import com.malakiapps.whatsappclone.domain.user.UserType
-import com.malakiapps.whatsappclone.domain.user.UserUpdate
+import com.malakiapps.whatsappclone.domain.user.Some
+import com.malakiapps.whatsappclone.domain.user.Profile
+import com.malakiapps.whatsappclone.domain.user.UserContactUpdate
 
-class AnonymousLocalUserStorageRepository(
+class AnonymousLocalUserAccountRepository(
     private val userDao: UserDao
-) : UserStorageRepository {
-    override suspend fun createUser(
+) : AnonymousUserAccountRepository {
+    override suspend fun createAccount(
         email: Email,
         authenticationContext: AuthenticationContext
-    ): Response<User, CreateUserError> {
+    ): Response<Profile, CreateUserError> {
         val user = authenticationContext.toUser(email = ANONYMOUS_EMAIL)
         return try {
             userDao.upsertUser(userEntity = user.toUserEntity())
@@ -36,7 +36,7 @@ class AnonymousLocalUserStorageRepository(
         }
     }
 
-    override suspend fun getUser(email: Email): Response<User, GetUserError> {
+    override suspend fun getContact(email: Email): Response<Profile, GetUserError> {
         val user = userDao.getUser(email)
 
         return user?.toUser()?.let {
@@ -46,11 +46,11 @@ class AnonymousLocalUserStorageRepository(
         }
     }
 
-    override suspend fun updateUser(userUpdate: UserUpdate): Response<User, UpdateUserError> {
-        val user = userDao.getUser(userUpdate.email)
+    override suspend fun updateAccount(userContactUpdate: UserContactUpdate): Response<Profile, UpdateUserError> {
+        val user = userDao.getUser(userContactUpdate.email)
 
         return user?.let {
-            val updatedUser = userUpdate.toUpdatedUser(it)
+            val updatedUser = userContactUpdate.toUpdatedUser(it)
             userDao.upsertUser(updatedUser)
 
             Response.Success(updatedUser.toUser())
@@ -59,7 +59,7 @@ class AnonymousLocalUserStorageRepository(
         }
     }
 
-    override suspend fun deleteUser(email: Email): Response<Unit, DeleteUserError> {
+    override suspend fun deleteAccount(email: Email): Response<Unit, DeleteUserError> {
         userDao.getUser(email)?.let {
             userDao.deleteUser(it)
         }
@@ -67,42 +67,29 @@ class AnonymousLocalUserStorageRepository(
         return Response.Success(Unit)
     }
 
-    private fun AuthenticationContext.toUser(email: Email): User {
-        return User(
+    private fun AuthenticationContext.toUser(email: Email): Profile {
+        return Profile(
             email = email,
             name = name,
-            about = "Hey there! I am using WhatsApp.",
-            contacts = emptyList(),
+            about = About("Hey there! I am using FakeWhatsApp."),
             image = null,
-            type = UserType.ANONYMOUS
         )
     }
 
-    private fun UserUpdate.toUpdatedUser(oldUser: UserEntity): UserEntity {
-        val contactsUpdate = buildList {
-            if (removeContact is Update){
-                addAll(oldUser.contacts.filter { it != removeContact.value })
-            } else {
-                addAll(oldUser.contacts)
-            }
-            if(addContact is Update){
-                add(addContact.value)
-            }
-        }
+    private fun UserContactUpdate.toUpdatedUser(oldUser: UserEntity): UserEntity {
         return UserEntity(
             email = email,
-            name = if (name is Update) {
+            name = if (name is Some) {
                 name.value
             } else {
                 oldUser.name
             },
-            about = if (about is Update) {
+            about = if (about is Some) {
                 about.value
             } else {
                 oldUser.about
             },
-            contacts = contactsUpdate,
-            image = if (image is Update) {
+            image = if (image is Some) {
                 image.value
             } else {
                 oldUser.image

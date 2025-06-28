@@ -2,7 +2,7 @@ package com.malakiapps.whatsappclone.domain.common
 
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
 import com.malakiapps.whatsappclone.domain.user.Image
-import com.malakiapps.whatsappclone.domain.user.User
+import com.malakiapps.whatsappclone.domain.user.Profile
 
 //Categories
 sealed interface Event
@@ -25,7 +25,7 @@ data class NavigateToProfileInfo(
 ): AuthenticationEvent, NavigationEvent
 
 data class NavigateToDashboard(
-    val user: User
+    val profile: Profile
 ): AuthenticationEvent, NavigationEvent
 
 data object NavigateToLogin: AuthenticationEvent, NavigationEvent

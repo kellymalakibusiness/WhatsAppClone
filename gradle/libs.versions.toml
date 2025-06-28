@@ -4,9 +4,9 @@ kotlin = "2.0.0"
 compose = "1.5.4"
 compose-material3 = "1.1.2"
 androidx-activityCompose = "1.8.0"
+koin-bom = "4.0.3"
 
-lifecycleViewModel = "2.8.2"
-koin = "4.0.4"
+lifecycleViewModel = "2.9.1"
 coil = "3.1.0"
 ktor = "3.1.2"
 datastore = "1.1.1"
@@ -39,9 +39,17 @@ compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest", ve
 
 #DI & viewmodel
 lifecycle-viewmodel = { module = "androidx.lifecycle:lifecycle-viewmodel", version.ref = "lifecycleViewModel"}
-koin-android = { module = "io.insert-koin:koin-android", version.ref = "koin" }
-koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koin" }
-koin-core = { module = "io.insert-koin:koin-core", version.ref = "koin" }
+
+koin-bom = { module = "io.insert-koin:koin-bom", version.ref = "koin-bom" }
+koin-core = { module = "io.insert-koin:koin-core" }
+
+koin-android = { module = "io.insert-koin:koin-android" }
+koin-compose = { module = "io.insert-koin:koin-compose" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose" }
+koin-androidx-compose-navigation = { module = "io.insert-koin:koin-androidx-compose-navigation" }
+koin-viewmodel = { module = "io.insert-koin:koin-compose-viewmodel" }
+koin-viewmodel-navigation = { module = "io.insert-koin:koin-compose-viewmodel-navigation" }
+
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version = "1.7.0" }
 androidx-compose-navigation = { group = "androidx.navigation", name = "navigation-compose", version="2.8.7" }
 

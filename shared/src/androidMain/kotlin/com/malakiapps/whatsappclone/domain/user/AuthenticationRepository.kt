@@ -10,15 +10,8 @@ import kotlinx.coroutines.flow.callbackFlow
 
 actual interface AuthenticationRepository {
     val firebaseAuth: FirebaseAuth
-    fun initializeCredentialManager(context: Context)
 
     actual fun getAuthContext(): AuthenticationContext?
-
-    actual suspend fun signIn(): Response<SignInResponse, AuthenticationError>
-
-    actual suspend fun anonymousSignIn(): Response<AuthenticationContext, AuthenticationError>
-
-    actual suspend fun signOut()
 
     actual suspend fun updateProfile(name: String?): Boolean
 
@@ -36,7 +29,7 @@ fun AuthenticationRepository.getCurrentUserImplementation(): Flow<Authentication
                     }else {
                         null
                     },
-                    type = UserType.REAL
+                    type = (currentUser.email?.isNotBlank() == true).let { if(it) { UserType.REAL } else { UserType.ANONYMOUS } }
                 )
             }
             trySend(currentUser)

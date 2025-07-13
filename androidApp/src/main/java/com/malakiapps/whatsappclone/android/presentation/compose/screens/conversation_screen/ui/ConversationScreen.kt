@@ -30,9 +30,10 @@ import com.malakiapps.whatsappclone.android.presentation.compose.screens.convers
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.data.ReceivedMessageItem
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.data.SendStatus
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.data.SentMessageItem
+import com.malakiapps.whatsappclone.domain.messages.SendStatus
 
 @Composable
-fun ConversationScreen(messageItems: List<MessageItem>, modifier: Modifier = Modifier) {
+fun ConversationScreen(messageItems: List<MessageItem>, onBackPress: () -> Unit, modifier: Modifier = Modifier) {
     var messageText by remember {
         mutableStateOf("")
     }
@@ -42,7 +43,7 @@ fun ConversationScreen(messageItems: List<MessageItem>, modifier: Modifier = Mod
             ConversationTopAppBar(
                 image = R.drawable.kevin_durant,
                 label = "Kevin Durant",
-                onNavigateBack = {},
+                onNavigateBack = onBackPress,
             )
         }
     ) { paddingValues ->
@@ -149,7 +150,8 @@ private fun ConversationScreenPrev() {
                     time = "12:48",
                     sendStatus = SendStatus.TWO_TICKS
                 )
-            )
+            ),
+            onBackPress = {}
         )
     }
 }

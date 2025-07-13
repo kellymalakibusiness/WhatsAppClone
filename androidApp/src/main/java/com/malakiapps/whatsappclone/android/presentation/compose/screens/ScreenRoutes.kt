@@ -1,5 +1,6 @@
 package com.malakiapps.whatsappclone.android.presentation.compose.screens
 
+import com.malakiapps.whatsappclone.domain.user.Email
 import kotlinx.serialization.Serializable
 
 sealed interface ScreenDestination
@@ -19,7 +20,9 @@ data class LoginUpdateProfileScreenRoute(
 ): ScreenDestination
 
 @Serializable
-object ConversationScreenRoute: ScreenDestination
+data class ConversationScreenRoute(
+    val email: String
+): ScreenDestination
 
 @Serializable
 object SettingsScreenRoute: ScreenDestination

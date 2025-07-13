@@ -53,6 +53,7 @@ dependencies {
     implementation(libs.coil.okhttp)
     implementation(libs.firebase.auth.ktx)
 
+    implementation(project.dependencies.platform(libs.koin.bom))
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
     implementation(libs.koin.androidx.compose.navigation)

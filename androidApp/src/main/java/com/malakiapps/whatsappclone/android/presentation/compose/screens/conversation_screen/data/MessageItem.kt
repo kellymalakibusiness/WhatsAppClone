@@ -1,5 +1,7 @@
 package com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.data
 
+import com.malakiapps.whatsappclone.domain.messages.SendStatus
+
 sealed interface MessageItem{
     val lastMessageWas: LastMessageWas
 }
@@ -16,12 +18,6 @@ data class SentMessageItem(
     val time: String,
     val sendStatus: SendStatus
 ): MessageItem
-
-enum class SendStatus {
-    LOADING,
-    ONE_TICK,
-    TWO_TICKS
-}
 
 enum class LastMessageWas {
     SENT,

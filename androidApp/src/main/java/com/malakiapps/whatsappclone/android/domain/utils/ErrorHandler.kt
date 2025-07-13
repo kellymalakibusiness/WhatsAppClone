@@ -8,6 +8,7 @@ import com.malakiapps.whatsappclone.domain.common.UpdateUserException
 import com.malakiapps.whatsappclone.domain.common.UserNotFound
 import com.malakiapps.whatsappclone.domain.common.UserParsingError
 import com.malakiapps.whatsappclone.domain.common.Error
+import com.malakiapps.whatsappclone.domain.common.ForbiddenRequest
 import com.malakiapps.whatsappclone.domain.common.InvalidUpdate
 
 fun Error.getErrorMessageObject(): ScreenError {
@@ -61,6 +62,13 @@ fun Error.getErrorMessageObject(): ScreenError {
             ScreenError(
                 message = "Update error: ${this.message}",
                 dismissButton = "Got it!"
+            )
+        }
+
+        ForbiddenRequest -> {
+            ScreenError(
+                message = "Action not allowed for user account type",
+                dismissButton = "Okay"
             )
         }
     }

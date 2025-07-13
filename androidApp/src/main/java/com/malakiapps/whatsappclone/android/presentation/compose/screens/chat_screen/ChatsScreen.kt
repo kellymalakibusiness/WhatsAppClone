@@ -6,10 +6,15 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.SaverScope
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -25,33 +30,57 @@ fun ChatsScreen(
     onArchivedClick: () -> Unit,
     onMessageFilter: (MessageFilteringOption) -> Unit, modifier: Modifier = Modifier
 ) {
-
+    val listState = rememberLazyListState()
+    var isFilterVisible by rememberSaveable {
+        mutableStateOf(false)
+    }
     var messageFilteringOption by rememberSaveable(stateSaver = MessageFilterSaver) {
         mutableStateOf(MessageFilteringOption.ALL)
+    }
+    var lastOffset by remember { mutableIntStateOf(0) }
+    val scrollingOnTop by remember {
+        derivedStateOf {
+            isFilterVisible || listState.firstVisibleItemIndex == 0 && listState.isScrollInProgress
+        }
+    }
+    var initialScrollHappened by remember { mutableStateOf(false) }
+
+    //Detect when the user scrolls on top to show the filter row
+    LaunchedEffect(scrollingOnTop) {
+        val value = listState.firstVisibleItemScrollOffset
+        if (value == lastOffset && initialScrollHappened) {
+            isFilterVisible = true
+        } else {
+            initialScrollHappened = true
+        }
+        lastOffset = value
     }
     Column(
         modifier = modifier
             .fillMaxSize()
     ) {
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxWidth()
                 .weight(1f)
         ) {
-            item {
-                MessageFilteringRow(
-                    activeOption = messageFilteringOption,
-                    onFilterSelect = { messageFilter ->
-                        onMessageFilter(messageFilter)
-                        messageFilteringOption = messageFilter
-                    },
-                    modifier = Modifier.padding(
-                        top = 32.dp,
-                        bottom = 8.dp,
-                        start = 16.dp,
-                        end = 16.dp
+            if (isFilterVisible) {
+                item {
+                    MessageFilteringRow(
+                        activeOption = messageFilteringOption,
+                        onFilterSelect = { messageFilter ->
+                            onMessageFilter(messageFilter)
+                            messageFilteringOption = messageFilter
+                        },
+                        modifier = Modifier.padding(
+                            top = 32.dp,
+                            bottom = 8.dp,
+                            start = 16.dp,
+                            end = 16.dp
+                        )
                     )
-                )
+                }
             }
             item {
                 ArchivedRow(

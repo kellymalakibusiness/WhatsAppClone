@@ -4,14 +4,12 @@ import com.malakiapps.whatsappclone.domain.use_cases.InitializeUserUseCase
 import com.malakiapps.whatsappclone.domain.managers.AuthenticationContextManager
 import com.malakiapps.whatsappclone.domain.managers.ContactsManager
 import com.malakiapps.whatsappclone.domain.managers.UserManager
-import com.malakiapps.whatsappclone.domain.use_cases.GetFriendsUseCase
+import com.malakiapps.whatsappclone.domain.use_cases.GetContactsUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.GetUserContactUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.InitialAuthenticationCheckUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.OnLoginUpdateAccountUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.UpdateUserContactUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.UpdateUserDetailsUseCase
-import com.malakiapps.whatsappclone.presentation.view_models.ContactsViewModel
-import com.malakiapps.whatsappclone.presentation.view_models.MessagesViewModel
 import com.malakiapps.whatsappclone.presentation.view_models.MainViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
@@ -32,7 +30,7 @@ val sharedModule = module {
     singleOf(::UpdateUserContactUseCase)
     singleOf(::UpdateUserDetailsUseCase)
 
-    singleOf(::GetFriendsUseCase)
+    singleOf(::GetContactsUseCase)
 
     //Managers
     singleOf(::UserManager)
@@ -41,6 +39,4 @@ val sharedModule = module {
 
     //Global View models
     singleOf(::MainViewModel)
-    singleOf(::ContactsViewModel)
-    singleOf(::MessagesViewModel)
 }

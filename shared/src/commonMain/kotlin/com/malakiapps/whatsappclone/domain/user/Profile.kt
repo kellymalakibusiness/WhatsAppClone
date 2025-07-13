@@ -10,6 +10,11 @@ data class Profile(
     val image: Image?
 )
 
+data class SearchProfileResult(
+    val profile: Profile,
+    val profileType: ProfileType
+)
+
 @JvmInline
 @Serializable
 value class Name(
@@ -32,3 +37,10 @@ value class Image(
 value class About(
     val value: String
 )
+
+enum class ProfileType {
+    OWNER,
+    CONTACT,
+    NEW,
+    UNKNOWN
+}

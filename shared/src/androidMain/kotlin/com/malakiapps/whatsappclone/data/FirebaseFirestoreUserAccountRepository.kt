@@ -9,6 +9,8 @@ import com.google.firebase.firestore.PersistentCacheSettings
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
+import com.malakiapps.whatsappclone.data.common.getContactReference
+import com.malakiapps.whatsappclone.data.common.toContact
 import com.malakiapps.whatsappclone.domain.common.CreateUserError
 import com.malakiapps.whatsappclone.domain.common.DeleteUserError
 import com.malakiapps.whatsappclone.domain.common.Error
@@ -18,18 +20,13 @@ import com.malakiapps.whatsappclone.domain.common.UnknownError
 import com.malakiapps.whatsappclone.domain.common.UpdateUserError
 import com.malakiapps.whatsappclone.domain.common.UpdateUserException
 import com.malakiapps.whatsappclone.domain.common.UserNotFound
-import com.malakiapps.whatsappclone.domain.common.UserParsingError
 import com.malakiapps.whatsappclone.domain.common.getOrNull
-import com.malakiapps.whatsappclone.domain.common.USERS_COLLECTION_NAME
 import com.malakiapps.whatsappclone.domain.common.USERS_DETAILS_COLLECTION_NAME
 import com.malakiapps.whatsappclone.domain.common.USERS_PROFILE_DOCUMENT_NAME
 import com.malakiapps.whatsappclone.domain.common.UserAttributeKeys
-import com.malakiapps.whatsappclone.domain.user.About
 import com.malakiapps.whatsappclone.domain.user.AuthenticatedUserAccountRepository
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
 import com.malakiapps.whatsappclone.domain.user.Email
-import com.malakiapps.whatsappclone.domain.user.Image
-import com.malakiapps.whatsappclone.domain.user.Name
 import com.malakiapps.whatsappclone.domain.user.Some
 import com.malakiapps.whatsappclone.domain.user.Profile
 import com.malakiapps.whatsappclone.domain.user.UserType
@@ -61,7 +58,7 @@ class FirebaseFirestoreUserAccountRepository : AuthenticatedUserAccountRepositor
     ): Response<Profile, CreateUserError> {
         val mapUser = authenticationContext.toCreateUserHashMap(actualEmail = email)
         val result: Response<Unit, CreateUserError> = suspendCancellableCoroutine { cont ->
-            getContactReference(email = email)
+            firestore.getContactReference(email = email)
                 .set(mapUser, SetOptions.merge())
                 .addOnCompleteListener {
                     cont.resume(Response.Success(Unit), null)
@@ -77,10 +74,10 @@ class FirebaseFirestoreUserAccountRepository : AuthenticatedUserAccountRepositor
 
     override suspend fun getContact(email: Email): Response<Profile, GetUserError> {
         return suspendCancellableCoroutine { cont ->
-            getContactReference(email = email)
+            firestore.getContactReference(email = email)
                 .get(/*Source.CACHE*/)
                 .addOnCompleteListener { response ->
-                    cont.resume(response.toContact(), null)
+                    cont.resume(response.result.toContact(), null)
                 }
                 .addOnFailureListener {
                     cont.resume(Response.Failure(UserNotFound), null)
@@ -105,7 +102,7 @@ class FirebaseFirestoreUserAccountRepository : AuthenticatedUserAccountRepositor
         val result: Response<Unit, UpdateUserError> = suspendCancellableCoroutine { cont ->
             val updateMap = userContactUpdate.toUpdateUserHashMap()
 
-            getContactReference(email = userContactUpdate.email)
+            firestore.getContactReference(email = userContactUpdate.email)
                 .update(updateMap)
                 .addOnCompleteListener {
                     cont.resume(Response.Success(Unit), null)
@@ -150,7 +147,7 @@ class FirebaseFirestoreUserAccountRepository : AuthenticatedUserAccountRepositor
     override suspend fun deleteUser(email: Email): Response<Unit, DeleteUserError> {
         return suspendCancellableCoroutine { cont ->
             firestore.runBatch { batch ->
-                batch.delete(getContactReference(email = email))
+                batch.delete(firestore.getContactReference(email = email))
                 batch.delete(getUserDetailsReference(email = email))
             }
                 .addOnCompleteListener {
@@ -185,12 +182,8 @@ class FirebaseFirestoreUserAccountRepository : AuthenticatedUserAccountRepositor
         }
     }
 
-    private fun getContactReference(email: Email): DocumentReference {
-        return firestore.collection(USERS_COLLECTION_NAME).document(email.value)
-    }
-
     private fun getUserDetailsReference(email: Email): DocumentReference {
-        return getContactReference(email).collection(USERS_PROFILE_DOCUMENT_NAME).document(USERS_DETAILS_COLLECTION_NAME)
+        return firestore.getContactReference(email).collection(USERS_PROFILE_DOCUMENT_NAME).document(USERS_DETAILS_COLLECTION_NAME)
     }
 }
 
@@ -199,24 +192,6 @@ private fun AuthenticationContext.toCreateUserHashMap(actualEmail: Email): HashM
         UserAttributeKeys.NAME to name,
         UserAttributeKeys.EMAIL to actualEmail,
     )
-}
-
-private fun Task<DocumentSnapshot>.toContact(): Response<Profile, GetUserError> {
-    return result.data.let { document ->
-        val profile = Profile(
-            name = (document?.get(UserAttributeKeys.NAME) as? String)?.let { Name(it) } ?: return Response.Failure(
-                UserParsingError(UserAttributeKeys.NAME)
-            ),
-            email = (document[UserAttributeKeys.EMAIL] as? String)?.let { Email(it) } ?: return Response.Failure(
-                UserParsingError(UserAttributeKeys.EMAIL)
-            ),
-            about = (document[UserAttributeKeys.ABOUT] as? String
-                ?: "Hey there! I'm using Fake WhatsApp.").let { About(it) },
-            image = (document[UserAttributeKeys.IMAGE] as? String)?.let { Image(it) }
-        )
-
-        Response.Success(profile)
-    }
 }
 
 private fun Task<DocumentSnapshot>.toUserDetails(): Response<UserDetails, GetUserError> {

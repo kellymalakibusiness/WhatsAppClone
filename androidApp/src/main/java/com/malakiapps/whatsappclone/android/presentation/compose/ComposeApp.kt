@@ -7,6 +7,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -222,7 +223,8 @@ fun ComposeApp(
                 )
             }
 
-            composable<ConversationScreenRoute> {
+            composable<ConversationScreenRoute> { backStackEntry ->
+                val email = Email(requireNotNull(backStackEntry.toRoute<ConversationScreenRoute>()).email)
                 ConversationScreen(
                     messageItems = listOf(
                         ReceivedMessageItem(
@@ -235,7 +237,10 @@ fun ComposeApp(
                             time = "14:30",
                             lastMessageWas = LastMessageWas.RECEIVED
                         ),
-                    )
+                    ),
+                    onBackPress = {
+                        navController.navigateUp()
+                    },
                 )
             }
 
@@ -394,8 +399,29 @@ fun ComposeApp(
                         viewModelEvents.send(it)
                     }
                 }
+                val contacts by selectContactViewModel.contacts.collectAsState()
+                val searchResults by selectContactViewModel.searchResults.collectAsState()
+                val isLoading by selectContactViewModel.isLoading.collectAsState()
+                val helpMessage by selectContactViewModel.helpMessage.collectAsState()
+                val selfProfile by selectContactViewModel.selfProfile.collectAsState()
                 SelectContactScreen(
-                    contacts = emptyList(),
+                    contacts = contacts,
+                    searchResults = searchResults,
+                    isLoading = isLoading,
+                    helpMessage = helpMessage,
+                    onSearchBarTextChange = {
+                        selectContactViewModel.searchForContact(emailValue = it)
+                    },
+                    selfProfile = selfProfile,
+                    onSelectContact = { email ->
+                        navController.navigateToOurPage(
+                            screenDestination = ConversationScreenRoute(email = email.value),
+                            popUpToScreenDestination = SelectContactScreenRoute
+                        )
+                    },
+                    onAddNewContact = { email ->
+                        selectContactViewModel.addNewContact(email)
+                    },
                     onBackPress = {
                         navController.navigateUp()
                     },
@@ -428,12 +454,17 @@ fun ComposeApp(
 
 private fun NavController.navigateToOurPage(
     screenDestination: ScreenDestination,
-    removeAllBackstackScreens: Boolean = false
+    removeAllBackstackScreens: Boolean = false,
+    popUpToScreenDestination: ScreenDestination? = null
 ) {
     navigate(screenDestination) {
         launchSingleTop = true
 
-        if (removeAllBackstackScreens) {
+        if (popUpToScreenDestination != null){
+            popUpTo(popUpToScreenDestination){
+                inclusive = true
+            }
+        } else if (removeAllBackstackScreens) {
             popUpTo(0) {
                 inclusive = true
             }

@@ -36,6 +36,7 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             implementation(libs.lifecycle.viewmodel)
+            implementation(libs.kotlinx.datetime)
             implementation(project.dependencies.platform(libs.koin.bom))
             implementation(libs.koin.core)
             implementation(libs.kotlinx.serialization.json)
@@ -77,5 +78,6 @@ dependencies {
 
     implementation(libs.room.runtime)
     implementation(libs.room.roomKtx)
+    implementation(libs.androidx.core.ktx)
     ksp(libs.room.compiler)
 }

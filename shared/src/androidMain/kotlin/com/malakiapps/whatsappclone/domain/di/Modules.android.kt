@@ -5,11 +5,13 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.malakiapps.whatsappclone.data.AnonymousLocalUserAccountRepository
 import com.malakiapps.whatsappclone.data.FirebaseFirestoreContactsRepository
+import com.malakiapps.whatsappclone.data.FirebaseFirestoreMessagesRepository
 import com.malakiapps.whatsappclone.data.FirebaseFirestoreUserAccountRepository
 import com.malakiapps.whatsappclone.data.FirebaseGoogleSignInAuthenticationRepository
 import com.malakiapps.whatsappclone.data.FirebaseLocalSignInAuthenticationRepository
 import com.malakiapps.whatsappclone.data.room.LocalUserDatabase
 import com.malakiapps.whatsappclone.domain.contacts.ContactsRepository
+import com.malakiapps.whatsappclone.domain.messages.MessagesRepository
 import com.malakiapps.whatsappclone.domain.user.AnonymousUserAccountRepository
 import com.malakiapps.whatsappclone.domain.user.AuthenticatedUserAccountRepository
 import com.malakiapps.whatsappclone.domain.user.AuthenticationRepository
@@ -46,6 +48,7 @@ fun Module.androidModules(appBuildMode: AppBuildMode){
     }.bind<AnonymousUserAccountRepository>()
 
     singleOf(::FirebaseFirestoreContactsRepository).bind<ContactsRepository>()
+    singleOf(::FirebaseFirestoreMessagesRepository).bind<MessagesRepository>()
 
     //Screen View models
     viewModelOf(::LoginUpdateContactViewModel)

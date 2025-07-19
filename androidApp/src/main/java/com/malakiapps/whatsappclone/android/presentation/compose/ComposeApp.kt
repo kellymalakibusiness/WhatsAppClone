@@ -259,14 +259,14 @@ fun ComposeApp(
                     }
                 )
             ) { backStackEntry ->
-                val email = Email(requireNotNull(backStackEntry.toRoute<ConversationScreenRoute>()).email)
                 val conversationViewModel = koinViewModel<ConversationViewModel>()
-                conversationViewModel.setTargetEmail(email)
 
                 val messages by conversationViewModel.conversation.collectAsState()
                 val target by conversationViewModel.targetContact.collectAsState()
 
                 LaunchedEffect(true) {
+                    val email = Email(requireNotNull(backStackEntry.toRoute<ConversationScreenRoute>()).email)
+                    conversationViewModel.setTargetEmail(email)
                     conversationViewModel.eventsChannelFlow.collect {
                         viewModelEvents.send(it)
                     }

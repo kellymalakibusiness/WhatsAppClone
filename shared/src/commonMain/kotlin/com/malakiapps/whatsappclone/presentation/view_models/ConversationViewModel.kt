@@ -148,26 +148,32 @@ class ConversationViewModel(
         viewModelScope.launch {
             targetEmail = email
             messagesManager.changeCurrentOnConversation(email)
-            messagesManager.listenForConversationChanges(email)
+            val authenticatedUserEmail = userManager.userProfileState.value.getOrNull()?.email
+            if(authenticatedUserEmail != email){
+                //Check and add the contact
+                val userDetails = userManager.userDetailsState.value.getOrNull()
+                if (userDetails?.contacts?.contains(email) != true) {
+                    userManager.updateUserDetails(
+                        addContactUpdate = Some(email)
+                    )
+                }
 
-            //Check and add the contact
-            val userDetails = userManager.userDetailsState.value.getOrNull()
-            if (userDetails?.contacts?.contains(email) != true) {
-                userManager.updateUserDetails(
-                    addContactUpdate = Some(email)
-                )
-            }
-
-            //Listen for contact changes
-            contactsManager
-                .listenToContactChanges(email = email)
-                .collect {
-                    it.getOrNull()?.let { contactChange ->
-                        _targetContact.update {
-                            contactChange
+                //Listen for contact changes
+                contactsManager
+                    .listenToContactChanges(email = email)
+                    .collect {
+                        it.getOrNull()?.let { contactChange ->
+                            _targetContact.update {
+                                contactChange
+                            }
                         }
                     }
+            } else {
+                _targetContact.update {
+                    userManager.userProfileState.value.getOrNull()
                 }
+            }
+            messagesManager.listenForConversationChanges(email)
         }
     }
 
@@ -176,8 +182,8 @@ class ConversationViewModel(
     }
 
     override fun onCleared() {
-        messagesManager.changeCurrentOnConversation(null)
         super.onCleared()
+        messagesManager.changeCurrentOnConversation(null)
     }
 
 }

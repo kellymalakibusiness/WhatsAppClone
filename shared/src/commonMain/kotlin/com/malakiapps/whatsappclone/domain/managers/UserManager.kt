@@ -3,9 +3,11 @@ package com.malakiapps.whatsappclone.domain.managers
 import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.InvalidUpdate
 import com.malakiapps.whatsappclone.domain.common.Response
+import com.malakiapps.whatsappclone.domain.common.getOrNull
 import com.malakiapps.whatsappclone.domain.common.onEachSuspending
 import com.malakiapps.whatsappclone.domain.use_cases.GetUserContactUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.InitializeUserUseCase
+import com.malakiapps.whatsappclone.domain.use_cases.MigrateToGoogleAccountUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.OnLoginUpdateAccountUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.UpdateUserContactUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.UpdateUserDetailsUseCase
@@ -18,6 +20,7 @@ import com.malakiapps.whatsappclone.domain.user.Image
 import com.malakiapps.whatsappclone.domain.user.Name
 import com.malakiapps.whatsappclone.domain.user.None
 import com.malakiapps.whatsappclone.domain.user.Profile
+import com.malakiapps.whatsappclone.domain.user.SignInResponse
 import com.malakiapps.whatsappclone.domain.user.StateLoading
 import com.malakiapps.whatsappclone.domain.user.StateValue
 import com.malakiapps.whatsappclone.domain.user.UserContactUpdate
@@ -32,14 +35,16 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
+import kotlin.invoke
 
 class UserManager(
     authenticationContextManager: AuthenticationContextManager,
-    val getUserContactUseCase: GetUserContactUseCase,
-    val initializeUserUseCase: InitializeUserUseCase,
-    val onLoginUpdateAccountUseCase: OnLoginUpdateAccountUseCase,
-    val updateUserContactUseCase: UpdateUserContactUseCase,
-    val updateUserDetailsUseCase: UpdateUserDetailsUseCase
+    private val getUserContactUseCase: GetUserContactUseCase,
+    private val initializeUserUseCase: InitializeUserUseCase,
+    private val onLoginUpdateAccountUseCase: OnLoginUpdateAccountUseCase,
+    private val updateUserContactUseCase: UpdateUserContactUseCase,
+    private val updateUserDetailsUseCase: UpdateUserDetailsUseCase,
+    private val migrateToGoogleAccountUseCase: MigrateToGoogleAccountUseCase
 ) {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
@@ -99,6 +104,13 @@ class UserManager(
         )
 
         return useCaseResponse
+    }
+
+    suspend fun updateUserFromAnonymousAccount(signInResponse: SignInResponse) {
+        val response = migrateToGoogleAccountUseCase.invoke(signInResponse)
+        response.getOrNull()?.let { profile ->
+            _selfProfileState.update { StateValue(profile) }
+        }
     }
 
     suspend fun updateUserContact(nameUpdate: ElementUpdateState<Name> = None, aboutUpdate: ElementUpdateState<About> = None, imageUpdate: ElementUpdateState<Image?> = None): Response<Profile, Error> {

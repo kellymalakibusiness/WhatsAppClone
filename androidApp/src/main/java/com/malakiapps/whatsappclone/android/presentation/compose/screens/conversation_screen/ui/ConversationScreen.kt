@@ -25,15 +25,21 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.data.LastMessageWas
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.data.MessageItem
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.data.ReceivedMessageItem
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.data.SendStatus
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.data.SentMessageItem
+import com.malakiapps.whatsappclone.domain.messages.MessageId
+import com.malakiapps.whatsappclone.domain.messages.MessageValue
 import com.malakiapps.whatsappclone.domain.messages.SendStatus
+import com.malakiapps.whatsappclone.domain.screens.ConversationMessage
+import com.malakiapps.whatsappclone.domain.screens.MessageCard
+import com.malakiapps.whatsappclone.domain.screens.MessageType
+import com.malakiapps.whatsappclone.domain.screens.TimeCard
+import com.malakiapps.whatsappclone.domain.user.About
+import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Name
+import com.malakiapps.whatsappclone.domain.user.Profile
+import com.malakiapps.whatsappclone.domain.user.TimeValue
 
 @Composable
-fun ConversationScreen(messageItems: List<MessageItem>, onBackPress: () -> Unit, modifier: Modifier = Modifier) {
+fun ConversationScreen(target: Profile?, messages: List<MessageCard>?, onBackPress: () -> Unit, onSendMessage: (String) -> Unit, onProfileClick: () -> Unit, modifier: Modifier = Modifier) {
     var messageText by remember {
         mutableStateOf("")
     }
@@ -41,8 +47,9 @@ fun ConversationScreen(messageItems: List<MessageItem>, onBackPress: () -> Unit,
         modifier = modifier,
         topBar = {
             ConversationTopAppBar(
-                image = R.drawable.kevin_durant,
-                label = "Kevin Durant",
+                profile  = target,
+                selectedMessages = null,
+                onProfileClick = onProfileClick,
                 onNavigateBack = onBackPress,
             )
         }
@@ -69,22 +76,30 @@ fun ConversationScreen(messageItems: List<MessageItem>, onBackPress: () -> Unit,
                 LazyColumn(
                     modifier = Modifier
                         .matchParentSize()
-                        .padding(8.dp),
+                        .padding(vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
 
                     //Messages go here
-                    items(items = messageItems) { message ->
-                        when (message){
-                            is ReceivedMessageItem -> {
-                                ReceivedMessageBubble(
-                                    receivedMessageItem = message,
-                                )
-                            }
-                            is SentMessageItem -> {
-                                SentMessageBubble(
-                                    sentMessageItem = message
-                                )
+                    messages?.let { availableMessages ->
+                        items(items = availableMessages) { card ->
+                            when(card){
+                                is ConversationMessage -> {
+                                    if(card.messageType == MessageType.RECEIVED){
+                                        ReceivedMessageBubble(
+                                            conversationMessage = card,
+                                        )
+                                    } else {
+                                        SentMessageBubble(
+                                            conversationMessage = card
+                                        )
+                                    }
+                                }
+                                is TimeCard -> {
+                                    TimeBubble(
+                                        timeCard = card
+                                    )
+                                }
                             }
                         }
                     }
@@ -95,6 +110,11 @@ fun ConversationScreen(messageItems: List<MessageItem>, onBackPress: () -> Unit,
                     messageValue = messageText,
                     onMessageChange = { newValue ->
                         messageText = newValue
+                    },
+                    onRecordMessagePress = {},
+                    onSendMessage = {
+                        onSendMessage(messageText)
+                        messageText = ""
                     },
                     modifier = Modifier
                         .padding(4.dp)
@@ -110,48 +130,54 @@ fun ConversationScreen(messageItems: List<MessageItem>, onBackPress: () -> Unit,
 private fun ConversationScreenPrev() {
     FakeWhatsAppTheme {
         ConversationScreen(
-            messageItems = listOf(
-                /*SentMessageItem(
-                    message = "Hii, good afternoon. Did we get any luck in finding sekiro",
-                    time = "14:29",
-                    lastMessageWas = LastMessageWas.None,
-                    sendStatus = SendStatus.TWO_TICKS
+            messages = listOf(
+                ConversationMessage(
+                    messageId = MessageId(""),
+                    message = MessageValue("banaa mi pia natafuta padi kama wajua store yoyote iko open enda ubuy ucon alafu unambie nilipe uje nayo"),
+                    previousMessageType = MessageType.SENT,
+                    messageType = MessageType.RECEIVED,
+                    sendStatus = SendStatus.TWO_TICKS_READ,
+                    time = TimeValue("12:45"),
+                    isStartOfReply = true
                 ),
-                ReceivedMessageItem(
-                    message = "hey",
-                    time = "14:30",
-                    lastMessageWas = LastMessageWas.SENT
+                ConversationMessage(
+                    messageId = MessageId(""),
+                    message = MessageValue("Aah ata basi tutaenda na wewe majioni watakuwa wamefungua"),
+                    messageType = MessageType.SENT,
+                    previousMessageType = MessageType.SENT,
+                    time = TimeValue("12:47"),
+                    sendStatus = SendStatus.TWO_TICKS_READ,
+                    isStartOfReply = true
                 ),
-                ReceivedMessageItem(
-                    message = "i have been posting everyday but not yet",
-                    time = "14:30",
-                    lastMessageWas = LastMessageWas.RECEIVED
-                ),*/
-                ReceivedMessageItem(
-                    message = "banaa mi pia natafuta padi kama wajua store yoyote iko open enda ubuy ucon alafu unambie nilipe uje nayo",
-                    lastMessageWas = LastMessageWas.None,
-                    time = "12:45"
+                ConversationMessage(
+                    messageId = MessageId(""),
+                    message = MessageValue("Three four five six seven eight"),
+                    messageType = MessageType.SENT,
+                    previousMessageType = MessageType.RECEIVED,
+                    time = TimeValue("12:47"),
+                    sendStatus = SendStatus.TWO_TICKS_READ,
+                    isStartOfReply = false
                 ),
-                SentMessageItem(
-                    message = "Aah ata basi tutaenda na wewe majioni watakuwa wamefungua",
-                    lastMessageWas = LastMessageWas.RECEIVED,
-                    time = "12:47",
-                    sendStatus = SendStatus.TWO_TICKS
-                ),
-                SentMessageItem(
-                    message = "Mi pia nataka kubuy pesticide",
-                    lastMessageWas = LastMessageWas.SENT,
-                    time = "12:47",
-                    sendStatus = SendStatus.TWO_TICKS
-                ),
-                SentMessageItem(
-                    message = "Eeh😂",
-                    lastMessageWas = LastMessageWas.SENT,
-                    time = "12:48",
-                    sendStatus = SendStatus.TWO_TICKS
+                ConversationMessage(
+                    messageId = MessageId(""),
+                    message = MessageValue( "Eeh😂"),
+                    messageType = MessageType.RECEIVED,
+                    previousMessageType = MessageType.None,
+                    time = TimeValue("12:48"),
+                    sendStatus = SendStatus.TWO_TICKS,
+                    isStartOfReply = true,
+                    isSelected = true
                 )
             ),
-            onBackPress = {}
+            onBackPress = {},
+            onProfileClick = {},
+            onSendMessage = {},
+            target = Profile(
+                name = Name("Kevin Durant"),
+                about = About(""),
+                image = null,
+                email = Email("")
+            )
         )
     }
 }

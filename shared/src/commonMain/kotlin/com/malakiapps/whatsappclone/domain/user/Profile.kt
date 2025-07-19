@@ -38,6 +38,11 @@ value class About(
     val value: String
 )
 
+@JvmInline
+value class TimeValue(
+    val value: String
+)
+
 enum class ProfileType {
     OWNER,
     CONTACT,

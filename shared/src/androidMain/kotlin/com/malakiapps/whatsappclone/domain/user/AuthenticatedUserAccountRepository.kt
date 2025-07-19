@@ -9,6 +9,8 @@ import com.malakiapps.whatsappclone.domain.common.UpdateUserError
 actual interface AuthenticatedUserAccountRepository {
     actual suspend fun createContact(email: Email, authenticationContext: AuthenticationContext): Response<Profile, CreateUserError>
 
+    actual suspend fun upgradeContactFromAnonymous(userContactUpdate: UserContactUpdate): Response<Profile, CreateUserError>
+
     actual suspend fun getContact(email: Email): Response<Profile, GetUserError>
 
     actual suspend fun getUserDetails(email: Email): Response<UserDetails, GetUserError>

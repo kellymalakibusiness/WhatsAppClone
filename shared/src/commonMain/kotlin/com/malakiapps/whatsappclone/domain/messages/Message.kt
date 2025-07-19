@@ -10,9 +10,34 @@ data class Message(
     val sender: Email,
     val receiver: Email,
     val value: MessageValue,
-    val time: LocalDateTime,//Change to date type
+    val time: LocalDateTime,
     val attributes: MessageAttributes
 )
+
+fun Message.isMessageRead(owner: Email): Boolean {
+    if(sender == owner){
+        return true
+    }
+
+    return when (attributes.sendStatus) {
+        SendStatus.LOADING -> false
+        SendStatus.ONE_TICK -> false
+        SendStatus.TWO_TICKS -> false
+        SendStatus.TWO_TICKS_READ -> true
+    }
+}
+
+fun Message.isMessageReceived(owner: Email): Boolean {
+    if(sender == owner){
+        return true
+    }
+    return when (attributes.sendStatus) {
+        SendStatus.LOADING -> false
+        SendStatus.ONE_TICK -> false
+        SendStatus.TWO_TICKS -> true
+        SendStatus.TWO_TICKS_READ -> true
+    }
+}
 
 data class MessageAttributes(
     val updated: Boolean,
@@ -47,7 +72,9 @@ value class MessageValue(
 enum class SendStatus {
     LOADING,
     ONE_TICK,
-    TWO_TICKS
+    TWO_TICKS,
+
+    TWO_TICKS_READ
 }
 
 enum class MessageUpdateType {

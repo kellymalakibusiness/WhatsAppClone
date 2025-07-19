@@ -10,6 +10,9 @@ import com.malakiapps.whatsappclone.domain.common.UserParsingError
 import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.ForbiddenRequest
 import com.malakiapps.whatsappclone.domain.common.InvalidUpdate
+import com.malakiapps.whatsappclone.domain.common.MessageParsingError
+import com.malakiapps.whatsappclone.domain.common.UnExpectedError
+import com.malakiapps.whatsappclone.domain.common.UserAccountAlreadyExistException
 
 fun Error.getErrorMessageObject(): ScreenError {
     return when(this){
@@ -69,6 +72,26 @@ fun Error.getErrorMessageObject(): ScreenError {
             ScreenError(
                 message = "Action not allowed for user account type",
                 dismissButton = "Okay"
+            )
+        }
+
+        is MessageParsingError -> {
+            ScreenError(
+                message = "An error occurred while receiving a message",
+                dismissButton = "Ok"
+            )
+        }
+        is UnExpectedError -> {
+            ScreenError(
+                message = "Unexpected error occurred",
+                dismissButton = "Ok"
+            )
+        }
+
+        is UserAccountAlreadyExistException -> {
+            ScreenError(
+                message = "Cannot link an already existing account to a new anonymous account. To login to an existing account, log out of this account and log back in with the existing one",
+                dismissButton = "Got it"
             )
         }
     }

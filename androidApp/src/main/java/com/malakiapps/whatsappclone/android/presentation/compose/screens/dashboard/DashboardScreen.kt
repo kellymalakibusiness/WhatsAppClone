@@ -24,10 +24,16 @@ import com.malakiapps.whatsappclone.android.presentation.compose.screens.communi
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.communities_screen.CommunityItem
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.dashboard.DashboardScreenType.Companion.indexToDashboardScreenType
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.updates_screen.UpdatesScreen
+import com.malakiapps.whatsappclone.domain.messages.MessageValue
+import com.malakiapps.whatsappclone.domain.screens.ChatsScreenConversationRow
+import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Name
+import com.malakiapps.whatsappclone.domain.user.TimeValue
+import com.malakiapps.whatsappclone.domain.user.UserType
 import kotlinx.coroutines.launch
 
 @Composable
-fun DashboardScreen(openSettings: () -> Unit, onPrimaryFloatingButtonPress: (DashboardScreenType) -> Unit, onSecondaryFloatingButtonPress: (DashboardScreenType) -> Unit, modifier: Modifier = Modifier) {
+fun DashboardScreen(conversations: List<ChatsScreenConversationRow>?, userType: UserType?, openConversation: (Email) -> Unit, openSettings: () -> Unit, onPrimaryFloatingButtonPress: (DashboardScreenType) -> Unit, onSecondaryFloatingButtonPress: (DashboardScreenType) -> Unit, modifier: Modifier = Modifier) {
     val coroutineScope = rememberCoroutineScope()
     val pagerScrollState = rememberPagerState{ 4 }
     val currentScreen = rememberSaveable { mutableStateOf(pagerScrollState.currentPage.indexToDashboardScreenType()) }
@@ -49,9 +55,11 @@ fun DashboardScreen(openSettings: () -> Unit, onPrimaryFloatingButtonPress: (Das
         topBar = {
             DashboardTopAppBar(
                 dashboardScreenType = currentScreen.value,
+                userType = userType,
                 onSettingsPress = openSettings,
                 onSearchPress = {},
-                onCameraPress = {}
+                onCameraPress = {},
+                onLoginPress = openSettings
             )
         },
         bottomBar = {
@@ -88,7 +96,9 @@ fun DashboardScreen(openSettings: () -> Unit, onPrimaryFloatingButtonPress: (Das
                 0 -> {
                     ChatsScreen(
                         onArchivedClick = {},
-                        onMessageFilter = {}
+                        onMessageFilter = {},
+                        onMessageSelect = openConversation,
+                        conversations = conversations
                     )
                 }
                 1 -> {
@@ -158,6 +168,16 @@ fun DashboardScreen(openSettings: () -> Unit, onPrimaryFloatingButtonPress: (Das
 private fun DashBoardScreenPrev() {
     FakeWhatsAppTheme {
         DashboardScreen(
-            {}, {}, {})
+            conversations = listOf(
+                ChatsScreenConversationRow(
+                    image = null,
+                    name = Name("Kelly"),
+                    lastMessage = MessageValue("Bello"),
+                    newMessagesCount = 1,
+                    time = TimeValue("Yesterday"),
+                    email = Email("")
+                )
+            ),
+            UserType.ANONYMOUS,{}, {}, {}, {})
     }
 }

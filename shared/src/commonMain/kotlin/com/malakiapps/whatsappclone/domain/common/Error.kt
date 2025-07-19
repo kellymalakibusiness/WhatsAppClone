@@ -11,6 +11,10 @@ data class AuthenticationException(
     val message: String
 ): AuthenticationError
 
+data class UserAccountAlreadyExistException(
+    val message: String
+): AuthenticationError
+
 //CREATE USER
 sealed interface CreateUserError: AuthenticationError
 
@@ -38,7 +42,7 @@ data class InvalidUpdate(val message: String): UpdateUserError
 //DELETE USER
 sealed interface DeleteUserError: Error
 
-data object ForbiddenRequest: QueryContactsError
+data object ForbiddenRequest: QueryContactsError, UpdateMessageError
 
 
 //QUERY CONTACTS

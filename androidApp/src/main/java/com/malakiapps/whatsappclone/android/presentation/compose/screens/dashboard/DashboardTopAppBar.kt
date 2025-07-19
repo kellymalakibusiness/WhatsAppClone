@@ -19,10 +19,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.compose.common.TopAppBarButton
+import com.malakiapps.whatsappclone.domain.user.UserType
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardTopAppBar(dashboardScreenType: DashboardScreenType, modifier: Modifier = Modifier, onSearchPress: () -> Unit = {}, onCameraPress: () -> Unit= {}, onSettingsPress: () -> Unit) {
+fun DashboardTopAppBar(dashboardScreenType: DashboardScreenType, userType: UserType?, modifier: Modifier = Modifier, onSearchPress: () -> Unit = {}, onCameraPress: () -> Unit= {}, onSettingsPress: () -> Unit, onLoginPress: () -> Unit) {
 
     var settingsDialogExpanded by remember { mutableStateOf(false) }
     val isCameraVisible = dashboardScreenType == DashboardScreenType.CHATS
@@ -44,6 +45,12 @@ fun DashboardTopAppBar(dashboardScreenType: DashboardScreenType, modifier: Modif
             )
         },
         actions = {
+            if(userType == UserType.ANONYMOUS){
+                TopAppBarButton(
+                    icon = R.drawable.google,
+                    onClick = onLoginPress
+                )
+            }
             if(isCameraVisible){
                 TopAppBarButton(
                     icon = R.drawable.topappbar_camera,

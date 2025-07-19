@@ -11,6 +11,7 @@ import androidx.lifecycle.viewModelScope
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.auth
 import com.google.firebase.ktx.Firebase
@@ -21,16 +22,17 @@ import com.malakiapps.whatsappclone.domain.common.AuthenticationException
 import com.malakiapps.whatsappclone.domain.common.AuthenticationUserNotFound
 import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.Event
+import com.malakiapps.whatsappclone.domain.common.GoBackToDashboard
 import com.malakiapps.whatsappclone.domain.common.LoadingEvent
 import com.malakiapps.whatsappclone.domain.common.NavigateToLogin
 import com.malakiapps.whatsappclone.domain.common.NavigateToProfileInfo
 import com.malakiapps.whatsappclone.domain.common.OnError
 import com.malakiapps.whatsappclone.domain.common.Response
+import com.malakiapps.whatsappclone.domain.common.UserAccountAlreadyExistException
 import com.malakiapps.whatsappclone.domain.common.handleOnFailureResponse
 import com.malakiapps.whatsappclone.domain.common.onEachSuspending
 import com.malakiapps.whatsappclone.domain.managers.UserManager
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
-import com.malakiapps.whatsappclone.domain.user.AuthenticationRepository
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Name
 import com.malakiapps.whatsappclone.domain.user.SignInResponse
@@ -43,7 +45,9 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.cancellation.CancellationException
 
-class AuthenticationViewModel: ViewModel() {
+class AuthenticationViewModel(
+    private val userManager: UserManager
+): ViewModel() {
     private val firebaseAuth = Firebase.auth
     private val _eventChannel = Channel<Event>()
     val eventsChannelFlow = _eventChannel.receiveAsFlow()
@@ -69,12 +73,35 @@ class AuthenticationViewModel: ViewModel() {
         }
     }
 
+    fun fromAnonymousToLinkWithGoogle(context: Context){
+        viewModelScope.launch {
+            _eventChannel.send(LoadingEvent(true))
+            val credentialResponse = buildSignInCredentialManager(context)
+            val response = credentialResponse.handleUpgradeToGoogleFromAnonymous()
+
+            //React to the result from use case
+            response.onEachSuspending(
+                success = {
+                    //Do our migration of the account
+                    userManager.updateUserFromAnonymousAccount(it)
+                    //Go back to the dashboard
+                    _eventChannel.send(GoBackToDashboard)
+                },
+                failure = { error ->
+                    _eventChannel.send(
+                        OnError(error)
+                    )
+                }
+            )
+            _eventChannel.send(LoadingEvent(false))
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     fun anonymousSignIn() {
         viewModelScope.launch {
             signIn(
                 signInCall = {
-                    println("MALAKA: On anonymous sign in")
                     suspendCancellableCoroutine { cont ->
                         firebaseAuth.signInAnonymously()
                             .addOnCompleteListener { task ->
@@ -176,6 +203,39 @@ class AuthenticationViewModel: ViewModel() {
                 } ?: Response.Failure(AuthenticationUserNotFound)
             } catch (e: GoogleIdTokenParsingException) {
                 return Response.Failure(AuthenticationException(e.message ?: "Unknown error"))
+            }
+        } else {
+            return Response.Failure(AuthenticationException("Incorrect credential"))
+        }
+    }
+
+    private suspend fun GetCredentialResponse.handleUpgradeToGoogleFromAnonymous(): Response<SignInResponse, AuthenticationError> {
+        if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.Companion.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+            try {
+                val tokenCredential = GoogleIdTokenCredential.Companion.createFrom(credential.data)
+                val authCredential = GoogleAuthProvider.getCredential(tokenCredential.idToken, null)
+                val authResult = firebaseAuth.currentUser?.linkWithCredential(authCredential)?.await()
+
+                return authResult?.user?.let { currentUser ->
+                    val authenticationContext = AuthenticationContext(
+                        name = Name(currentUser.displayName ?: ""),
+                        email = Email(currentUser.email ?: ""),
+                        type = UserType.REAL
+                    )
+                    val initialImage = currentUser.photoUrl?.generateBase64ImageFromUrlUri()
+                    Response.Success(
+                        SignInResponse(
+                            authenticationContext = authenticationContext,
+                            initialBase64ProfileImage = initialImage
+                        )
+                    )
+                } ?: Response.Failure(AuthenticationUserNotFound)
+            } catch (e: FirebaseAuthUserCollisionException) {
+                return Response.Failure(
+                    UserAccountAlreadyExistException(
+                        e.message ?: "Cannot link existing account to anonymous account"
+                    )
+                )
             }
         } else {
             return Response.Failure(AuthenticationException("Incorrect credential"))

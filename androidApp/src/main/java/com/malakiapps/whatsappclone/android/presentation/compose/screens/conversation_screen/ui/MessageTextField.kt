@@ -34,7 +34,7 @@ import com.malakiapps.whatsappclone.android.R
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MessageTextField(messageValue: String, onMessageChange: (String)-> Unit, modifier: Modifier = Modifier) {
+fun MessageTextField(messageValue: String, onMessageChange: (String)-> Unit, onRecordMessagePress: () -> Unit, onSendMessage: (String) -> Unit, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.Bottom,
@@ -117,7 +117,13 @@ fun MessageTextField(messageValue: String, onMessageChange: (String)-> Unit, mod
         }
 
         IconButton(
-            onClick = {},
+            onClick = {
+                if(messageValue.isBlank()){
+                    onRecordMessagePress()
+                } else {
+                    onSendMessage(messageValue)
+                }
+            },
             modifier = Modifier
                 .shadow(elevation = 4.dp, shape = MaterialTheme.shapes.extraLarge)
                 .clip(MaterialTheme.shapes.extraLarge)
@@ -156,7 +162,9 @@ private fun MessageTextFieldPrev() {
             MessageTextField(
                 modifier = Modifier.padding(8.dp),
                 messageValue = "",
-                onMessageChange = {}
+                onMessageChange = {},
+                onSendMessage = {},
+                onRecordMessagePress = {}
             )
         }
     }

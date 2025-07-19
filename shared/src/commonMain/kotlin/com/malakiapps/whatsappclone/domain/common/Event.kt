@@ -35,3 +35,7 @@ data class OnError(
 ): AuthenticationEvent
 
 data object LogOut: AuthenticationEvent
+
+data object PlayMessageTone: Event
+
+data object GoBackToDashboard: Event

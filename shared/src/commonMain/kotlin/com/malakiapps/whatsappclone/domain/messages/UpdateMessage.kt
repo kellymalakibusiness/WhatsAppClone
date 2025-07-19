@@ -15,7 +15,7 @@ data class ChangeMessageBody(
     val updatedValue: String
 ): UpdateMessage
 
-data class DeleteMessage(
+data class DeleteMessageForBoth(
     override val sender: Email,
     override val receiver: Email,
     override val messageId: MessageId,

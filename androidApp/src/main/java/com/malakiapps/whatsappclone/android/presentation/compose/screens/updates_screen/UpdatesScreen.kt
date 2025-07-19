@@ -27,8 +27,12 @@ import androidx.compose.ui.unit.dp
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.chat_screen.MessageRow
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.chat_screen.generateTempMessages
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.dashboard.DashboardScreenType
+import com.malakiapps.whatsappclone.domain.messages.MessageValue
+import com.malakiapps.whatsappclone.domain.screens.ChatsScreenConversationRow
+import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Name
+import com.malakiapps.whatsappclone.domain.user.TimeValue
 
 @Composable
 fun UpdatesScreen(
@@ -106,9 +110,19 @@ fun UpdatesScreen(
             }
 
             Column {
-                generateTempMessages(4).forEach { channel ->
+                listOf(
+                    ChatsScreenConversationRow(
+                        email = Email(""),
+                        image = null,
+                        name = Name("FakeWhatsApp"),
+                        lastMessage = MessageValue("No support for channels yet. Maybe in the future"),
+                        newMessagesCount = 1,
+                        time = TimeValue("In the future")
+                    )
+                ).forEach { channel ->
                     MessageRow(
-                        row = channel
+                        row = channel,
+                        onClick = {}
                     )
                 }
             }

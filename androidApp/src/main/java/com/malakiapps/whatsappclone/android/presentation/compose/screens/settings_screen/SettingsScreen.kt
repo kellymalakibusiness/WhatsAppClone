@@ -3,6 +3,7 @@ package com.malakiapps.whatsappclone.android.presentation.compose.screens.settin
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalSharedTransitionApi
 import androidx.compose.animation.SharedTransitionScope
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -40,14 +41,17 @@ import com.malakiapps.whatsappclone.android.presentation.compose.common.shimmerE
 import com.malakiapps.whatsappclone.domain.user.About
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Name
+import com.malakiapps.whatsappclone.domain.user.UserType
 
 @Composable
 fun SettingsScreen(
     userDetailsInfo: UserDetailsInfo?,
+    userType: UserType?,
     sharedElementModifier: Modifier,
     onNavigateBack: () -> Unit,
     onProfileClick: () -> Unit,
     onAccountSettingsClick: () -> Unit,
+    onSignInWithGoogleClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Scaffold(
@@ -67,11 +71,13 @@ fun SettingsScreen(
             UserDetailsRow(
                 userDetailsInfo = userDetailsInfo,
                 sharedElementModifier = sharedElementModifier,
+                userType = userType,
                 modifier = Modifier
                     .clickable {
                         onProfileClick()
                     }
-                    .fillMaxWidth()
+                    .fillMaxWidth(),
+                onSignInWithGoogleClick = onSignInWithGoogleClick
             )
 
             SettingsRowOption(
@@ -167,6 +173,8 @@ fun SettingsScreen(
 @Composable
 private fun UserDetailsRow(
     userDetailsInfo: UserDetailsInfo?,
+    onSignInWithGoogleClick: () -> Unit,
+    userType: UserType?,
     modifier: Modifier = Modifier,
     sharedElementModifier: Modifier
 ) {
@@ -235,10 +243,38 @@ private fun UserDetailsRow(
                 }
             }
         }
+
         Divider(
             modifier = Modifier.fillMaxWidth(),
             color = DividerDefaults.color.copy(alpha = 0.3f)
         )
+        if(userType == UserType.ANONYMOUS){
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = modifier
+                    .clickable{
+                        onSignInWithGoogleClick()
+                    }
+                    .padding(16.dp)
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.google),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp)
+                        .size(24.dp)
+                )
+
+                Text(
+                    text = "Sign In with Google"
+                )
+            }
+            Divider(
+                modifier = Modifier.fillMaxWidth(),
+                color = DividerDefaults.color.copy(alpha = 0.3f)
+            )
+        }
     }
 }
 
@@ -301,10 +337,12 @@ private fun SettingsScreenPrev() {
                         email = Email("kellymalaki@gmail.com"),
                         about = About("Hey there, blah blah blah")
                     ),
+                    userType = UserType.ANONYMOUS,
                     onProfileClick = {},
                     onNavigateBack = {},
                     onAccountSettingsClick = {},
-                    sharedElementModifier = Modifier
+                    sharedElementModifier = Modifier,
+                    onSignInWithGoogleClick = {}
                 )
             }
         }

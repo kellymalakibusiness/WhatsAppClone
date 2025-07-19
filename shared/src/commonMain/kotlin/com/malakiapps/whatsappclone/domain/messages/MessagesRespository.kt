@@ -10,15 +10,25 @@ import com.malakiapps.whatsappclone.domain.user.Email
 import kotlinx.coroutines.flow.Flow
 
 expect interface MessagesRepository {
-    suspend fun getConversation(owner: Email, target: Email, paginate: Paginate?): Response<Conversation, GetMessagesError>
+    suspend fun getAllActiveConversations(owner: Email): Response<List<RawConversation>, GetMessagesError>
 
-    suspend fun listenForMessagesChanges(owner: Email, target: Email): Flow<Response<Conversation, GetMessagesError>>
+    suspend fun getConversation(owner: Email, target: Email, paginate: Paginate?): Response<RawConversation, GetMessagesError>
 
-    suspend fun listenForNewUserMessages(owner: Email): Flow<Response<List<Pair<MessageUpdateType, Message>>, GetMessagesError>>
+    fun listenForMessagesChanges(owner: Email, target: Email): Flow<Response<RawConversation, GetMessagesError>>
+
+    fun listenForNewUserMessages(owner: Email): Flow<Response<List<Pair<MessageUpdateType, Message>>, GetMessagesError>>
 
     suspend fun sendMessage(message: Message): Response<Message, SendMessagesError>
 
     suspend fun updateMessage(updateMessage: UpdateMessage): Response<Unit, UpdateMessageError>
 
-    suspend fun deleteMessage(owner: Email, target: Email, messageId: MessageId): Response<Unit, DeleteMessageError>
+    suspend fun updateMessagesReadStatus(receiver: Email, messageIds: List<Pair<Email, MessageId>>, sendStatus: SendStatus): Response<Unit, UpdateMessageError>
+
+    suspend fun deleteMessages(
+        owner: Email,
+        target: Email,
+        messageIds: List<MessageId>
+    ): Response<Unit, DeleteMessageError>
+
+    suspend fun importAllUserMessages(owner: Email, rawConversation: RawConversation): Response<Unit, SendMessagesError>
 }

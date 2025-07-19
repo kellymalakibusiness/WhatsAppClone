@@ -4,6 +4,7 @@ import androidx.room.Room
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
 import com.malakiapps.whatsappclone.data.AnonymousLocalUserAccountRepository
+import com.malakiapps.whatsappclone.data.AnonymousLocalUserMessageRepository
 import com.malakiapps.whatsappclone.data.FirebaseFirestoreContactsRepository
 import com.malakiapps.whatsappclone.data.FirebaseFirestoreMessagesRepository
 import com.malakiapps.whatsappclone.data.FirebaseFirestoreUserAccountRepository
@@ -11,10 +12,13 @@ import com.malakiapps.whatsappclone.data.FirebaseGoogleSignInAuthenticationRepos
 import com.malakiapps.whatsappclone.data.FirebaseLocalSignInAuthenticationRepository
 import com.malakiapps.whatsappclone.data.room.LocalUserDatabase
 import com.malakiapps.whatsappclone.domain.contacts.ContactsRepository
+import com.malakiapps.whatsappclone.domain.messages.AnonymousUserMessageRepository
 import com.malakiapps.whatsappclone.domain.messages.MessagesRepository
 import com.malakiapps.whatsappclone.domain.user.AnonymousUserAccountRepository
 import com.malakiapps.whatsappclone.domain.user.AuthenticatedUserAccountRepository
 import com.malakiapps.whatsappclone.domain.user.AuthenticationRepository
+import com.malakiapps.whatsappclone.presentation.view_models.ConversationViewModel
+import com.malakiapps.whatsappclone.presentation.view_models.DashboardViewModel
 import com.malakiapps.whatsappclone.presentation.view_models.LoginUpdateContactViewModel
 import com.malakiapps.whatsappclone.presentation.view_models.SelectContactViewModel
 import com.malakiapps.whatsappclone.presentation.view_models.UpdateUserProfileViewModel
@@ -47,6 +51,10 @@ fun Module.androidModules(appBuildMode: AppBuildMode){
         AnonymousLocalUserAccountRepository(get<LocalUserDatabase>().dao)
     }.bind<AnonymousUserAccountRepository>()
 
+    single {
+        AnonymousLocalUserMessageRepository(get<LocalUserDatabase>().messagesDao)
+    }.bind<AnonymousUserMessageRepository>()
+
     singleOf(::FirebaseFirestoreContactsRepository).bind<ContactsRepository>()
     singleOf(::FirebaseFirestoreMessagesRepository).bind<MessagesRepository>()
 
@@ -55,6 +63,8 @@ fun Module.androidModules(appBuildMode: AppBuildMode){
     viewModelOf(::UpdateUserProfileViewModel)
     viewModelOf(::AuthenticationViewModel)
     viewModelOf(::SelectContactViewModel)
+    viewModelOf(::ConversationViewModel)
+    viewModelOf(::DashboardViewModel)
 }
 
 fun Module.localModules(){

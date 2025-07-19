@@ -17,6 +17,7 @@ import com.malakiapps.whatsappclone.domain.use_cases.InitialAuthenticationCheckU
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
 import com.malakiapps.whatsappclone.domain.user.Profile
 import com.malakiapps.whatsappclone.domain.user.StateValue
+import com.malakiapps.whatsappclone.domain.user.UserDetails
 import com.malakiapps.whatsappclone.domain.user.UserState
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.SharingStarted
@@ -41,6 +42,18 @@ class MainViewModel(
     val selfProfileState: StateFlow<Profile?> = userManager.userProfileState.map { userState ->
         if(userState is StateValue<Profile?>){
             userState.value
+        } else {
+            null
+        }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = null
+    )
+
+    val userDetails: StateFlow<UserDetails?> = userManager.userDetailsState.map { userDetailsState ->
+        if(userDetailsState is StateValue<UserDetails?>){
+            userDetailsState.value
         } else {
             null
         }

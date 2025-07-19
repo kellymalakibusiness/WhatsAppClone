@@ -1,24 +1,45 @@
 package com.malakiapps.whatsappclone.data.room
 
 import androidx.room.Dao
-import androidx.room.Delete
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.Update
-import androidx.room.Upsert
-import com.malakiapps.whatsappclone.domain.messages.UpdateMessage
-import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.data.MESSAGE_LIMIT
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MessageDao {
-    @Query("")
-    suspend fun getConversation(email: Email): List<MessageEntity>
+    @Query("SELECT * FROM MessageEntity ORDER BY time DESC LIMIT $MESSAGE_LIMIT")
+    fun getConversation(): Flow<List<MessageEntity>>
 
-    @Upsert
-    suspend fun sendMessage(message: MessageEntity): MessageEntity
+    @Query("""
+        SELECT * FROM MessageEntity 
+        WHERE messageId < :lastMessageId
+        ORDER BY time DESC
+        LIMIT $MESSAGE_LIMIT
+    """)
+    suspend fun getMessagesFrom(lastMessageId: Int): List<MessageEntity>
 
-    @Update
-    suspend fun updateMessage(updateMessage: UpdateMessage)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun sendMessage(message: MessageEntity)
 
-    @Delete
-    suspend fun deleteMessage(owner: Email, timeId: String)
+    @Query("DELETE FROM MessageEntity WHERE messageId IN (:messageIds)")
+    suspend fun deleteMessages(messageIds: List<Int>)
+
+    @Query("""
+        UPDATE MessageEntity 
+        SET value = :newValue, updated = 1 
+        WHERE messageId = :messageId
+    """)
+    suspend fun changeMessageBody(messageId: Int, newValue: String)
+
+    @Query("""
+        UPDATE MessageEntity 
+        SET senderReaction = :reaction 
+        WHERE messageId = :messageId
+    """)
+    suspend fun reactToMessage(messageId: Int, reaction: String)
+
+    @Query("SELECT * FROM MessageEntity")
+    suspend fun exportUserMessages(): List<MessageEntity>
 }

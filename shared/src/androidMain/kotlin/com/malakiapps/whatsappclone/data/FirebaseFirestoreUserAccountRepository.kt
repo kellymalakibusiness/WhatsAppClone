@@ -35,6 +35,7 @@ import com.malakiapps.whatsappclone.domain.user.UserDetails
 import com.malakiapps.whatsappclone.domain.user.UserDetailsUpdate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.tasks.await
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FirebaseFirestoreUserAccountRepository : AuthenticatedUserAccountRepository {
@@ -70,6 +71,22 @@ class FirebaseFirestoreUserAccountRepository : AuthenticatedUserAccountRepositor
 
         return result.getUpdatedContact(email)
 
+    }
+
+    override suspend fun upgradeContactFromAnonymous(userContactUpdate: UserContactUpdate): Response<Profile, CreateUserError> {
+        val mapUser = userContactUpdate.toUserUpdateHashMap()
+
+        val result: Response<Unit, CreateUserError> = try {
+            firestore.getContactReference(email = userContactUpdate.email)
+                .set(mapUser, SetOptions.merge())
+                .await()
+
+            Response.Success(Unit)
+        } catch (e: Exception){
+            Response.Failure(UnknownError(e))
+        }
+
+        return result.getUpdatedContact(userContactUpdate.email)
     }
 
     override suspend fun getContact(email: Email): Response<Profile, GetUserError> {
@@ -189,9 +206,26 @@ class FirebaseFirestoreUserAccountRepository : AuthenticatedUserAccountRepositor
 
 private fun AuthenticationContext.toCreateUserHashMap(actualEmail: Email): HashMap<String, Any> {
     return hashMapOf(
-        UserAttributeKeys.NAME to name,
+        UserAttributeKeys.NAME to name.value,
         UserAttributeKeys.EMAIL to actualEmail,
     )
+}
+
+private fun UserContactUpdate.toUserUpdateHashMap(): HashMap<String, Any> {
+    val data = buildMap {
+        if(name is Some){
+            put(UserAttributeKeys.NAME, name.value.value)
+        }
+
+        if(about is Some){
+            put(UserAttributeKeys.ABOUT, about.value.value)
+        }
+
+        if(image is Some && image.value?.value != null){
+            put(UserAttributeKeys.IMAGE, image.value.value)
+        }
+    }
+    return HashMap(data)
 }
 
 private fun Task<DocumentSnapshot>.toUserDetails(): Response<UserDetails, GetUserError> {

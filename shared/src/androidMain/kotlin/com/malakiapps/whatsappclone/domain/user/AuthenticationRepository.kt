@@ -1,9 +1,7 @@
 package com.malakiapps.whatsappclone.domain.user
 
-import android.content.Context
+
 import com.google.firebase.auth.FirebaseAuth
-import com.malakiapps.whatsappclone.domain.common.AuthenticationError
-import com.malakiapps.whatsappclone.domain.common.Response
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow

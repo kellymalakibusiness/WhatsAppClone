@@ -37,6 +37,7 @@ import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Name
 import com.malakiapps.whatsappclone.domain.user.SignInResponse
 import com.malakiapps.whatsappclone.domain.user.UserType
+import com.malakiapps.whatsappclone.domain.user.getOrNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
@@ -134,7 +135,12 @@ class AuthenticationViewModel(
         credentialManager.clearCredentialState(
             ClearCredentialStateRequest()
         )
-        firebaseAuth.signOut()
+        if(userManager.userDetailsState.value.getOrNull()?.type == UserType.ANONYMOUS){
+            //No point of logging out of anonymous account. No longer needed
+            firebaseAuth.currentUser?.delete()
+        } else {
+            firebaseAuth.signOut()
+        }
     }
 
     private suspend fun signIn(signInCall: suspend () -> Response<SignInResponse, Error>) {

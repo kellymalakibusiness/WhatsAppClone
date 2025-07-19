@@ -35,6 +35,7 @@ import com.malakiapps.whatsappclone.domain.messages.UpdateMessage
 import com.malakiapps.whatsappclone.domain.user.Email
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -117,7 +118,7 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
         target: Email
     ): Flow<Response<RawConversation, GetMessagesError>> {
         return callbackFlow {
-            firestore
+            val listener = firestore
                 .getConversationReference(owner = owner, target = target)
                 .orderBy(MessageAttributeKeys.TIME, Query.Direction.DESCENDING)
                 .limit(MESSAGE_LIMIT)
@@ -132,12 +133,14 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
                         trySend(Response.Success(conversation))
                     }
                 }
+
+            awaitClose { listener.remove() }
         }
     }
 
     override fun listenForNewUserMessages(owner: Email): Flow<Response<List<Pair<MessageUpdateType, Message>>, GetMessagesError>> {
         return callbackFlow {
-            firestore
+            val listener = firestore
                 .collectionGroup(MESSAGES_COLLECTION_NAME)
                 .orderBy(MessageAttributeKeys.TIME, Query.Direction.DESCENDING)
                 .startAfter(Timestamp.now())
@@ -160,6 +163,8 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
                         trySend(Response.Success(newChanges))
                     }
                 }
+
+            awaitClose { listener.remove() }
         }
     }
 

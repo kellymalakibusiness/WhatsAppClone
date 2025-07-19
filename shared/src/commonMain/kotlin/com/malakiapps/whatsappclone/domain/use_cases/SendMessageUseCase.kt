@@ -1,5 +1,7 @@
 package com.malakiapps.whatsappclone.domain.use_cases
 
+import com.malakiapps.whatsappclone.domain.common.Response
+import com.malakiapps.whatsappclone.domain.common.SendMessagesError
 import com.malakiapps.whatsappclone.domain.messages.AnonymousUserMessageRepository
 import com.malakiapps.whatsappclone.domain.messages.Message
 import com.malakiapps.whatsappclone.domain.messages.MessagesRepository
@@ -9,8 +11,8 @@ class SendMessageUseCase(
     private val messagesRepository: MessagesRepository,
     private val anonymousUserMessageRepository: AnonymousUserMessageRepository
 ) {
-    suspend operator fun invoke(authenticationContext: AuthenticationContext, message: Message){
-        authenticationContext.email?.let { availableEmail ->
+    suspend operator fun invoke(authenticationContext: AuthenticationContext, message: Message): Response<Message, SendMessagesError> {
+        return authenticationContext.email?.let { availableEmail ->
             messagesRepository.sendMessage(message = message)
         } ?: run {
             anonymousUserMessageRepository.sendMessage(message = message)

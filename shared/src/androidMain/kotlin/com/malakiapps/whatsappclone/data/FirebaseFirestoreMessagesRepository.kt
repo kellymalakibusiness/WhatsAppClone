@@ -170,25 +170,40 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun sendMessage(message: Message): Response<Message, SendMessagesError> {
-        val senderReference =
-            firestore.getConversationReference(owner = message.sender, target = message.receiver)
-                .document()
-        val receiverReference =
-            firestore.getConversationReference(owner = message.receiver, target = message.sender)
-                .document(senderReference.id)
+        return if(message.sender != message.receiver){
+            //Message to another user
+            val senderReference =
+                firestore.getConversationReference(owner = message.sender, target = message.receiver)
+                    .document()
+            val receiverReference =
+                firestore.getConversationReference(owner = message.receiver, target = message.sender)
+                    .document(senderReference.id)
 
-        return suspendCancellableCoroutine { continuation ->
             val messageMap = message.toMessageHashMap(id = MessageId(senderReference.id))
-            firestore.runBatch { batch ->
-                batch.set(senderReference, messageMap)
-                batch.set(receiverReference, messageMap)
+            try {
+                firestore.runBatch { batch ->
+                    batch.set(senderReference, messageMap)
+                    batch.set(receiverReference, messageMap)
+                }.await()
+
+                Response.Success(message)
+            } catch (e: Exception){
+                Response.Failure(UnknownError(e))
             }
-                .addOnCompleteListener {
-                    continuation.resume(Response.Success(message), null)
-                }
-                .addOnFailureListener {
-                    continuation.resume(Response.Failure(UnknownError(it)), null)
-                }
+        } else {
+            //Message to self
+            val selfReference = firestore.getConversationReference(owner = message.sender, target = message.receiver).document()
+            val messageMap = message.toMessageHashMap(id = MessageId(selfReference.id))
+
+            try {
+                selfReference
+                    .set(messageMap)
+                    .await()
+
+                Response.Success(message)
+            } catch (e: Exception){
+                Response.Failure(UnknownError(e))
+            }
         }
     }
 

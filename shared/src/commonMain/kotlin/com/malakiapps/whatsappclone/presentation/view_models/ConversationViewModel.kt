@@ -15,8 +15,6 @@ import com.malakiapps.whatsappclone.domain.screens.MessageType
 import com.malakiapps.whatsappclone.domain.screens.TimeCard
 import com.malakiapps.whatsappclone.domain.screens.getDayValue
 import com.malakiapps.whatsappclone.domain.screens.getMessageType
-import com.malakiapps.whatsappclone.domain.screens.getTimeValue
-import com.malakiapps.whatsappclone.domain.use_cases.SendMessageUseCase
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Profile
 import com.malakiapps.whatsappclone.domain.user.Some
@@ -39,128 +37,29 @@ class ConversationViewModel(
     private val userManager: UserManager,
     private val messagesManager: MessagesManager,
     private val contactsManager: ContactsManager,
+    private val targetEmail: Email
 ) : ViewModel() {
     private val _eventChannel = Channel<Event>()
     val eventsChannelFlow = _eventChannel.receiveAsFlow()
-
-    private var targetEmail: Email? = null
     private val _targetContact: MutableStateFlow<Profile?> = MutableStateFlow(null)
     val targetContact: StateFlow<Profile?> = _targetContact
 
-    @OptIn(ExperimentalTime::class)
-    val conversation = messagesManager.conversations.map { value ->
-        targetEmail?.let { availableEmail ->
-            value.getOrNull()?.find { it.contact2 == availableEmail }
-                ?.let { conversationWithMessageContext ->
-                    val today = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
-                    var thereIsANewMessage = false
-                    var currentBufferType = conversationWithMessageContext.messages.firstOrNull()?.getMessageType(targetEmail) ?: MessageType.None
-                    var currentTimeValue = conversationWithMessageContext.messages.firstOrNull()?.time?.getDayValue(today = today) ?: TimeValue("Today")
-                    val messageBuffer = mutableListOf<Message>()
-                    val conversationMessages = buildList {
-                        conversationWithMessageContext.messages.forEach { message ->
-                            val messageTimeValue = message.time.getDayValue(today = today)
-                            val messageType = message.getMessageType(target = targetEmail)
-                            if(messageTimeValue != currentTimeValue){
-                                addAll(
-                                    messageBuffer.mapIndexed { index, messageOnBuffer ->
-                                        val isStartOfReply = index == messageBuffer.size -1
-                                        ConversationMessage(
-                                            messageId = messageOnBuffer.messageId,
-                                            message = messageOnBuffer.value,
-                                            time = TimeValue("${messageOnBuffer.time.time.hour}:${messageOnBuffer.time.time.minute}"),
-                                            sendStatus = messageOnBuffer.attributes.sendStatus,
-                                            messageType = currentBufferType,
-                                            previousMessageType = if(index == 0) MessageType.None else currentBufferType,//if(isStartOfReply) MessageType.None else currentBufferType,
-                                            isStartOfReply = isStartOfReply
-                                        )
-                                }
-                                )
-                                add(TimeCard(time = currentTimeValue))
-                                messageBuffer.clear()
-                                currentTimeValue = messageTimeValue
-                                currentBufferType = messageType
-                                messageBuffer.add(message)
-                            } else {
-                                //Didn't get caught by the date change
-                                //Check for message type change
-                                if(currentBufferType != messageType){
-                                    //We experienced a message type change
-                                    addAll(
-                                        messageBuffer.mapIndexed { index, messageOnBuffer ->
-                                            val isStartOfReply = index == messageBuffer.size -1
-                                            ConversationMessage(
-                                                messageId = messageOnBuffer.messageId,
-                                                message = messageOnBuffer.value,
-                                                time = TimeValue("${messageOnBuffer.time.time.hour}:${messageOnBuffer.time.time.minute}"),
-                                                sendStatus = messageOnBuffer.attributes.sendStatus,
-                                                messageType = currentBufferType,
-                                                previousMessageType = if(index == 0) MessageType.None else currentBufferType,
-                                                isStartOfReply = isStartOfReply
-                                            )
-                                        }
-                                    )
-                                    messageBuffer.clear()
-                                    currentBufferType = messageType
-                                    messageBuffer.add(message)
-                                } else {
-                                    messageBuffer.add(message)
-                                }
-                            }
-                            if(message.sender == targetEmail && message.attributes.sendStatus == SendStatus.ONE_TICK){
-                                thereIsANewMessage = true
-                            }
-                        }
-                        if(messageBuffer.isNotEmpty()){
-                            addAll(
-                                messageBuffer.mapIndexed { index, messageOnBuffer ->
-                                    val isStartOfReply = index == messageBuffer.size -1
-                                    ConversationMessage(
-                                        messageId = messageOnBuffer.messageId,
-                                        message = messageOnBuffer.value,
-                                        time = TimeValue("${messageOnBuffer.time.time.hour}:${messageOnBuffer.time.time.minute}"),
-                                        sendStatus = messageOnBuffer.attributes.sendStatus,
-                                        messageType = currentBufferType,
-                                        previousMessageType = if(index == 0) MessageType.None else currentBufferType,
-                                        isStartOfReply = isStartOfReply
-                                    )
-                                }
-                            )
-                            val day = messageBuffer.first().time.getDayValue(today = today)
-                            if(currentTimeValue == day){
-                                add(TimeCard(time = currentTimeValue))
-                            }
-                        }
-                    }
-                    if (thereIsANewMessage){
-                        _eventChannel.send(PlayMessageTone)
-                    }
-                    conversationMessages
-                }
-        }
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = null
-    )
-
-    fun setTargetEmail(email: Email) {
+    init {
         viewModelScope.launch {
-            targetEmail = email
-            messagesManager.changeCurrentOnConversation(email)
+            messagesManager.changeCurrentOnConversation(targetEmail)
             val authenticatedUserEmail = userManager.userProfileState.value.getOrNull()?.email
-            if(authenticatedUserEmail != email){
+            if (authenticatedUserEmail != targetEmail) {
                 //Check and add the contact
                 val userDetails = userManager.userDetailsState.value.getOrNull()
-                if (userDetails?.contacts?.contains(email) != true) {
+                if (userDetails?.contacts?.contains(targetEmail) != true) {
                     userManager.updateUserDetails(
-                        addContactUpdate = Some(email)
+                        addContactUpdate = Some(targetEmail)
                     )
                 }
 
                 //Listen for contact changes
                 contactsManager
-                    .listenToContactChanges(email = email)
+                    .listenToContactChanges(email = targetEmail)
                     .collect {
                         it.getOrNull()?.let { contactChange ->
                             _targetContact.update {
@@ -173,12 +72,115 @@ class ConversationViewModel(
                     userManager.userProfileState.value.getOrNull()
                 }
             }
-            messagesManager.listenForConversationChanges(email)
+            messagesManager.listenForConversationChanges(targetEmail)
         }
     }
 
-    fun sendMessage(messageValue: String){
+    @OptIn(ExperimentalTime::class)
+    val conversation = messagesManager.conversations.map { value ->
+        value.getOrNull()?.find { it.contact2 == targetEmail }
+            ?.let { conversationWithMessageContext ->
+                val today = kotlin.time.Clock.System.now()
+                    .toLocalDateTime(TimeZone.currentSystemDefault()).date
+                var thereIsANewMessage = false
+                var currentBufferType = conversationWithMessageContext.messages.firstOrNull()
+                    ?.getMessageType(targetEmail) ?: MessageType.None
+                var currentTimeValue =
+                    conversationWithMessageContext.messages.firstOrNull()?.time?.getDayValue(today = today)
+                        ?: TimeValue("Today")
+                val messageBuffer = mutableListOf<Message>()
+                val conversationMessages = buildList {
+                    conversationWithMessageContext.messages.forEach { message ->
+                        val messageTimeValue = message.time.getDayValue(today = today)
+                        val messageType = message.getMessageType(target = targetEmail)
+                        if (messageTimeValue != currentTimeValue) {
+                            addAll(
+                                messageBuffer.mapIndexed { index, messageOnBuffer ->
+                                    val isStartOfReply = index == messageBuffer.size -1
+                                    ConversationMessage(
+                                        messageId = messageOnBuffer.messageId,
+                                        message = messageOnBuffer.value,
+                                        time = TimeValue("${messageOnBuffer.time.time.hour.addLeadingZero()}:${messageOnBuffer.time.time.minute.addLeadingZero()}"),
+                                        sendStatus = messageOnBuffer.attributes.sendStatus,
+                                        messageType = currentBufferType,
+                                        previousMessageType = if (index == 0) MessageType.None else currentBufferType,//if(isStartOfReply) MessageType.None else currentBufferType,
+                                        isStartOfReply = isStartOfReply
+                                    )
+                                }
+                            )
+                            add(TimeCard(time = currentTimeValue))
+                            messageBuffer.clear()
+                            currentTimeValue = messageTimeValue
+                            currentBufferType = messageType
+                            messageBuffer.add(message)
+                        } else {
+                            //Didn't get caught by the date change
+                            //Check for message type change
+                            if (currentBufferType != messageType) {
+                                //We experienced a message type change
+                                addAll(
+                                    messageBuffer.mapIndexed { index, messageOnBuffer ->
+                                        val isStartOfReply = index == messageBuffer.size -1
+                                        ConversationMessage(
+                                            messageId = messageOnBuffer.messageId,
+                                            message = messageOnBuffer.value,
+                                            time = TimeValue("${messageOnBuffer.time.time.hour.addLeadingZero()}:${messageOnBuffer.time.time.minute.addLeadingZero()}"),
+                                            sendStatus = messageOnBuffer.attributes.sendStatus,
+                                            messageType = currentBufferType,
+                                            previousMessageType = if (index == 0) MessageType.None else currentBufferType,
+                                            isStartOfReply = isStartOfReply
+                                        )
+                                    }
+                                )
+                                messageBuffer.clear()
+                                currentBufferType = messageType
+                                messageBuffer.add(message)
+                            } else {
+                                messageBuffer.add(message)
+                            }
+                        }
+                        if (message.sender == targetEmail && message.attributes.sendStatus == SendStatus.ONE_TICK) {
+                            thereIsANewMessage = true
+                        }
+                    }
+                    if (messageBuffer.isNotEmpty()) {
+                        addAll(
+                            messageBuffer.mapIndexed { index, messageOnBuffer ->
+                                val isStartOfReply = index == messageBuffer.size -1
+                                ConversationMessage(
+                                    messageId = messageOnBuffer.messageId,
+                                    message = messageOnBuffer.value,
+                                    time = TimeValue("${messageOnBuffer.time.time.hour.addLeadingZero()}:${messageOnBuffer.time.time.minute.addLeadingZero()}"),
+                                    sendStatus = messageOnBuffer.attributes.sendStatus,
+                                    messageType = currentBufferType,
+                                    previousMessageType = if (index == 0) MessageType.None else currentBufferType,
+                                    isStartOfReply = isStartOfReply
+                                )
+                            }
+                        )
+                        val day = messageBuffer.first().time.getDayValue(today = today)
+                        if (currentTimeValue == day) {
+                            add(TimeCard(time = currentTimeValue))
+                        }
+                    }
+                }
+                if (thereIsANewMessage) {
+                    _eventChannel.send(PlayMessageTone)
+                }
+                conversationMessages
+            }
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = null
+    )
+
+    fun sendMessage(messageValue: String) {
         messagesManager.sendMessage(messageValue)
+    }
+
+    private fun Int.addLeadingZero(): String {
+        return toString().padStart(2, '0')
     }
 
     override fun onCleared() {

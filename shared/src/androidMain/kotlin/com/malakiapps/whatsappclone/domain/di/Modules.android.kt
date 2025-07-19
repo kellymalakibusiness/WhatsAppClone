@@ -17,6 +17,7 @@ import com.malakiapps.whatsappclone.domain.messages.MessagesRepository
 import com.malakiapps.whatsappclone.domain.user.AnonymousUserAccountRepository
 import com.malakiapps.whatsappclone.domain.user.AuthenticatedUserAccountRepository
 import com.malakiapps.whatsappclone.domain.user.AuthenticationRepository
+import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.presentation.view_models.ConversationViewModel
 import com.malakiapps.whatsappclone.presentation.view_models.DashboardViewModel
 import com.malakiapps.whatsappclone.presentation.view_models.LoginUpdateContactViewModel
@@ -25,6 +26,7 @@ import com.malakiapps.whatsappclone.presentation.view_models.UpdateUserProfileVi
 import com.malakiapps.whatsappclone.presentation.view_modules.AuthenticationViewModel
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -63,8 +65,16 @@ fun Module.androidModules(appBuildMode: AppBuildMode){
     viewModelOf(::UpdateUserProfileViewModel)
     viewModelOf(::AuthenticationViewModel)
     viewModelOf(::SelectContactViewModel)
-    viewModelOf(::ConversationViewModel)
     viewModelOf(::DashboardViewModel)
+
+    viewModel{ (userEmail: Email) ->
+        ConversationViewModel(
+            userManager = get(),
+            messagesManager = get(),
+            contactsManager = get(),
+            targetEmail = userEmail
+        )
+    }
 }
 
 fun Module.localModules(){

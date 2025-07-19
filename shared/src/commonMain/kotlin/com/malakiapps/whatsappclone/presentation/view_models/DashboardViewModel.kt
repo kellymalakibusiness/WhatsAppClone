@@ -60,9 +60,13 @@ class DashboardViewModel(
                                 is Response.Success<List<Profile>, Error> -> {
                                     val contacts = contactResult.data
                                     _chatsScreenConversationRow.update {
-                                        conversations.data?.map { conversation ->
-                                            val contactProfile = contacts.find { it.email == conversation.contact2 }
-                                            Pair(contactProfile ?: userManager.userProfileState.value.getOrNull(), conversation).toConversationRowObject()
+                                        conversations.data?.mapNotNull { conversation ->
+                                            if(conversation.messages.isNotEmpty()){
+                                                val contactProfile = contacts.find { it.email == conversation.contact2 }
+                                                Pair(contactProfile ?: userManager.userProfileState.value.getOrNull(), conversation).toConversationRowObject()
+                                            } else {
+                                                null
+                                            }
                                         }
                                     }
                                 }

@@ -71,7 +71,7 @@ fun MessageRow(row: ChatsScreenConversationRow, onClick: (Email) -> Unit, modifi
                 }
                 Text(
                     text = row.name.value,
-                    style = MaterialTheme.typography.bodyLarge
+                    style = MaterialTheme.typography.bodyMedium
                 )
                 Spacer(Modifier.weight(1f))
                 Text(
@@ -83,7 +83,7 @@ fun MessageRow(row: ChatsScreenConversationRow, onClick: (Email) -> Unit, modifi
 
             Row {
                 Text(
-                    text = row.lastMessage.value,
+                    text = row.lastMessage?.value ?: "",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier.widthIn(max = 200.dp)

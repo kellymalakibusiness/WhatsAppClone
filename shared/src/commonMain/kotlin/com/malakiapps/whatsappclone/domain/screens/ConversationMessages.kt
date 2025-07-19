@@ -32,9 +32,12 @@ enum class MessageType {
 }
 
 fun Message.getMessageType(target: Email?): MessageType {
+    if (sender == receiver || receiver == target){
+        return MessageType.SENT
+    }
     return if(target == sender){
         MessageType.RECEIVED
     } else {
-        MessageType.SENT
+        MessageType.None
     }
 }

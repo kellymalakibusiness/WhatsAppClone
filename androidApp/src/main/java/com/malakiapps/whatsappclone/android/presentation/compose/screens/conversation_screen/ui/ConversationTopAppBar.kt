@@ -2,8 +2,11 @@ package com.malakiapps.whatsappclone.android.presentation.compose.screens.conver
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -21,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
@@ -63,9 +67,6 @@ fun ConversationTopAppBar(profile: Profile?, selectedMessages: Int?, onNavigateB
                 } ?: run {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.clickable {
-                            onProfileClick()
-                        }
                         //horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         profile?.image?.let {
@@ -87,12 +88,21 @@ fun ConversationTopAppBar(profile: Profile?, selectedMessages: Int?, onNavigateB
                             )
                         }
 
-                        Text(
-                            text = profile?.name?.value ?: "",
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontSize = 20.sp
-                        )
-                        Spacer(modifier = Modifier.weight(1f))
+                        Box(
+                            contentAlignment = Alignment.CenterStart,
+                            modifier = Modifier
+                                .clickable {
+                                    onProfileClick()
+                                }
+                                .weight(1f)
+                                .height(46.dp)
+                        ){
+                            Text(
+                                text = profile?.name?.value ?: "",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontSize = 20.sp,
+                            )
+                        }
                         TopAppBarButton(
                             icon = R.drawable.add_call,
                             onClick = { }

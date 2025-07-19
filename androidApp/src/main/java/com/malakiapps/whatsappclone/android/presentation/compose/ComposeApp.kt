@@ -63,6 +63,7 @@ import com.malakiapps.whatsappclone.domain.common.NavigationEvent
 import com.malakiapps.whatsappclone.domain.common.OnError
 import com.malakiapps.whatsappclone.domain.common.PlayMessageTone
 import com.malakiapps.whatsappclone.domain.common.UpdatingEvent
+import com.malakiapps.whatsappclone.domain.screens.MessageCard
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Image
 import com.malakiapps.whatsappclone.domain.user.Name
@@ -79,6 +80,7 @@ import kotlinx.coroutines.flow.merge
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
+import org.koin.core.parameter.parametersOf
 
 @OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
@@ -259,14 +261,13 @@ fun ComposeApp(
                     }
                 )
             ) { backStackEntry ->
-                val conversationViewModel = koinViewModel<ConversationViewModel>()
+                val email = Email(requireNotNull(backStackEntry.toRoute<ConversationScreenRoute>()).email)
+                val conversationViewModel = koinViewModel<ConversationViewModel>{ parametersOf(email) }
 
-                val messages by conversationViewModel.conversation.collectAsState()
+                val messages: List<MessageCard>? by conversationViewModel.conversation.collectAsState()
                 val target by conversationViewModel.targetContact.collectAsState()
 
                 LaunchedEffect(true) {
-                    val email = Email(requireNotNull(backStackEntry.toRoute<ConversationScreenRoute>()).email)
-                    conversationViewModel.setTargetEmail(email)
                     conversationViewModel.eventsChannelFlow.collect {
                         viewModelEvents.send(it)
                     }

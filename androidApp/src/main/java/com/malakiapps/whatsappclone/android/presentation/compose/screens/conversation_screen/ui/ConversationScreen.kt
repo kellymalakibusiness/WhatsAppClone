@@ -77,7 +77,8 @@ fun ConversationScreen(target: Profile?, messages: List<MessageCard>?, onBackPre
                     modifier = Modifier
                         .matchParentSize()
                         .padding(vertical = 8.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    reverseLayout = true
                 ) {
 
                     //Messages go here
@@ -147,7 +148,7 @@ private fun ConversationScreenPrev() {
                     previousMessageType = MessageType.SENT,
                     time = TimeValue("12:47"),
                     sendStatus = SendStatus.TWO_TICKS_READ,
-                    isStartOfReply = true
+                    isStartOfReply = false
                 ),
                 ConversationMessage(
                     messageId = MessageId(""),
@@ -156,7 +157,7 @@ private fun ConversationScreenPrev() {
                     previousMessageType = MessageType.RECEIVED,
                     time = TimeValue("12:47"),
                     sendStatus = SendStatus.TWO_TICKS_READ,
-                    isStartOfReply = false
+                    isStartOfReply = true
                 ),
                 ConversationMessage(
                     messageId = MessageId(""),

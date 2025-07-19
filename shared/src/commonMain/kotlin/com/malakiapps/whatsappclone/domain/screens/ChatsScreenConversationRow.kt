@@ -16,7 +16,7 @@ data class ChatsScreenConversationRow(
     val email: Email,
     val image: Image?,
     val name: Name,
-    val lastMessage: MessageValue,
+    val lastMessage: MessageValue?,
     val newMessagesCount: Int?,
     val time: TimeValue
 )
@@ -27,7 +27,7 @@ fun Pair<Profile?, ConversationWithMessageContext>.toConversationRowObject(): Ch
         email = first?.email ?: ANONYMOUS_EMAIL,
         image = first?.image,
         name = first?.name ?: Name("Invalid User"),
-        lastMessage = second.messages.first().value,
+        lastMessage = second.messages.firstOrNull()?.value,
         newMessagesCount = if(second.noOfUnreadMessages > 0) second.noOfUnreadMessages else null,
         time = second.time.getTimeValue(today = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date)
     )

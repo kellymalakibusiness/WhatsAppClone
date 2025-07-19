@@ -16,6 +16,7 @@ import com.malakiapps.whatsappclone.domain.messages.DeleteMessageForBoth
 import com.malakiapps.whatsappclone.domain.messages.Message
 import com.malakiapps.whatsappclone.domain.messages.MessageId
 import com.malakiapps.whatsappclone.domain.messages.ReactToMessage
+import com.malakiapps.whatsappclone.domain.messages.SendStatus
 import com.malakiapps.whatsappclone.domain.messages.UpdateMessage
 import com.malakiapps.whatsappclone.domain.user.ANONYMOUS_EMAIL
 import com.malakiapps.whatsappclone.domain.user.Email
@@ -53,7 +54,7 @@ class AnonymousLocalUserMessageRepository(
     }
 
     override suspend fun sendMessage(message: Message): Response<Message, SendMessagesError> {
-        messageDao.sendMessage(message = message.toMessageEntity())
+        messageDao.sendMessage(message = message.toMessageEntity().copy(sendStatus = SendStatus.TWO_TICKS_READ.name))
 
         return Response.Success(message)
     }

@@ -150,6 +150,7 @@ class MessagesManager(
                 .collect { newChange ->
                     newChange.getOrNull()?.let { conversationUpdates ->
                         _conversations.value.getOrNull()?.let { currentConversationList ->
+                            println("SERDADU: We got an update of messages. Size: ${conversationUpdates.messages.size}")
                             val currentConversation =
                                 currentConversationList
                                     .find { it.contact2 == target }

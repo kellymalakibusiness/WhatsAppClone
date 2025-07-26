@@ -24,7 +24,6 @@ class GetConversationUseCase(
 
             val conversation = anonymousUserMessageRepository.getConversation(owner = ANONYMOUS_EMAIL)
             conversation.map { response ->
-                //if (response.getOrNull().)
                 when(response){
                     is Response.Failure<RawConversation, GetMessagesError> -> Response.Failure(response.error)
                     is Response.Success<RawConversation, GetMessagesError> -> {

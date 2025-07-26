@@ -28,6 +28,7 @@ import com.malakiapps.whatsappclone.domain.common.SendMessagesError
 import com.malakiapps.whatsappclone.domain.common.UnknownError
 import com.malakiapps.whatsappclone.domain.common.UpdateMessageError
 import com.malakiapps.whatsappclone.domain.common.getOrNull
+import com.malakiapps.whatsappclone.domain.common.loggerTag1
 import com.malakiapps.whatsappclone.domain.messages.ChangeMessageBody
 import com.malakiapps.whatsappclone.domain.messages.ConversationBrief
 import com.malakiapps.whatsappclone.domain.messages.DeleteMessageForBoth
@@ -147,6 +148,7 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
                             when(val brief = briefDocuments.toConversationBrief()){
                                 is Response.Failure<ConversationBrief, GetMessagesError> -> {
                                     trySend(Response.Failure(brief.error))
+                                    loggerTag1.i { "We got an error of ${brief.error}" }
                                     null
                                 }
                                 is Response.Success<ConversationBrief, GetMessagesError> -> {
@@ -164,6 +166,7 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
                                 Pair(changeType, document)
                             }
                         }*/
+                        loggerTag1.i { "Got briefs from firestore $briefs" }
                         trySend(Response.Success(briefs))
                     }
                 }
@@ -187,8 +190,8 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
             val receiverBriefReference = firestore.getConversationBriefReference(owner = message.receiver, target = message.sender)
 
             val messageMap = message.toMessageHashMap(id = MessageId(senderReference.id))
-            val senderBriefUpdate = generateBriefUpdateForSendMessage(senderEmail = message.sender, messageId = message.messageId, messageValue = message.value, status = SendStatus.TWO_TICKS_READ)
-            val receiverBriefUpdate = generateBriefUpdateForSendMessage(senderEmail = message.sender, messageId = message.messageId, messageValue = message.value, status = SendStatus.ONE_TICK)
+            val senderBriefUpdate = generateBriefUpdateForSendMessage(senderEmail = message.sender, messageId = MessageId(senderReference.id), messageValue = message.value, status = SendStatus.TWO_TICKS_READ)
+            val receiverBriefUpdate = generateBriefUpdateForSendMessage(senderEmail = message.sender, messageId = MessageId(senderReference.id), messageValue = message.value, status = SendStatus.ONE_TICK)
             try {
                 firestore.runBatch { batch ->
                     batch.set(senderReference, messageMap)
@@ -207,7 +210,7 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
             val messageMap = message.toMessageHashMap(id = MessageId(selfReference.id))
 
             val senderBriefReference = firestore.getConversationBriefReference(owner = message.sender, target = message.receiver)
-            val senderBriefUpdate = generateBriefUpdateForSendMessage(senderEmail = message.sender, messageId = message.messageId, messageValue = message.value, status = SendStatus.TWO_TICKS_READ)
+            val senderBriefUpdate = generateBriefUpdateForSendMessage(senderEmail = message.sender, messageValue = message.value, status = SendStatus.TWO_TICKS_READ, messageId = MessageId(selfReference.id))
 
             try {
                 firestore.runBatch { batch ->
@@ -378,7 +381,7 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
 
     private fun generateBriefUpdateForSendMessage(senderEmail: Email, messageId: MessageId, messageValue: MessageValue, status: SendStatus): Map<String, Any> {
         return hashMapOf(
-            ConversationBriefAttributeKeys.NEW_MESSAGE_COUNT.value to FieldValue.increment(1L),
+            ConversationBriefAttributeKeys.NEW_MESSAGE_COUNT.value to if(status == SendStatus.TWO_TICKS_READ){ 0L } else { FieldValue.increment(1L) },
             ConversationBriefAttributeKeys.MESSAGE_ID.value to messageId.value,
             ConversationBriefAttributeKeys.SENDER_EMAIL.value to senderEmail.value,
             ConversationBriefAttributeKeys.MESSAGE_VALUE.value to messageValue.value,

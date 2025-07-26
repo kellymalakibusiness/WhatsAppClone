@@ -4,6 +4,7 @@ import com.malakiapps.whatsappclone.domain.common.GetMessagesError
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.getOrNull
 import com.malakiapps.whatsappclone.domain.common.getTodayLocalDateTime
+import com.malakiapps.whatsappclone.domain.common.loggerTag1
 import com.malakiapps.whatsappclone.domain.messages.ConversationBrief
 import com.malakiapps.whatsappclone.domain.messages.Message
 import com.malakiapps.whatsappclone.domain.messages.MessageAttributes
@@ -73,6 +74,7 @@ class MessagesManager(
         scope.launch {
             getAuthenticationContext()?.let { authenticationContext ->
             getConversationUseCase.listenToBriefChanges(authenticationContext = authenticationContext).collect { newValue ->
+                loggerTag1.i { "Listen to brief changes just emitted $newValue" }
                 _conversationBriefs.update {
                     newValue
                 }

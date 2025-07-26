@@ -13,8 +13,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.R
+import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.calls_screen.CallRow
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.calls_screen.CallType
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.calls_screen.CallsScreen
@@ -25,6 +25,7 @@ import com.malakiapps.whatsappclone.android.presentation.compose.screens.communi
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.dashboard.DashboardScreenType.Companion.indexToDashboardScreenType
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.updates_screen.UpdatesScreen
 import com.malakiapps.whatsappclone.domain.messages.MessageValue
+import com.malakiapps.whatsappclone.domain.messages.SendStatus
 import com.malakiapps.whatsappclone.domain.screens.ChatsScreenConversationRow
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Name
@@ -175,7 +176,9 @@ private fun DashBoardScreenPrev() {
                     lastMessage = MessageValue("Bello"),
                     newMessagesCount = 1,
                     time = TimeValue("Yesterday"),
-                    email = Email("")
+                    email = Email(""),
+                    isMyMessage = true,
+                    sendStatus = SendStatus.TWO_TICKS_READ
                 )
             ),
             UserType.ANONYMOUS,{}, {}, {}, {})

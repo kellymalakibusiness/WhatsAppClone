@@ -1,41 +1,30 @@
 package com.malakiapps.whatsappclone.domain.screens
 
-import com.malakiapps.whatsappclone.domain.messages.ConversationWithMessageContext
 import com.malakiapps.whatsappclone.domain.messages.MessageValue
-import com.malakiapps.whatsappclone.domain.user.ANONYMOUS_EMAIL
+import com.malakiapps.whatsappclone.domain.messages.SendStatus
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Image
 import com.malakiapps.whatsappclone.domain.user.Name
-import com.malakiapps.whatsappclone.domain.user.Profile
 import com.malakiapps.whatsappclone.domain.user.TimeValue
-import kotlinx.datetime.*
+import com.malakiapps.whatsappclone.domain.user.TimeValue.Companion.toParsedTimeValue
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalDateTime
-import kotlin.time.ExperimentalTime
+import kotlinx.datetime.number
 
 data class ChatsScreenConversationRow(
     val email: Email,
     val image: Image?,
     val name: Name,
     val lastMessage: MessageValue?,
-    val newMessagesCount: Int?,
+    val newMessagesCount: Int,
+    val isMyMessage: Boolean,
+    val sendStatus: SendStatus,
     val time: TimeValue
 )
 
-@OptIn(ExperimentalTime::class)
-fun Pair<Profile?, ConversationWithMessageContext>.toConversationRowObject(): ChatsScreenConversationRow {
-    return ChatsScreenConversationRow(
-        email = first?.email ?: ANONYMOUS_EMAIL,
-        image = first?.image,
-        name = first?.name ?: Name("Invalid User"),
-        lastMessage = second.messages.firstOrNull()?.value,
-        newMessagesCount = if(second.noOfUnreadMessages > 0) second.noOfUnreadMessages else null,
-        time = second.time.getTimeValue(today = kotlin.time.Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date)
-    )
-}
-
 fun LocalDateTime.getTimeValue(today: LocalDate): TimeValue {
     return if(isToday(todayDate = today)){
-        TimeValue("${time.hour}:${time.minute}")
+        time.toParsedTimeValue()
     } else if(isYesterday(todayDate = today)){
         TimeValue("Yesterday")
     } else if(isThisWeek(todayDate = today)){

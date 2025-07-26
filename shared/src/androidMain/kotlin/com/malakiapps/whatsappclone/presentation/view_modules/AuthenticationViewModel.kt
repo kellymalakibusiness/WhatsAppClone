@@ -6,8 +6,10 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.GetCredentialResponse
+import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import co.touchlab.kermit.Logger
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
@@ -21,16 +23,15 @@ import com.malakiapps.whatsappclone.domain.common.AuthenticationError
 import com.malakiapps.whatsappclone.domain.common.AuthenticationException
 import com.malakiapps.whatsappclone.domain.common.AuthenticationUserNotFound
 import com.malakiapps.whatsappclone.domain.common.Error
-import com.malakiapps.whatsappclone.domain.common.Event
 import com.malakiapps.whatsappclone.domain.common.GoBackToDashboard
 import com.malakiapps.whatsappclone.domain.common.LoadingEvent
-import com.malakiapps.whatsappclone.domain.common.NavigateToLogin
 import com.malakiapps.whatsappclone.domain.common.NavigateToProfileInfo
 import com.malakiapps.whatsappclone.domain.common.OnError
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.UserAccountAlreadyExistException
 import com.malakiapps.whatsappclone.domain.common.handleOnFailureResponse
-import com.malakiapps.whatsappclone.domain.common.onEachSuspending
+import com.malakiapps.whatsappclone.domain.common.loggerTag1
+import com.malakiapps.whatsappclone.domain.managers.EventsManager
 import com.malakiapps.whatsappclone.domain.managers.UserManager
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
 import com.malakiapps.whatsappclone.domain.user.Email
@@ -39,24 +40,24 @@ import com.malakiapps.whatsappclone.domain.user.SignInResponse
 import com.malakiapps.whatsappclone.domain.user.UserType
 import com.malakiapps.whatsappclone.domain.user.getOrNull
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.cancellation.CancellationException
 
 class AuthenticationViewModel(
-    private val userManager: UserManager
+    private val userManager: UserManager,
+    private val eventsManager: EventsManager
 ): ViewModel() {
     private val firebaseAuth = Firebase.auth
-    private val _eventChannel = Channel<Event>()
-    val eventsChannelFlow = _eventChannel.receiveAsFlow()
 
     fun signInWithGoogle(context: Context) {
         viewModelScope.launch {
             signIn(
                 signInCall = {
+                    //Response.Success(data = SignInResponse(authenticationContext = AuthenticationContext(name = Name("Kelly"), email = Email("kellygang6023@gmail.com"), type = UserType.REAL), initialBase64ProfileImage = null))
                     try {
                         val credentialResponse = buildSignInCredentialManager(context)
                         credentialResponse.handleSignIn()
@@ -67,6 +68,12 @@ class AuthenticationViewModel(
                         if (e is CancellationException) {
                             throw e
                         }
+                        //Allow user to cancel too
+                        if(e is GetCredentialCancellationException){
+                            eventsManager.sendEvent(LoadingEvent(false))
+                            cancel(CancellationException("User cancelled the flow"))
+                            ensureActive()
+                        }
                         Response.Failure(AuthenticationException(e.message ?: "Unknown error"))
                     }
                 }
@@ -76,25 +83,25 @@ class AuthenticationViewModel(
 
     fun fromAnonymousToLinkWithGoogle(context: Context){
         viewModelScope.launch {
-            _eventChannel.send(LoadingEvent(true))
+            eventsManager.sendEvent(LoadingEvent(true))
             val credentialResponse = buildSignInCredentialManager(context)
             val response = credentialResponse.handleUpgradeToGoogleFromAnonymous()
 
             //React to the result from use case
-            response.onEachSuspending(
-                success = {
-                    //Do our migration of the account
-                    userManager.updateUserFromAnonymousAccount(it)
-                    //Go back to the dashboard
-                    _eventChannel.send(GoBackToDashboard)
-                },
-                failure = { error ->
-                    _eventChannel.send(
-                        OnError(error)
+            when(response){
+                is Response.Failure<SignInResponse, AuthenticationError> -> {
+                    eventsManager.sendEvent(
+                        OnError(from = this@AuthenticationViewModel::class, error = response.error)
                     )
                 }
-            )
-            _eventChannel.send(LoadingEvent(false))
+                is Response.Success<SignInResponse, AuthenticationError> -> {
+                    //Do our migration of the account
+                    userManager.updateUserFromAnonymousAccount(response.data)
+                    //Go back to the dashboard
+                    eventsManager.sendEvent(GoBackToDashboard)
+                }
+            }
+            eventsManager.sendEvent(LoadingEvent(false))
         }
     }
 
@@ -124,9 +131,8 @@ class AuthenticationViewModel(
 
     fun logOut(context: Context){
         viewModelScope.launch {
-            _eventChannel.send(LoadingEvent(true))
+            eventsManager.sendEvent(LoadingEvent(true))
             signOut(context)
-            _eventChannel.send(NavigateToLogin)
         }
     }
 
@@ -137,34 +143,36 @@ class AuthenticationViewModel(
         )
         if(userManager.userDetailsState.value.getOrNull()?.type == UserType.ANONYMOUS){
             //No point of logging out of anonymous account. No longer needed
+            loggerTag1.i { "Deleting firebase auth account" }
             firebaseAuth.currentUser?.delete()
         } else {
+            loggerTag1.i { "Firebase sign out" }
             firebaseAuth.signOut()
         }
     }
 
     private suspend fun signIn(signInCall: suspend () -> Response<SignInResponse, Error>) {
-        _eventChannel.send(LoadingEvent(true))
+        eventsManager.sendEvent(LoadingEvent(true))
 
         val signInResponse = signInCall()
 
-        _eventChannel.send(LoadingEvent(false))
+        eventsManager.sendEvent(LoadingEvent(false))
         //React to the result from use case
-        signInResponse.onEachSuspending(
-            success = {
-                _eventChannel.send(
-                    NavigateToProfileInfo(
-                        authenticationContext = it.authenticationContext,
-                        initialImage = it.initialBase64ProfileImage
-                    )
-                )
-            },
-            failure = { error ->
-                _eventChannel.send(
-                    OnError(error)
+        when(signInResponse){
+            is Response.Failure<SignInResponse, Error> -> {
+                eventsManager.sendEvent(
+                    OnError(from = this@AuthenticationViewModel::class, error = signInResponse.error)
                 )
             }
-        )
+            is Response.Success<SignInResponse, Error> -> {
+                eventsManager.sendEvent(
+                    NavigateToProfileInfo(
+                        authenticationContext = signInResponse.data.authenticationContext,
+                        initialImage = signInResponse.data.initialBase64ProfileImage
+                    )
+                )
+            }
+        }
     }
 
     private suspend fun buildSignInCredentialManager(context: Context): GetCredentialResponse {
@@ -192,7 +200,6 @@ class AuthenticationViewModel(
 
                 val authCredential = GoogleAuthProvider.getCredential(tokenCredential.idToken, null)
                 val authResult = firebaseAuth.signInWithCredential(authCredential).await()
-
                 return authResult.user?.let { currentUser ->
                     val authenticationContext = AuthenticationContext(
                         name = Name(currentUser.displayName ?: ""),
@@ -208,6 +215,7 @@ class AuthenticationViewModel(
                     )
                 } ?: Response.Failure(AuthenticationUserNotFound)
             } catch (e: GoogleIdTokenParsingException) {
+                Logger.i { "Failed with the error $e"}
                 return Response.Failure(AuthenticationException(e.message ?: "Unknown error"))
             }
         } else {

@@ -24,45 +24,48 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import androidx.navigation.toRoute
+import com.malakiapps.whatsappclone.android.domain.utils.ScreenError
+import com.malakiapps.whatsappclone.android.domain.utils.getErrorMessageObject
 import com.malakiapps.whatsappclone.android.presentation.compose.common.ErrorDialog
 import com.malakiapps.whatsappclone.android.presentation.compose.common.LoadingDialog
 import com.malakiapps.whatsappclone.android.presentation.compose.common.UpdatingDialog
-import com.malakiapps.whatsappclone.android.domain.utils.ScreenError
-import com.malakiapps.whatsappclone.android.domain.utils.getErrorMessageObject
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.AccountSettingsScreenRoute
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.ConversationScreenRoute
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.DashboardScreenRoute
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.SelectContactScreenRoute
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.LoginUpdateProfileScreenRoute
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.ScreenDestination
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.LoginWelcomeScreenRoute
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.ProfileSettingsScreenRoute
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.ScreenDestination
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.SelectContactScreenRoute
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.SettingsProfileUpdateAboutScreenRoute
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.SettingsProfileUpdateNameScreenRoute
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.SettingsScreenRoute
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.LoginWelcomeScreenRoute
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.ui.ConversationScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.dashboard.DashboardScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.dashboard.DashboardScreenType
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.login.LoginWelcomeScreen
-import com.malakiapps.whatsappclone.android.presentation.compose.screens.new_chat_screen.SelectContactScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.login_update_contact_screen.LoginUpdateProfileScreen
+import com.malakiapps.whatsappclone.android.presentation.compose.screens.new_chat_screen.SelectContactScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.SettingsScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.UserDetailsInfo.Companion.toUserDetailsInfo
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.account_screen.AccountSettingsScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.profile_screen.SettingsProfileScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.profile_screen.about_screen.ProfileAboutScreen
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.settings_screen.profile_screen.name_screen.ProfileNameScreen
+import com.malakiapps.whatsappclone.domain.common.AfterLogOut
 import com.malakiapps.whatsappclone.domain.common.Event
 import com.malakiapps.whatsappclone.domain.common.GoBackToDashboard
 import com.malakiapps.whatsappclone.domain.common.LoadingEvent
-import com.malakiapps.whatsappclone.domain.common.LogOut
 import com.malakiapps.whatsappclone.domain.common.NavigateToDashboard
 import com.malakiapps.whatsappclone.domain.common.NavigateToLogin
 import com.malakiapps.whatsappclone.domain.common.NavigateToProfileInfo
 import com.malakiapps.whatsappclone.domain.common.NavigationEvent
 import com.malakiapps.whatsappclone.domain.common.OnError
 import com.malakiapps.whatsappclone.domain.common.PlayMessageTone
+import com.malakiapps.whatsappclone.domain.common.ShowNotification
 import com.malakiapps.whatsappclone.domain.common.UpdatingEvent
+import com.malakiapps.whatsappclone.domain.common.loggerTag1
+import com.malakiapps.whatsappclone.domain.messages.MessageNotification
 import com.malakiapps.whatsappclone.domain.screens.MessageCard
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Image
@@ -76,8 +79,7 @@ import com.malakiapps.whatsappclone.presentation.view_models.SelectContactViewMo
 import com.malakiapps.whatsappclone.presentation.view_models.UpdateUserProfileViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.merge
-import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -87,14 +89,15 @@ import org.koin.core.parameter.parametersOf
 fun ComposeApp(
     profileState: Profile?,
     userType: UserType?,
-    rootEvents: Flow<Event>,
+    events: Flow<Event>,
     convertUriToBase64Image: suspend (Uri) -> Image?,
     generateBase64Image: suspend (Uri) -> Image?,
     signInWithGoogle: () -> Unit,
     switchFromAnonymousToGoogle: () -> Unit,
     anonymousSignIn: () -> Unit,
     onLogOut: () -> Unit,
-    onPlayMessageTone: () -> Unit
+    onPlayMessageTone: () -> Unit,
+    onShowNotification: (MessageNotification) -> Unit
 ) {
     val navController = rememberNavController()
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -107,11 +110,14 @@ fun ComposeApp(
     var error: ScreenError? by rememberSaveable {
         mutableStateOf(null)
     }
-    val viewModelEvents = Channel<Event>()
+    val viewModelEventSend = Channel<Event>(Channel.UNLIMITED)
+    val eventsCollector = viewModelEventSend.consumeAsFlow()
+    
 
     LaunchedEffect(lifecycleOwner.lifecycle) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
-            merge(rootEvents, viewModelEvents.receiveAsFlow()).collect { event ->
+            events.collect { event ->
+                loggerTag1.i { "Found event $event" }
                 //Remove the loading in the case of navigating to another screen
                 if (event is NavigationEvent || event is OnError) {
                     isLoading = false
@@ -154,8 +160,11 @@ fun ComposeApp(
                         isUpdating = event.isUpdating
                     }
 
-                    is LogOut -> {
-                        onLogOut()
+                    is AfterLogOut -> {
+                        navController.navigateToOurPage(
+                            LoginWelcomeScreenRoute,
+                            removeAllBackstackScreens = true
+                        )
                     }
 
                     PlayMessageTone -> onPlayMessageTone()
@@ -165,10 +174,15 @@ fun ComposeApp(
                             inclusive = false
                         )
                     }
+
+                    is ShowNotification -> {
+                        onShowNotification(event.messageNotification)
+                    }
                 }
             }
         }
     }
+
 
     SharedTransitionLayout {
         NavHost(
@@ -176,6 +190,9 @@ fun ComposeApp(
             startDestination = DashboardScreenRoute
         ) {
             composable<LoginWelcomeScreenRoute> {
+
+                LaunchedEffect(true) {
+                }
                 LoginWelcomeScreen(
                     onContinueWithGoogleClick = {
                         signInWithGoogle()
@@ -194,12 +211,6 @@ fun ComposeApp(
 
                 val loginUpdateContactViewModel : LoginUpdateContactViewModel = koinViewModel<LoginUpdateContactViewModel>()
 
-                LaunchedEffect(true) {
-                    loginUpdateContactViewModel.eventsChannelFlow.collect {
-                        viewModelEvents.send(it)
-                    }
-                }
-
                 LoginUpdateProfileScreen(
                     profileState = profileState,
                     initialName = name,
@@ -213,12 +224,6 @@ fun ComposeApp(
 
             composable<DashboardScreenRoute> {
                 val dashboardConversationViewModel = koinViewModel<DashboardViewModel>()
-
-                LaunchedEffect(true) {
-                    dashboardConversationViewModel.eventsChannelFlow.collect {
-                        viewModelEvents.send(it)
-                    }
-                }
 
                 val conversations by dashboardConversationViewModel.chatsScreenConversationRow.collectAsState()
                 DashboardScreen(
@@ -266,12 +271,6 @@ fun ComposeApp(
 
                 val messages: List<MessageCard>? by conversationViewModel.conversation.collectAsState()
                 val target by conversationViewModel.targetContact.collectAsState()
-
-                LaunchedEffect(true) {
-                    conversationViewModel.eventsChannelFlow.collect {
-                        viewModelEvents.send(it)
-                    }
-                }
 
                 ConversationScreen(
                     messages = messages,
@@ -347,12 +346,6 @@ fun ComposeApp(
 
                 val updateUserProfileViewModel = koinViewModel<UpdateUserProfileViewModel>()
 
-                LaunchedEffect(true) {
-                    updateUserProfileViewModel.eventsChannelFlow.collect {
-                        viewModelEvents.send(it)
-                    }
-                }
-
                 SettingsProfileScreen(
                     userDetailsInfo = profileState?.toUserDetailsInfo(),
                     sharedElementModifier = sharedElementModifier,
@@ -385,12 +378,6 @@ fun ComposeApp(
                 val navBackStackEntry = remember(screenRootEntry) { navController.getBackStackEntry(ProfileSettingsScreenRoute) }
                 val updateUserProfileViewModel = koinViewModel<UpdateUserProfileViewModel>(viewModelStoreOwner = navBackStackEntry)
 
-                LaunchedEffect(true) {
-                    updateUserProfileViewModel.eventsChannelFlow.collect {
-                        viewModelEvents.send(it)
-                    }
-                }
-
                 ProfileNameScreen(
                     name = profileState?.name,
                     onSaveClick = {
@@ -413,12 +400,6 @@ fun ComposeApp(
                 val navBackStackEntry = remember(screenRootEntry) { navController.getBackStackEntry(ProfileSettingsScreenRoute) }
                 val updateUserProfileViewModel = koinViewModel<UpdateUserProfileViewModel>(viewModelStoreOwner = navBackStackEntry)
 
-                LaunchedEffect(true) {
-                    updateUserProfileViewModel.eventsChannelFlow.collect {
-                        viewModelEvents.send(it)
-                    }
-                }
-
                 ProfileAboutScreen(
                     currentValue = profileState?.about,
                     onSelect = {
@@ -440,11 +421,6 @@ fun ComposeApp(
             ) {
                 val selectContactViewModel = koinViewModel<SelectContactViewModel>()
 
-                LaunchedEffect(true) {
-                    selectContactViewModel.eventsChannelFlow.collect {
-                        viewModelEvents.send(it)
-                    }
-                }
                 val contacts by selectContactViewModel.contacts.collectAsState()
                 val searchResults by selectContactViewModel.searchResults.collectAsState()
                 val isLoading by selectContactViewModel.isLoading.collectAsState()

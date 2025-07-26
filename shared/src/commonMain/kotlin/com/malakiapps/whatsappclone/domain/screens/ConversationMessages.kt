@@ -7,9 +7,12 @@ import com.malakiapps.whatsappclone.domain.messages.SendStatus
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.TimeValue
 
-sealed interface MessageCard
+sealed interface MessageCard{
+    val key: String
+}
 
 data class ConversationMessage(
+    override val key: String = messageId.value,
     val messageId: MessageId,
     val message: MessageValue,
     val time: TimeValue,
@@ -21,6 +24,7 @@ data class ConversationMessage(
 ): MessageCard
 
 data class TimeCard(
+    override val key: String = time.value,
     val time: TimeValue
 ): MessageCard
 

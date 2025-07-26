@@ -33,7 +33,7 @@ class InitializeUserUseCase(
         }
 
         when (user) {
-            is Response.Failure<*, Error> -> {
+            is Response.Failure<Profile, Error> -> {
                 return Response.Failure(user.error)
             }
 
@@ -60,6 +60,7 @@ class InitializeUserUseCase(
                 email = availableEmail,
                 authenticationContext = authenticationContext
             )
+
         } ?: run {
             anonymousUserAccountRepository.createAccount(
                 email = ANONYMOUS_EMAIL,

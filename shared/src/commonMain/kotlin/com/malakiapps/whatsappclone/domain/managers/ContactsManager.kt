@@ -5,8 +5,8 @@ import com.malakiapps.whatsappclone.domain.common.GetUserError
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.getOrNull
 import com.malakiapps.whatsappclone.domain.use_cases.GetContactsUseCase
-import com.malakiapps.whatsappclone.domain.user.Profile
 import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Profile
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -58,7 +58,6 @@ class ContactsManager(
         return Response.Success(data = foundOnStateFlow)
     }
 
-    //TODO(We also need to call this whenever we detect a contact updated their profile)
     fun updateContactsState(updates: List<Profile>){
         val updatedMap = _contacts.value.toMutableMap().apply {
             updates.forEach { eachContactUpdate ->

@@ -1,25 +1,25 @@
 package com.malakiapps.whatsappclone.android.domain
 
-import android.content.Context
 import android.media.AudioAttributes
 import android.media.AudioManager
 import android.media.SoundPool
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material3.*
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.runtime.getValue
-import org.koin.compose.koinInject
-import com.malakiapps.whatsappclone.android.presentation.compose.ComposeApp
+import androidx.compose.ui.tooling.preview.Preview
+import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.domain.utils.compressImageToBase64
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
+import com.malakiapps.whatsappclone.android.presentation.compose.ComposeApp
+import com.malakiapps.whatsappclone.domain.managers.EventsManager
 import com.malakiapps.whatsappclone.presentation.view_models.MainViewModel
 import com.malakiapps.whatsappclone.presentation.view_modules.AuthenticationViewModel
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.merge
+import kotlinx.coroutines.flow.receiveAsFlow
+import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
     private lateinit var soundPool: SoundPool
@@ -29,7 +29,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+        audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
 
         val audioAttributes = AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_GAME)
@@ -41,18 +41,19 @@ class MainActivity : ComponentActivity() {
             .setAudioAttributes(audioAttributes)
             .build()
 
-        soundId = soundPool.load(this, com.malakiapps.whatsappclone.android.R.raw.conversation_tone, 1)
+        soundId = soundPool.load(this, R.raw.conversation_tone, 1)
 
         setContent {
             FakeWhatsAppTheme {
                 //Root view models
                 val mainViewModel: MainViewModel = koinInject()
                 val authenticationViewModel: AuthenticationViewModel = koinInject()
+                val events: EventsManager = koinInject()
 
                 val userState by mainViewModel.selfProfileState.collectAsState()
                 val userDetails by mainViewModel.userDetails.collectAsState()
                 ComposeApp(
-                    rootEvents = merge(mainViewModel.eventsChannelFlow, authenticationViewModel.eventsChannelFlow),
+                    events = events.events.receiveAsFlow(),
                     profileState = userState,
                     userType = userDetails?.type,
                     convertUriToBase64Image = { imageUri ->
@@ -86,13 +87,15 @@ class MainActivity : ComponentActivity() {
                         authenticationViewModel.logOut(this)
                     },
                     onPlayMessageTone = {
-                        if(!isDeviceInSilentMode()){
+                        if (!isDeviceInSilentMode()) {
                             soundPool.setOnLoadCompleteListener { _, _, _ ->
                                 soundPool.play(soundId, 1f, 1f, 0, 0, 1f)
                             }
                         }
+                    },
+                    onShowNotification = { messageNotification ->
+                        TODO()
                     }
-
                 )
             }
         }

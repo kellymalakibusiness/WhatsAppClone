@@ -1,15 +1,12 @@
 package com.malakiapps.whatsappclone.android.presentation.compose.screens.conversation_screen.ui
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -24,9 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import coil3.compose.AsyncImage
 import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.compose.common.NoProfileImage
@@ -100,7 +95,6 @@ fun ConversationTopAppBar(profile: Profile?, selectedMessages: Int?, onNavigateB
                             Text(
                                 text = profile?.name?.value ?: "",
                                 style = MaterialTheme.typography.bodyMedium,
-                                fontSize = 20.sp,
                             )
                         }
                         TopAppBarButton(

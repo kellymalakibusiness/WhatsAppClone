@@ -1,5 +1,6 @@
 package com.malakiapps.whatsappclone.data
 
+import co.touchlab.kermit.Logger
 import com.google.android.gms.tasks.Task
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.DocumentSnapshot
@@ -16,23 +17,23 @@ import com.malakiapps.whatsappclone.domain.common.DeleteUserError
 import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.GetUserError
 import com.malakiapps.whatsappclone.domain.common.Response
+import com.malakiapps.whatsappclone.domain.common.USERS_DETAILS_COLLECTION_NAME
+import com.malakiapps.whatsappclone.domain.common.USERS_PROFILE_DOCUMENT_NAME
 import com.malakiapps.whatsappclone.domain.common.UnknownError
 import com.malakiapps.whatsappclone.domain.common.UpdateUserError
 import com.malakiapps.whatsappclone.domain.common.UpdateUserException
+import com.malakiapps.whatsappclone.domain.common.UserAttributeKeys
 import com.malakiapps.whatsappclone.domain.common.UserNotFound
 import com.malakiapps.whatsappclone.domain.common.getOrNull
-import com.malakiapps.whatsappclone.domain.common.USERS_DETAILS_COLLECTION_NAME
-import com.malakiapps.whatsappclone.domain.common.USERS_PROFILE_DOCUMENT_NAME
-import com.malakiapps.whatsappclone.domain.common.UserAttributeKeys
 import com.malakiapps.whatsappclone.domain.user.AuthenticatedUserAccountRepository
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
 import com.malakiapps.whatsappclone.domain.user.Email
-import com.malakiapps.whatsappclone.domain.user.Some
 import com.malakiapps.whatsappclone.domain.user.Profile
-import com.malakiapps.whatsappclone.domain.user.UserType
+import com.malakiapps.whatsappclone.domain.user.Some
 import com.malakiapps.whatsappclone.domain.user.UserContactUpdate
 import com.malakiapps.whatsappclone.domain.user.UserDetails
 import com.malakiapps.whatsappclone.domain.user.UserDetailsUpdate
+import com.malakiapps.whatsappclone.domain.user.UserType
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.tasks.await
@@ -181,7 +182,9 @@ class FirebaseFirestoreUserAccountRepository : AuthenticatedUserAccountRepositor
         return when (this) {
             is Response.Failure<Unit, E> -> Response.Failure(error)
             is Response.Success<Unit, E> -> {
+                Logger.i { "About to check if the profile exists" }
                 getContact(email).getOrNull()?.let { foundUser ->
+                    Logger.i { "Found the user was actually created. $foundUser" }
                     Response.Success(data = foundUser)
                 } ?: Response.Failure(UserNotFound as E)
             }
@@ -206,23 +209,23 @@ class FirebaseFirestoreUserAccountRepository : AuthenticatedUserAccountRepositor
 
 private fun AuthenticationContext.toCreateUserHashMap(actualEmail: Email): HashMap<String, Any> {
     return hashMapOf(
-        UserAttributeKeys.NAME to name.value,
-        UserAttributeKeys.EMAIL to actualEmail,
+        UserAttributeKeys.NAME.value to name.value,
+        UserAttributeKeys.EMAIL.value to actualEmail.value,
     )
 }
 
 private fun UserContactUpdate.toUserUpdateHashMap(): HashMap<String, Any> {
     val data = buildMap {
         if(name is Some){
-            put(UserAttributeKeys.NAME, name.value.value)
+            put(UserAttributeKeys.NAME.value, name.value.value)
         }
 
         if(about is Some){
-            put(UserAttributeKeys.ABOUT, about.value.value)
+            put(UserAttributeKeys.ABOUT.value, about.value.value)
         }
 
         if(image is Some && image.value?.value != null){
-            put(UserAttributeKeys.IMAGE, image.value.value)
+            put(UserAttributeKeys.IMAGE.value, image.value.value)
         }
     }
     return HashMap(data)
@@ -231,7 +234,7 @@ private fun UserContactUpdate.toUserUpdateHashMap(): HashMap<String, Any> {
 private fun Task<DocumentSnapshot>.toUserDetails(): Response<UserDetails, GetUserError> {
     return result.data.let { document ->
         val userDetails = UserDetails(
-            contacts = (document?.get(UserAttributeKeys.CONTACTS) as? List<String>)?.let { response -> response.map { Email(it) } } ?: emptyList(),
+            contacts = (document?.get(UserAttributeKeys.CONTACTS.value) as? List<String>)?.let { response -> response.map { Email(it) } } ?: emptyList(),
             type = UserType.REAL
         )
 
@@ -251,15 +254,15 @@ private fun defaultUserDetails(): Response<UserDetails, GetUserError> {
 private fun UserContactUpdate.toUpdateUserHashMap(): Map<String, String?> {
     return buildMap {
         if (name is Some) {
-            put(UserAttributeKeys.NAME, name.value.value)
+            put(UserAttributeKeys.NAME.value, name.value.value)
         }
 
         if (about is Some) {
-            put(UserAttributeKeys.ABOUT, about.value.value)
+            put(UserAttributeKeys.ABOUT.value, about.value.value)
         }
 
         if (image is Some) {
-            put(UserAttributeKeys.IMAGE, image.value?.value)
+            put(UserAttributeKeys.IMAGE.value, image.value?.value)
         }
     }
 }
@@ -267,11 +270,11 @@ private fun UserContactUpdate.toUpdateUserHashMap(): Map<String, String?> {
 private fun UserDetailsUpdate.toUpdateUserDetailsHashMap(): Map<String, Any?> {
     return buildMap {
         if (addContact is Some) {
-            put(UserAttributeKeys.CONTACTS, FieldValue.arrayUnion(addContact.value.value))
+            put(UserAttributeKeys.CONTACTS.value, FieldValue.arrayUnion(addContact.value.value))
         }
 
         if (removeContact is Some) {
-            put(UserAttributeKeys.CONTACTS, FieldValue.arrayRemove(removeContact.value.value))
+            put(UserAttributeKeys.CONTACTS.value, FieldValue.arrayRemove(removeContact.value.value))
         }
     }
 }

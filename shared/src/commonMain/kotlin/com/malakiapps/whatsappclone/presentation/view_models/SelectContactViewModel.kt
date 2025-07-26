@@ -2,43 +2,37 @@ package com.malakiapps.whatsappclone.presentation.view_models
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.malakiapps.whatsappclone.domain.common.Event
+import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.OnError
 import com.malakiapps.whatsappclone.domain.common.Response
+import com.malakiapps.whatsappclone.domain.common.getOrNull
 import com.malakiapps.whatsappclone.domain.managers.ContactsManager
+import com.malakiapps.whatsappclone.domain.managers.EventsManager
 import com.malakiapps.whatsappclone.domain.managers.UserManager
 import com.malakiapps.whatsappclone.domain.user.About
-import com.malakiapps.whatsappclone.domain.user.Profile
-import com.malakiapps.whatsappclone.domain.user.Name
-import com.malakiapps.whatsappclone.domain.user.getOrNull
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlin.collections.emptyList
-import com.malakiapps.whatsappclone.domain.common.Error
-import com.malakiapps.whatsappclone.domain.common.getOrNull
 import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Name
+import com.malakiapps.whatsappclone.domain.user.Profile
 import com.malakiapps.whatsappclone.domain.user.ProfileType
 import com.malakiapps.whatsappclone.domain.user.SearchProfileResult
 import com.malakiapps.whatsappclone.domain.user.Some
 import com.malakiapps.whatsappclone.domain.user.UserDetails
 import com.malakiapps.whatsappclone.domain.user.UserState
 import com.malakiapps.whatsappclone.domain.user.UserType
+import com.malakiapps.whatsappclone.domain.user.getOrNull
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class SelectContactViewModel(
+    private val eventsManager: EventsManager,
     val userManager: UserManager,
     val contactsManager: ContactsManager
 ) : ViewModel() {
-    private val _eventChannel = Channel<Event>()
-    val eventsChannelFlow = _eventChannel.receiveAsFlow()
-
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading
 
@@ -92,8 +86,8 @@ class SelectContactViewModel(
                 val contactsResults = contactsManager.getFriendsContacts(friendsEmails)
                 when (contactsResults) {
                     is Response.Failure<List<Profile>, Error> -> {
-                        _eventChannel.send(
-                            OnError(contactsResults.error)
+                        eventsManager.sendEvent(
+                            OnError(from = this@SelectContactViewModel::class, error = contactsResults.error)
                         )
                         null
                     }

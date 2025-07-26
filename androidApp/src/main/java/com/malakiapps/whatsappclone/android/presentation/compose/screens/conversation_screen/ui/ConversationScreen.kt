@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
@@ -16,7 +17,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
@@ -67,7 +67,7 @@ fun ConversationScreen(target: Profile?, messages: List<MessageCard>?, onBackPre
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onPrimaryContainer)
             )
 
-            Box(
+            Column(
                 modifier = Modifier
                     .matchParentSize()
                     .padding(paddingValues)
@@ -75,7 +75,7 @@ fun ConversationScreen(target: Profile?, messages: List<MessageCard>?, onBackPre
             ){
                 LazyColumn(
                     modifier = Modifier
-                        .matchParentSize()
+                        .weight(1f)
                         .padding(vertical = 8.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     reverseLayout = true
@@ -83,7 +83,7 @@ fun ConversationScreen(target: Profile?, messages: List<MessageCard>?, onBackPre
 
                     //Messages go here
                     messages?.let { availableMessages ->
-                        items(items = availableMessages) { card ->
+                        items(items = availableMessages, key = { it.key }) { card ->
                             when(card){
                                 is ConversationMessage -> {
                                     if(card.messageType == MessageType.RECEIVED){
@@ -119,7 +119,6 @@ fun ConversationScreen(target: Profile?, messages: List<MessageCard>?, onBackPre
                     },
                     modifier = Modifier
                         .padding(4.dp)
-                        .align(Alignment.BottomCenter)
                 )
             }
         }

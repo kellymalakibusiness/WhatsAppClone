@@ -8,34 +8,36 @@ const val MESSAGES_COLLECTION_NAME = "messages"
 
 const val CONVERSATION_COLLECTION_NAME = "conversation"
 
-data object UserAttributeKeys {
-    const val NAME = "name"
-    const val EMAIL = "email"
-    const val ABOUT = "about"
-    const val CONTACTS = "contacts"
-    const val IMAGE = "image"
+const val CHANGES_BRIEF_COLLECTION_NAME = "changes-brief"
+
+enum class UserAttributeKeys(val value: String) {
+    NAME("name"),
+    EMAIL("email"),
+    ABOUT("about"),
+    CONTACTS("contacts"),
+    IMAGE("image")
 }
 
-data object MessageAttributeKeys {
-    const val MESSAGE_ID = "messageId"
+enum class MessageAttributeKeys(val value: String) {
+    MESSAGE_ID("messageId"),
+    SENDER("sender"),
+    RECEIVER("receiver"),
+    TIME("time"),
+    VALUE("value"),
+    MESSAGE_ATTRIBUTES("attributes"),
+    VIEW_STATUS("view_status"),
+    IS_UPDATED("is_updated"),
+    IS_DELETED("is_deleted"),
+    SENDER_REACTION("sender_reaction"),
+    RECEIVER_REACTION("receiver_reaction")
+}
 
-    const val SENDER = "sender"
 
-    const val RECEIVER = "receiver"
-
-    const val TIME = "time"
-
-    const val VALUE = "value"
-
-    const val MESSAGE_ATTRIBUTES = "attributes"
-
-    const val VIEW_STATUS = "view_status"
-
-    const val IS_UPDATED = "is_updated"
-
-    const val IS_DELETED = "is_deleted"
-
-    const val SENDER_REACTION = "sender_reaction"
-
-    const val RECEIVER_REACTION = "receiver_reaction"
+enum class ConversationBriefAttributeKeys(val value: String) {
+    NEW_MESSAGE_COUNT("new_message_count"),
+    MESSAGE_ID("message_id"),
+    SENDER_EMAIL("sender_email"),
+    MESSAGE_VALUE("message_value"),
+    TIME("time"),
+    VIEW_STATUS("view_status")
 }

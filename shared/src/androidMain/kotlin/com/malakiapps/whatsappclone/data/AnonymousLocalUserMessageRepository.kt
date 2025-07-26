@@ -11,10 +11,10 @@ import com.malakiapps.whatsappclone.domain.common.SendMessagesError
 import com.malakiapps.whatsappclone.domain.common.UpdateMessageError
 import com.malakiapps.whatsappclone.domain.messages.AnonymousUserMessageRepository
 import com.malakiapps.whatsappclone.domain.messages.ChangeMessageBody
-import com.malakiapps.whatsappclone.domain.messages.RawConversation
 import com.malakiapps.whatsappclone.domain.messages.DeleteMessageForBoth
 import com.malakiapps.whatsappclone.domain.messages.Message
 import com.malakiapps.whatsappclone.domain.messages.MessageId
+import com.malakiapps.whatsappclone.domain.messages.RawConversation
 import com.malakiapps.whatsappclone.domain.messages.ReactToMessage
 import com.malakiapps.whatsappclone.domain.messages.SendStatus
 import com.malakiapps.whatsappclone.domain.messages.UpdateMessage
@@ -26,8 +26,8 @@ import kotlinx.coroutines.flow.map
 class AnonymousLocalUserMessageRepository(
     private val messageDao: MessageDao
 ): AnonymousUserMessageRepository {
-    override fun getConversation(owner: Email): Flow<Response<RawConversation, GetMessagesError>> {
-        return messageDao.getConversation().map { messages ->
+    override fun getConversation(owner: Email, limit: Int): Flow<Response<RawConversation, GetMessagesError>> {
+        return messageDao.getConversation(limit = limit.toLong()).map { messages ->
             val messages = messages.map { it.toMessage() }
 
             Response.Success(
@@ -40,8 +40,8 @@ class AnonymousLocalUserMessageRepository(
         }
     }
 
-    override suspend fun getPaginatedConversation(owner: Email, paginate: Paginate): Response<RawConversation, GetMessagesError>{
-        return messageDao.getMessagesFrom(lastMessageId = paginate.fromFieldValue.toString().toInt()).let { messageEntities ->
+    override suspend fun getPaginatedConversation(owner: Email, paginate: Paginate, limit: Int): Response<RawConversation, GetMessagesError>{
+        return messageDao.getMessagesFrom(lastMessageId = paginate.fromFieldValue.toString().toInt(), limit = limit.toLong()).let { messageEntities ->
             val messages = messageEntities.map { it.toMessage() }
             Response.Success(
                 RawConversation(

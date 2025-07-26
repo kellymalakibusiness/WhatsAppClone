@@ -18,6 +18,7 @@ import com.malakiapps.whatsappclone.domain.contacts.ContactsRepository
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Profile
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -57,6 +58,7 @@ class FirebaseFirestoreContactsRepository : ContactsRepository {
                     trySend(Response.Failure(UserNotFound))
                 }
             }
+            awaitClose()
         }
     }
 }

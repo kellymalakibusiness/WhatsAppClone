@@ -4,21 +4,20 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.malakiapps.whatsappclone.data.MESSAGE_LIMIT
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface MessageDao {
-    @Query("SELECT * FROM MessageEntity ORDER BY time DESC LIMIT $MESSAGE_LIMIT")
-    fun getConversation(): Flow<List<MessageEntity>>
+    @Query("SELECT * FROM MessageEntity ORDER BY time DESC LIMIT :limit")
+    fun getConversation(limit: Long): Flow<List<MessageEntity>>
 
     @Query("""
         SELECT * FROM MessageEntity 
         WHERE messageId < :lastMessageId
         ORDER BY time DESC
-        LIMIT $MESSAGE_LIMIT
+        LIMIT :limit
     """)
-    suspend fun getMessagesFrom(lastMessageId: Int): List<MessageEntity>
+    suspend fun getMessagesFrom(lastMessageId: Int, limit: Long): List<MessageEntity>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun sendMessage(message: MessageEntity)

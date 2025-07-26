@@ -72,7 +72,10 @@ fun Module.androidModules(appBuildMode: AppBuildMode){
             userManager = get(),
             messagesManager = get(),
             contactsManager = get(),
-            targetEmail = userEmail
+            targetEmail = userEmail,
+            authenticationContextManager = get(),
+            getConversationUseCase = get(),
+            eventsManager = get()
         )
     }
 }

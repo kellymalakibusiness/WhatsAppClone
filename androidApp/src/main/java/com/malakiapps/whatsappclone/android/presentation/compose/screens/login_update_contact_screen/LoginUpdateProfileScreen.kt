@@ -42,8 +42,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.R
+import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.presentation.compose.common.NoProfileImage
 import com.malakiapps.whatsappclone.android.presentation.compose.common.base64ToUri
 import com.malakiapps.whatsappclone.domain.user.Image
@@ -74,7 +74,6 @@ fun LoginUpdateProfileScreen(
     )
 
     LaunchedEffect(profileState) {
-        println("MALAKA: On the screen we have $profileState")
         if(profileState?.image != null){
             selectedImage = profileState.image
         }

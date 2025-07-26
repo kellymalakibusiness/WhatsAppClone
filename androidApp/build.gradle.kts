@@ -57,11 +57,15 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
     implementation(libs.koin.androidx.compose.navigation)
+    implementation(libs.touchlab.kermit)
 
-    testImplementation(libs.junit4)
+    testImplementation(libs.junit)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.kotlinx.datetime)
 
     androidTestImplementation(libs.androidx.test.runner)
-    androidTestImplementation(libs.junit4)
+    androidTestImplementation(libs.junit)
     androidTestImplementation(libs.compose.ui.test.junit4)
 
     debugImplementation(libs.compose.ui.tooling)

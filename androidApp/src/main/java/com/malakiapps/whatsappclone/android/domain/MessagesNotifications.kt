@@ -6,15 +6,15 @@ import android.content.Context
 import android.content.Intent
 import androidx.core.app.NotificationCompat
 import androidx.core.net.toUri
-import com.malakiapps.whatsappclone.domain.messages.ConversationWithMessageContext
+import com.malakiapps.whatsappclone.domain.messages.MessageNotification
 
 class MessagesNotifications(private val context: Context) {
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-    fun showNotification(conversation: ConversationWithMessageContext){
+    fun showNotification(messageNotification: MessageNotification){
         val intent = Intent(
             Intent.ACTION_VIEW,
-            "fakeWhatsapp://conversation/${conversation.contact2.value}".toUri(),
+            "fakeWhatsapp://conversation/${messageNotification.senderEmail.value}".toUri(),
             context,
             MainActivity::class.java
         )
@@ -28,7 +28,10 @@ class MessagesNotifications(private val context: Context) {
             //.setContentIntent(pendingIntent)
             //.build()
 
-        //notificationManager.notify(conversation.contact2.value.hashCode(), notification)
+        /*notificationManager.notify(
+            "${messageNotification.senderEmail.value}_${messageNotification.messageId.value}".hashCode(),
+            notification
+        )*/
 
     }
 

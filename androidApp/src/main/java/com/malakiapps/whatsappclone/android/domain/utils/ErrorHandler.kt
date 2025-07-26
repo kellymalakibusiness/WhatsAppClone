@@ -3,16 +3,16 @@ package com.malakiapps.whatsappclone.android.domain.utils
 import com.malakiapps.whatsappclone.domain.common.AuthenticationException
 import com.malakiapps.whatsappclone.domain.common.AuthenticationUserNotFound
 import com.malakiapps.whatsappclone.domain.common.EmailNotFound
-import com.malakiapps.whatsappclone.domain.common.UnknownError
-import com.malakiapps.whatsappclone.domain.common.UpdateUserException
-import com.malakiapps.whatsappclone.domain.common.UserNotFound
-import com.malakiapps.whatsappclone.domain.common.UserParsingError
 import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.ForbiddenRequest
 import com.malakiapps.whatsappclone.domain.common.InvalidUpdate
 import com.malakiapps.whatsappclone.domain.common.MessageParsingError
 import com.malakiapps.whatsappclone.domain.common.UnExpectedError
+import com.malakiapps.whatsappclone.domain.common.UnknownError
+import com.malakiapps.whatsappclone.domain.common.UpdateUserException
 import com.malakiapps.whatsappclone.domain.common.UserAccountAlreadyExistException
+import com.malakiapps.whatsappclone.domain.common.UserNotFound
+import com.malakiapps.whatsappclone.domain.common.UserParsingError
 
 fun Error.getErrorMessageObject(): ScreenError {
     return when(this){

@@ -1,4 +1,4 @@
-package com.malakiapps.whatsappclone.common.di
+package com.malakiapps.whatsappclone.domain.di
 
 import org.koin.core.module.Module
 import org.koin.dsl.module

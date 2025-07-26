@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.new_chat_screen.LoadingContactRow
 import com.malakiapps.whatsappclone.domain.messages.MessageValue
+import com.malakiapps.whatsappclone.domain.messages.SendStatus
 import com.malakiapps.whatsappclone.domain.screens.ChatsScreenConversationRow
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Name
@@ -152,9 +153,11 @@ private fun ChatScreenPreview() {
                         image = null,
                         name = Name("Kelly"),
                         lastMessage = MessageValue("Bello"),
-                        newMessagesCount = 1,
+                        newMessagesCount = 0,
                         time = TimeValue("Yesterday"),
-                        email = Email("")
+                        email = Email(""),
+                        isMyMessage = true,
+                        sendStatus = SendStatus.TWO_TICKS_READ
                     )
                 ),
                 onMessageFilter = {},

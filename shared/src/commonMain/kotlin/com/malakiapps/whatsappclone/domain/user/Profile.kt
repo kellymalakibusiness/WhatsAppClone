@@ -1,5 +1,6 @@
 package com.malakiapps.whatsappclone.domain.user
 
+import kotlinx.datetime.LocalTime
 import kotlinx.serialization.Serializable
 import kotlin.jvm.JvmInline
 
@@ -21,6 +22,8 @@ value class Name(
     val value: String
 )
 
+fun Name.addLeadingYou(): Name = Name("$value (You)")
+
 @JvmInline
 @Serializable
 value class Email(
@@ -41,7 +44,14 @@ value class About(
 @JvmInline
 value class TimeValue(
     val value: String
-)
+){
+    companion object {
+        fun LocalTime.toParsedTimeValue() = TimeValue("${hour.addLeadingZero()}:${minute.addLeadingZero()}")
+        private fun Int.addLeadingZero(): String {
+            return toString().padStart(2, '0')
+        }
+    }
+}
 
 enum class ProfileType {
     OWNER,

@@ -17,15 +17,15 @@ import com.malakiapps.whatsappclone.domain.user.Profile
 fun DocumentSnapshot.toContact(): Response<Profile, GetUserError> {
     return data.let { document ->
         val profile = Profile(
-            name = (document?.get(UserAttributeKeys.NAME) as? String)?.let { Name(it) } ?: return Response.Failure(
-                UserParsingError(UserAttributeKeys.NAME)
+            name = (document?.get(UserAttributeKeys.NAME.value) as? String)?.let { Name(it) } ?: return Response.Failure(
+                UserParsingError(UserAttributeKeys.NAME.value)
             ),
-            email = (document[UserAttributeKeys.EMAIL] as? String)?.let { Email(it) } ?: return Response.Failure(
-                UserParsingError(UserAttributeKeys.EMAIL)
+            email = (document[UserAttributeKeys.EMAIL.value] as? String)?.let { Email(it) } ?: return Response.Failure(
+                UserParsingError(UserAttributeKeys.EMAIL.value)
             ),
-            about = (document[UserAttributeKeys.ABOUT] as? String
+            about = (document[UserAttributeKeys.ABOUT.value] as? String
                 ?: "Hey there! I'm using Fake WhatsApp.").let { About(it) },
-            image = (document[UserAttributeKeys.IMAGE] as? String)?.let { Image(it) }
+            image = (document[UserAttributeKeys.IMAGE.value] as? String)?.let { Image(it) }
         )
 
         Response.Success(profile)

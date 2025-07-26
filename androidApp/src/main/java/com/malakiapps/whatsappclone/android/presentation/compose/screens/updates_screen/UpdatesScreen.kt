@@ -24,11 +24,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.R
+import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.chat_screen.MessageRow
 import com.malakiapps.whatsappclone.android.presentation.compose.screens.dashboard.DashboardScreenType
 import com.malakiapps.whatsappclone.domain.messages.MessageValue
+import com.malakiapps.whatsappclone.domain.messages.SendStatus
 import com.malakiapps.whatsappclone.domain.screens.ChatsScreenConversationRow
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Name
@@ -117,7 +118,9 @@ fun UpdatesScreen(
                         name = Name("FakeWhatsApp"),
                         lastMessage = MessageValue("No support for channels yet. Maybe in the future"),
                         newMessagesCount = 1,
-                        time = TimeValue("In the future")
+                        time = TimeValue("In the future"),
+                        isMyMessage = true,
+                        sendStatus = SendStatus.TWO_TICKS,
                     )
                 ).forEach { channel ->
                     MessageRow(

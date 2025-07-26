@@ -11,20 +11,22 @@ import kotlinx.coroutines.flow.Flow
 
 actual interface MessagesRepository {
 
-    actual suspend fun getAllActiveConversations(owner: Email): Response<List<RawConversation>, GetMessagesError>
+    actual suspend fun getAllActiveConversations(owner: Email): Response<List<ConversationBrief>, GetMessagesError>
 
     actual suspend fun getConversation(
         owner: Email,
         target: Email,
+        limit: Int,
         paginate: Paginate?
     ): Response<RawConversation, GetMessagesError>
 
     actual fun listenForMessagesChanges(
         owner: Email,
-        target: Email
+        target: Email,
+        limit: Int
     ): Flow<Response<RawConversation, GetMessagesError>>
 
-    actual fun listenForNewUserMessages(owner: Email): Flow<Response<List<Pair<MessageUpdateType, Message>>, GetMessagesError>>
+    actual fun listenForNewUserMessages(owner: Email): Flow<Response<List<ConversationBrief>, GetMessagesError>>
     actual suspend fun sendMessage(message: Message): Response<Message, SendMessagesError>
     actual suspend fun updateMessage(updateMessage: UpdateMessage): Response<Unit, UpdateMessageError>
 
@@ -36,5 +38,5 @@ actual interface MessagesRepository {
         messageIds: List<MessageId>
     ): Response<Unit, DeleteMessageError>
 
-    actual suspend fun importAllUserMessages(owner: Email, rawConversation: RawConversation): Response<Unit, SendMessagesError>
+    actual suspend fun importAllUserMessages(owner: Email, rawConversation: RawConversation, conversationBrief: ConversationBrief): Response<Unit, SendMessagesError>
 }

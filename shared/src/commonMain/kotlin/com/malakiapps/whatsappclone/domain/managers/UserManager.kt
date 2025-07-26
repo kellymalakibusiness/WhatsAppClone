@@ -4,7 +4,6 @@ import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.InvalidUpdate
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.getOrNull
-import com.malakiapps.whatsappclone.domain.common.onEachSuspending
 import com.malakiapps.whatsappclone.domain.use_cases.GetUserContactUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.InitializeUserUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.MigrateToGoogleAccountUseCase
@@ -35,10 +34,9 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
-import kotlin.invoke
 
 class UserManager(
-    authenticationContextManager: AuthenticationContextManager,
+    private val authenticationContextManager: AuthenticationContextManager,
     private val getUserContactUseCase: GetUserContactUseCase,
     private val initializeUserUseCase: InitializeUserUseCase,
     private val onLoginUpdateAccountUseCase: OnLoginUpdateAccountUseCase,
@@ -48,8 +46,6 @@ class UserManager(
 ) {
     private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
-    private val _authenticationContextState = authenticationContextManager.authenticationContextState
-
     private val _selfProfileState: MutableStateFlow<UserState<Profile?>> = MutableStateFlow(StateLoading)
     val userProfileState: StateFlow<UserState<Profile?>> = _selfProfileState
 
@@ -58,8 +54,7 @@ class UserManager(
 
     init {
         scope.launch {
-            _authenticationContextState.collect { onEachValue ->
-
+            authenticationContextManager.authenticationContextState.collect { onEachValue ->
                 if(onEachValue is StateValue<AuthenticationContext?>){
                     //Check if its user logged in
                     if(onEachValue.value != null){
@@ -75,33 +70,31 @@ class UserManager(
     }
     private suspend fun initializeUserItem(authenticationContext: AuthenticationContext) {
         val createUserResponse = initializeUserUseCase(authenticationContext)
-        createUserResponse.onEachSuspending(
-            success = { user ->
+        when(createUserResponse){
+            is Response.Failure<Pair<Profile, UserDetails>, Error> -> Unit
+            is Response.Success<Pair<Profile, UserDetails>, Error> -> {
                 _selfProfileState.update {
-                    StateValue(user.first)
+                    StateValue(createUserResponse.data.first)
                 }
                 _userDetailsState.update {
-                    StateValue(user.second)
+                    StateValue(createUserResponse.data.second)
                 }
             }
-        )
+        }
     }
 
     suspend fun initialUpdateUserProfile(email: Email?, name: Name, image: Image?): Response<Profile, Error> {
         val useCaseResponse = onLoginUpdateAccountUseCase(
             currentProfile = getCurrentUserContactOrThrow(),
             email = email,
-            name = name,
+            name = Name(name.value.trim()),
             image = image
         )
 
         //React to the result from use case
-        useCaseResponse.onEachSuspending(
-            success = { user ->
-                //Update our userState with the new one
-                _selfProfileState.update { StateValue(user) }
-            }
-        )
+        useCaseResponse.getOrNull()?.let { response ->
+            _selfProfileState.update { StateValue(response) }
+        }
 
         return useCaseResponse
     }
@@ -126,11 +119,9 @@ class UserManager(
             userContactUpdate = userContactUpdate
         )
 
-        useCaseResponse.onEachSuspending(
-            success = { user ->
-                _selfProfileState.update { StateValue(user) }
-            },
-        )
+        useCaseResponse.getOrNull()?.let { response ->
+            _selfProfileState.update { StateValue(response) }
+        }
 
         return useCaseResponse
     }
@@ -149,11 +140,9 @@ class UserManager(
                 userDetailsUpdate = userDetailsUpdate
             )
 
-            useCaseResponse.onEachSuspending(
-                success = { userDetails ->
-                    _userDetailsState.update { StateValue(userDetails) }
-                },
-            )
+            useCaseResponse.getOrNull()?.let { userDetails ->
+                _userDetailsState.update { StateValue(userDetails) }
+            }
 
             useCaseResponse
         } ?: Response.Failure(InvalidUpdate("Update not supported for anonymous users"))
@@ -164,6 +153,6 @@ class UserManager(
     }
 
     private fun getAuthenticationContextOrThrow(): AuthenticationContext {
-        return (_authenticationContextState.value as? StateValue)?.value ?: throw CancellationException("User not authenticated")
+        return (authenticationContextManager.authenticationContextState.value as? StateValue)?.value ?: throw CancellationException("User not authenticated")
     }
 }

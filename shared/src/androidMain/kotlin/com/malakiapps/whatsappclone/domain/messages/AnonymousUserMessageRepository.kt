@@ -10,9 +10,9 @@ import com.malakiapps.whatsappclone.domain.user.Email
 import kotlinx.coroutines.flow.Flow
 
 actual interface AnonymousUserMessageRepository {
-    actual fun getConversation(owner: Email): Flow<Response<RawConversation, GetMessagesError>>
+    actual fun getConversation(owner: Email, limit: Int): Flow<Response<RawConversation, GetMessagesError>>
 
-    actual suspend fun getPaginatedConversation(owner: Email, paginate: Paginate): Response<RawConversation, GetMessagesError>
+    actual suspend fun getPaginatedConversation(owner: Email, paginate: Paginate, limit: Int): Response<RawConversation, GetMessagesError>
 
     actual suspend fun sendMessage(message: Message): Response<Message, SendMessagesError>
     actual suspend fun updateMessage(updateMessage: UpdateMessage): Response<Unit, UpdateMessageError>

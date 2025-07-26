@@ -1,8 +1,10 @@
 package com.malakiapps.whatsappclone.domain.common
 
+import com.malakiapps.whatsappclone.domain.messages.MessageNotification
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
 import com.malakiapps.whatsappclone.domain.user.Image
 import com.malakiapps.whatsappclone.domain.user.Profile
+import kotlin.reflect.KClass
 
 //Categories
 sealed interface Event
@@ -31,11 +33,16 @@ data class NavigateToDashboard(
 data object NavigateToLogin: AuthenticationEvent, NavigationEvent
 
 data class OnError(
+    val from: KClass<*>,
     val error: Error
 ): AuthenticationEvent
 
-data object LogOut: AuthenticationEvent
+data object AfterLogOut: AuthenticationEvent, NavigationEvent
 
 data object PlayMessageTone: Event
 
 data object GoBackToDashboard: Event
+
+data class ShowNotification(
+    val messageNotification: MessageNotification
+): Event

@@ -27,7 +27,6 @@ import com.malakiapps.whatsappclone.domain.common.SendMessagesError
 import com.malakiapps.whatsappclone.domain.common.UnknownError
 import com.malakiapps.whatsappclone.domain.common.UpdateMessageError
 import com.malakiapps.whatsappclone.domain.common.getOrNull
-import com.malakiapps.whatsappclone.domain.common.loggerTag1
 import com.malakiapps.whatsappclone.domain.messages.ChangeMessageBody
 import com.malakiapps.whatsappclone.domain.messages.ConversationBrief
 import com.malakiapps.whatsappclone.domain.messages.DeleteMessageForBoth
@@ -149,7 +148,6 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
                             when(val brief = briefDocuments.toConversationBrief(owner = owner)){
                                 is Response.Failure<ConversationBrief, GetMessagesError> -> {
                                     trySend(Response.Failure(brief.error))
-                                    loggerTag1.i { "We got an error of ${brief.error}" }
                                     null
                                 }
                                 is Response.Success<ConversationBrief, GetMessagesError> -> {
@@ -157,17 +155,6 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
                                 }
                             }
                         }
-                        /*val newChanges = snapShotResponse.documentChanges.mapNotNull { briefDocuments ->
-                            val changeType = when(briefDocuments.type){
-                                DocumentChange.Type.ADDED -> MessageUpdateType.NEW_MESSAGE
-                                DocumentChange.Type.MODIFIED -> MessageUpdateType.UPDATED_MESSAGE
-                                DocumentChange.Type.REMOVED -> MessageUpdateType.DELETED_MESSAGE
-                            }
-                            changedDocument.document.toMessage().getOrNull()?.let { document ->
-                                Pair(changeType, document)
-                            }
-                        }*/
-                        loggerTag1.i { "Got briefs from firestore $briefs" }
                         trySend(Response.Success(briefs))
                     }
                 }
@@ -267,19 +254,18 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
     }
 
     override suspend fun updateMessagesReadStatus(receiver: Email, messageStatusUpdate: List<MessageStatusUpdate>): Response<Unit, UpdateMessageError> {
-
         firestore.runTransaction { transaction ->
-            val foundBriefs = mutableMapOf<Email, ConversationBrief>()
+            val foundBriefs = mutableMapOf<Email, ConversationBrief>() //These are briefs of other people(not current user)
 
             val conversationBriefs = mutableMapOf<Email, ConversationBrief>()
 
             messageStatusUpdate.forEach { messageStatusUpdate ->
                 if(foundBriefs[messageStatusUpdate.target] == null){
-                    val briefReference = firestore
+                    val targetBriefReference = firestore
                         .getContactReference(email = messageStatusUpdate.target)
                         .collection(MESSAGES_COLLECTION_NAME)
                         .document(receiver.value)
-                    transaction.get(briefReference).toConversationBrief(receiver).getOrNull()?.let { foundBrief ->
+                    transaction.get(targetBriefReference).toConversationBrief(receiver).getOrNull()?.let { foundBrief ->
                         conversationBriefs.put(messageStatusUpdate.target, foundBrief)
                     }
                 }
@@ -289,7 +275,7 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
             //Now we make the calls with all the info we have
             messageStatusUpdate.forEach { messageStatusUpdate ->
                 val update = hashMapOf<String, Any>(
-                    "${MessageAttributeKeys.MESSAGE_ATTRIBUTES}.${MessageAttributeKeys.VIEW_STATUS}" to messageStatusUpdate.sendStatus.name
+                    "${MessageAttributeKeys.MESSAGE_ATTRIBUTES.value}.${MessageAttributeKeys.VIEW_STATUS.value}" to messageStatusUpdate.sendStatus.name
                 )
 
                 val messageReference1 = firestore.getConversationReference(owner = messageStatusUpdate.target, target = receiver).document(messageStatusUpdate.messageId.value)
@@ -298,17 +284,28 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
                 transaction.update(messageReference1, update)
                 transaction.update(messageReference2, update)
 
-                conversationBriefs[messageStatusUpdate.target]?.let { availableBrief ->
-                    val briefReference = firestore
+                //Start with target briefs
+                conversationBriefs[messageStatusUpdate.target]?.let { availableTargetBrief ->
+                    val targetBriefReference = firestore
                         .getContactReference(email = messageStatusUpdate.target)
                         .collection(MESSAGES_COLLECTION_NAME)
                         .document(receiver.value)
-                        if(availableBrief.messageId == messageStatusUpdate.messageId){
+
+                    val ownerBriefReference = firestore
+                        .getContactReference(email = receiver)
+                        .collection(MESSAGES_COLLECTION_NAME)
+                        .document(messageStatusUpdate.target.value)
+
+                        if(availableTargetBrief.messageId == messageStatusUpdate.messageId){
                             //We need to update the briefs too.
-                            transaction.update(briefReference, ConversationBriefAttributeKeys.VIEW_STATUS.value, messageStatusUpdate.sendStatus.name,
+                            transaction.update(targetBriefReference, ConversationBriefAttributeKeys.VIEW_STATUS.value, messageStatusUpdate.sendStatus.name,
                                 ConversationBriefAttributeKeys.NEW_MESSAGE_COUNT.value, (if (messageStatusUpdate.hasNotificationCounter) FieldValue.increment(1L) else 0L))
 
-                            //For receiver brief add the counter
+                            //Now handle the owner brief
+                            if(!messageStatusUpdate.hasNotificationCounter){
+                                transaction.update(ownerBriefReference, ConversationBriefAttributeKeys.VIEW_STATUS.value, messageStatusUpdate.sendStatus.name,
+                                    ConversationBriefAttributeKeys.NEW_MESSAGE_COUNT.value, 0L)
+                            }
                         }
                     }
                 }

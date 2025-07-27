@@ -11,8 +11,6 @@ import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.ShowNotification
 import com.malakiapps.whatsappclone.domain.common.UserNotFound
 import com.malakiapps.whatsappclone.domain.common.getOrNull
-import com.malakiapps.whatsappclone.domain.common.loggerTag1
-import com.malakiapps.whatsappclone.domain.common.loggerTag2
 import com.malakiapps.whatsappclone.domain.managers.AuthenticationContextManager
 import com.malakiapps.whatsappclone.domain.managers.ContactsManager
 import com.malakiapps.whatsappclone.domain.managers.EventsManager
@@ -63,9 +61,7 @@ class MainViewModel(
                     val userDetails = input.first
                     val conversationBrief = input.second
 
-                    loggerTag2.i { "Checking for contact from notification listener. with context $userDetails" }
                     val contact = contactsManager.getFriendsContacts(listOf(conversationBrief.target)).getOrNull()?.firstOrNull() ?: run {
-                        loggerTag2.i { "We on checking for notifications and failed to get contact of ${conversationBrief.target.value}"}
                         eventsManager.sendEvent(OnError(from = this@MainViewModel::class, error = UserNotFound))
                         null
                     }
@@ -121,7 +117,6 @@ class MainViewModel(
                     //Check if the user initiated logging out by checking authentication state
                     val currentAuthState = _authenticationContextState.value
                     if(currentAuthState is StateValue<AuthenticationContext?> && currentAuthState.value != null){
-                        loggerTag1.i { "Logout from lost user profile" }
                         eventsManager.sendEvent(AfterLogOut)
                         eventsManager.sendEvent(NavigateToLogin)
                     }
@@ -157,7 +152,6 @@ class MainViewModel(
             //Add a listener for logout
             _authenticationContextState.collect { onEachValue ->
                 if(onEachValue is StateValue && onEachValue.value == null){
-                    loggerTag1.i { "Logout from lost user authentication" }
                     eventsManager.sendEvent(AfterLogOut)
                 }
             }

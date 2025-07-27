@@ -4,8 +4,6 @@ import com.malakiapps.whatsappclone.domain.common.GetMessagesError
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.getOrNull
 import com.malakiapps.whatsappclone.domain.common.getTodayLocalDateTime
-import com.malakiapps.whatsappclone.domain.common.loggerTag1
-import com.malakiapps.whatsappclone.domain.common.loggerTag3
 import com.malakiapps.whatsappclone.domain.messages.ConversationBrief
 import com.malakiapps.whatsappclone.domain.messages.Message
 import com.malakiapps.whatsappclone.domain.messages.MessageAttributes
@@ -76,7 +74,6 @@ class MessagesManager(
         scope.launch {
             getAuthenticationContext()?.let { authenticationContext ->
             getConversationUseCase.listenToBriefChanges(authenticationContext = authenticationContext).collect { newValue ->
-                loggerTag1.i { "Listen to brief changes just emitted $newValue" }
                 _conversationBriefs.update {
                     newValue
                 }
@@ -86,15 +83,12 @@ class MessagesManager(
                     val oneTickUpdates = mutableListOf<MessageStatusUpdate>()
                     value.forEach { brief ->
                         //Check that its not me and it has one tick
-                        loggerTag3.i { "Still not getting in? sender ${brief.sender} me ${authenticationContext.email}" }
                         if(authenticationContext.email != brief.sender && brief.sendStatus == SendStatus.ONE_TICK){
-                        loggerTag3.i { "Got in" }
                             //If we're not in this conversation, send notification
                             val sendStatus = if(brief.target != currentOnConversation){
                                 _notificationChannel.trySend(brief)
                                 SendStatus.TWO_TICKS //Not in convo, heard the text but not open yet
                             } else {
-                                loggerTag3.i { "We got the one we don't want. brief.target ${brief.target} currentOnConversation ${currentOnConversation}" }
                                 //If we are in this convo, send tone
                                 _tonePlayerChannel.trySend(true)
                                 SendStatus.TWO_TICKS_READ //The message should be marked as read
@@ -113,8 +107,6 @@ class MessagesManager(
                     //Make update for readStatus
                     if (oneTickUpdates.isNotEmpty()){
                         //This one is mainly to let the secondary user know we have received their message
-                        loggerTag3.i { "Update made by ${authenticationContext.email?.value}"}
-                        loggerTag3.i { "Values = $oneTickUpdates"}
                         updateMessagesUseCase.updateMessageSendStatus(authenticationContext = authenticationContext, messageStatusUpdate = oneTickUpdates)
                     }
 

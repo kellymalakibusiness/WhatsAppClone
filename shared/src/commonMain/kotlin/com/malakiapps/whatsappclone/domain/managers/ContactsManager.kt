@@ -4,7 +4,6 @@ import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.GetUserError
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.getOrNull
-import com.malakiapps.whatsappclone.domain.common.loggerTag2
 import com.malakiapps.whatsappclone.domain.use_cases.GetContactsUseCase
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Profile
@@ -40,12 +39,10 @@ class ContactsManager(
 
         //If we missed some, check them on use case
         if(missingFromStateFlow.isNotEmpty()){
-            loggerTag2.i { "On contacts we missed these $missingFromStateFlow" }
             val fromUseCaseContacts = getContactsUseCase.getListOfContacts(emails = missingFromStateFlow)
 
             when(fromUseCaseContacts){
                 is Response.Failure<*, *> -> {
-                    loggerTag2.i { "We failed on error of ${fromUseCaseContacts.error}" }
                     return fromUseCaseContacts
                 }
                 is Response.Success<List<Profile>, Error> -> {

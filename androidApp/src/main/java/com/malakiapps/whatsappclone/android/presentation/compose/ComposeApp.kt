@@ -64,7 +64,6 @@ import com.malakiapps.whatsappclone.domain.common.OnError
 import com.malakiapps.whatsappclone.domain.common.PlayMessageTone
 import com.malakiapps.whatsappclone.domain.common.ShowNotification
 import com.malakiapps.whatsappclone.domain.common.UpdatingEvent
-import com.malakiapps.whatsappclone.domain.common.loggerTag1
 import com.malakiapps.whatsappclone.domain.messages.MessageNotification
 import com.malakiapps.whatsappclone.domain.screens.MessageCard
 import com.malakiapps.whatsappclone.domain.user.Email
@@ -113,7 +112,6 @@ fun ComposeApp(
     LaunchedEffect(lifecycleOwner.lifecycle) {
         lifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
             events.collect { event ->
-                loggerTag1.i { "Found event $event" }
                 //Remove the loading in the case of navigating to another screen
                 if (event is NavigationEvent || event is OnError) {
                     isLoading = false

@@ -9,8 +9,6 @@ import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.UserNotFound
 import com.malakiapps.whatsappclone.domain.common.getOrNull
 import com.malakiapps.whatsappclone.domain.common.getTodayLocalDate
-import com.malakiapps.whatsappclone.domain.common.loggerTag1
-import com.malakiapps.whatsappclone.domain.common.loggerTag2
 import com.malakiapps.whatsappclone.domain.managers.AuthenticationContextManager
 import com.malakiapps.whatsappclone.domain.managers.ContactsManager
 import com.malakiapps.whatsappclone.domain.managers.EventsManager
@@ -57,10 +55,8 @@ class DashboardViewModel(
                 .flatMapLatest { authenticationContextState ->
                     messagesManager.conversationBriefs.mapNotNull { conversations ->
                         val response: MessageMapper? = authenticationContextState.getOrNull()?.let { authenticationContext ->
-                            loggerTag1.i { "Context is $authenticationContext" }
                             when (conversations) {
                                 is Response.Failure<List<ConversationBrief>?, GetMessagesError> -> {
-                                    loggerTag1.i { "${iteration}. We failing with ${conversations.error}, on a context of $authenticationContext" }
                                     eventsManager.sendEvent(OnError(from = this@DashboardViewModel::class, error = conversations.error))
                                     _chatsScreenConversationRow.update { null }
                                     null
@@ -78,7 +74,6 @@ class DashboardViewModel(
                                         eventsManager.sendEvent(OnError(from = this@DashboardViewModel::class, error = UserNotFound))
                                         return@mapNotNull null
                                     }
-                                    loggerTag2.i { "Checking for contact from message listener" }
                                     val contactResult =
                                         contactsManager.getFriendsContacts(emails = conversations.data?.mapNotNull {
                                             //Remove the current user
@@ -105,11 +100,9 @@ class DashboardViewModel(
                                 }
                             }
                         }
-                        loggerTag1.i { "We got a response $response" }
                         response
                     }
                 }.collect { messageMapper ->
-                    loggerTag1.i { "Got message mapper $messageMapper" }
                     viewModelScope.launch {
                         val contacts = messageMapper.contacts
                         val today = getTodayLocalDate()

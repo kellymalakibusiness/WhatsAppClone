@@ -30,7 +30,6 @@ import com.malakiapps.whatsappclone.domain.common.OnError
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.UserAccountAlreadyExistException
 import com.malakiapps.whatsappclone.domain.common.handleOnFailureResponse
-import com.malakiapps.whatsappclone.domain.common.loggerTag1
 import com.malakiapps.whatsappclone.domain.managers.EventsManager
 import com.malakiapps.whatsappclone.domain.managers.UserManager
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
@@ -143,10 +142,8 @@ class AuthenticationViewModel(
         )
         if(userManager.userDetailsState.value.getOrNull()?.type == UserType.ANONYMOUS){
             //No point of logging out of anonymous account. No longer needed
-            loggerTag1.i { "Deleting firebase auth account" }
             firebaseAuth.currentUser?.delete()
         } else {
-            loggerTag1.i { "Firebase sign out" }
             firebaseAuth.signOut()
         }
     }

@@ -260,7 +260,13 @@ fun ComposeApp(
                     navDeepLink {
                         uriPattern = "fakeWhatsapp://conversation/{email}"
                     }
-                )
+                ),
+                enterTransition = {
+                    slideInHorizontally(initialOffsetX = { it })
+                },
+                exitTransition = {
+                    slideOutHorizontally(targetOffsetX = { it })
+                }
             ) { backStackEntry ->
                 val email = Email(requireNotNull(backStackEntry.toRoute<ConversationScreenRoute>()).email)
                 val conversationViewModel = koinViewModel<ConversationViewModel>{ parametersOf(email) }

@@ -3,6 +3,7 @@ package viewmodels
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.managers.AuthenticationContextManager
 import com.malakiapps.whatsappclone.domain.managers.ContactsManager
+import com.malakiapps.whatsappclone.domain.managers.EventsManager
 import com.malakiapps.whatsappclone.domain.managers.MessagesManager
 import com.malakiapps.whatsappclone.domain.managers.UserManager
 import com.malakiapps.whatsappclone.domain.messages.ConversationBrief
@@ -32,6 +33,7 @@ class DashboardViewModelTests {
         val userManager: UserManager = mockk()
         val contactsManager: ContactsManager = mockk(relaxed = true)
         val messagesManager: MessagesManager = mockk()
+        val eventManager: EventsManager = mockk(relaxed = true)
         val user1 = Email("de")
         val user2 = Email("de22")
 
@@ -42,7 +44,9 @@ class DashboardViewModelTests {
             sender = user1,
             value = MessageValue("bello"),
             sendStatus = SendStatus.TWO_TICKS,
-            time = day1Time1
+            time = day1Time1,
+            target = user2,
+            isSelfMessage = false,
         )
         val testBrief2 = ConversationBrief(
             newMessageCount = 0,
@@ -50,7 +54,9 @@ class DashboardViewModelTests {
             sender = user2,
             value = MessageValue("thres"),
             sendStatus = SendStatus.TWO_TICKS,
-            time = day2Time1
+            time = day2Time1,
+            target = user2,
+            isSelfMessage = false,
         )
         val currentConversationBriefs = listOf(
             testBrief1,
@@ -75,7 +81,8 @@ class DashboardViewModelTests {
             authenticationContextManager = authenticationContextManager,
             userManager = userManager,
             contactsManager = contactsManager,
-            messagesManager = messagesManager
+            messagesManager = messagesManager,
+            eventsManager = eventManager
         )
 
         //Assert

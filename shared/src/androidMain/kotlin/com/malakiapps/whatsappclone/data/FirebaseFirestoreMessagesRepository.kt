@@ -138,6 +138,7 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
             val listener = firestore
                 .getContactReference(email = owner)
                 .collection(MESSAGES_COLLECTION_NAME)
+                .orderBy(ConversationBriefAttributeKeys.TIME.value, Query.Direction.DESCENDING)
                 .addSnapshotListener { snapShotResponse, error ->
                     if(error != null){
                         trySend(Response.Failure(UnknownError(error)))

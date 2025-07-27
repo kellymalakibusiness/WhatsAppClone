@@ -63,6 +63,8 @@ class MessageManagerTests {
                 newMessageCount = 0,
                 messageId = MessageId("12"),
                 sender = authenticatedUserEmail,
+                target = authenticatedUserEmail,
+                isSelfMessage = true,
                 value = MessageValue("bello"),
                 sendStatus = SendStatus.TWO_TICKS,
                 time = day1Time1
@@ -120,7 +122,9 @@ class MessageManagerTests {
                 sender = Email("someOtherUser"),
                 value = MessageValue("hi"),
                 sendStatus = SendStatus.ONE_TICK,
-                time = day1Time1
+                time = day1Time1,
+                target = authenticatedUserEmail,
+                isSelfMessage = true,
             )
         )
 
@@ -138,7 +142,7 @@ class MessageManagerTests {
             )
         )*/
 
-        coEvery { updateMessagesUseCase.updateMessageSendStatus(any(), any(), any()) } returns Response.Success(Unit)
+        coEvery { updateMessagesUseCase.updateMessageSendStatus(any(), any()) } returns Response.Success(Unit)
 
         //Act
         val messagesManager = MessagesManager(
@@ -173,7 +177,9 @@ class MessageManagerTests {
                 sender = sender,
                 value = MessageValue("hi"),
                 sendStatus = SendStatus.ONE_TICK,
-                time = day1Time1
+                time = day1Time1,
+                target = authenticatedUserEmail,
+                isSelfMessage = true,
             )
         )
 
@@ -186,7 +192,7 @@ class MessageManagerTests {
             )
         )
 
-        coEvery { updateMessagesUseCase.updateMessageSendStatus(any(), any(), any()) } returns Response.Success(Unit)
+        coEvery { updateMessagesUseCase.updateMessageSendStatus(any(), any()) } returns Response.Success(Unit)
 
         //Act
         val messagesManager = MessagesManager(
@@ -286,7 +292,9 @@ class MessageManagerTests {
                 sender = sender,
                 value = MessageValue("hi"),
                 sendStatus = SendStatus.ONE_TICK,
-                time = day1Time1
+                time = day1Time1,
+                target = authenticatedUserEmail,
+                isSelfMessage = true,
             )
         )
 
@@ -299,7 +307,7 @@ class MessageManagerTests {
             )
         )
 
-        coEvery { updateMessagesUseCase.updateMessageSendStatus(defaultAuthenticationContext, any(), SendStatus.TWO_TICKS) } returns Response.Success(Unit)
+        coEvery { updateMessagesUseCase.updateMessageSendStatus(defaultAuthenticationContext, any()) } returns Response.Success(Unit)
 
         //Act
         val messagesManager = MessagesManager(
@@ -316,7 +324,7 @@ class MessageManagerTests {
             messagesManager.conversationBriefs.collect {
 
                 if(it.getOrNull() == currentConversationBriefs){
-                    coVerify(exactly = 1) { updateMessagesUseCase.updateMessageSendStatus(defaultAuthenticationContext, any(), SendStatus.TWO_TICKS) }
+                    coVerify(exactly = 1) { updateMessagesUseCase.updateMessageSendStatus(defaultAuthenticationContext, any()) }
                     cancel()
                 } else {
                     if (counter != 0){
@@ -344,7 +352,9 @@ class MessageManagerTests {
                 sender = sender,
                 value = MessageValue("hi"),
                 sendStatus = SendStatus.ONE_TICK,
-                time = day1Time1
+                time = day1Time1,
+                target = authenticatedUserEmail,
+                isSelfMessage = true,
             )
         )
 
@@ -361,7 +371,7 @@ class MessageManagerTests {
             )
         )
 
-        coEvery { updateMessagesUseCase.updateMessageSendStatus(defaultAuthenticationContext, any(), SendStatus.TWO_TICKS_READ) } returns Response.Success(Unit)
+        coEvery { updateMessagesUseCase.updateMessageSendStatus(defaultAuthenticationContext, any()) } returns Response.Success(Unit)
 
         //Act
         val messagesManager = MessagesManager(
@@ -376,7 +386,7 @@ class MessageManagerTests {
         backgroundScope.launch {
             messagesManager.conversationBriefs.collect {
                 if(it.getOrNull() == currentConversationBriefs){
-                    coVerify(exactly = 1) { updateMessagesUseCase.updateMessageSendStatus(defaultAuthenticationContext, any(), SendStatus.TWO_TICKS_READ) }
+                    coVerify(exactly = 1) { updateMessagesUseCase.updateMessageSendStatus(defaultAuthenticationContext, any()) }
                     cancel()
                 }
             }

@@ -4,15 +4,18 @@ import com.malakiapps.whatsappclone.domain.common.GetMessagesError
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.managers.AuthenticationContextManager
 import com.malakiapps.whatsappclone.domain.managers.ContactsManager
+import com.malakiapps.whatsappclone.domain.managers.EventsManager
 import com.malakiapps.whatsappclone.domain.managers.MessagesManager
 import com.malakiapps.whatsappclone.domain.managers.UserManager
 import com.malakiapps.whatsappclone.domain.messages.RawConversation
 import com.malakiapps.whatsappclone.domain.screens.ConversationMessage
 import com.malakiapps.whatsappclone.domain.screens.TimeCard
 import com.malakiapps.whatsappclone.domain.use_cases.GetConversationUseCase
+import com.malakiapps.whatsappclone.domain.use_cases.UpdateMessagesUseCase
 import com.malakiapps.whatsappclone.domain.user.About
 import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
 import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Image
 import com.malakiapps.whatsappclone.domain.user.Name
 import com.malakiapps.whatsappclone.domain.user.Profile
 import com.malakiapps.whatsappclone.domain.user.Some
@@ -47,6 +50,8 @@ class ConversationViewModelTests {
     val contactsManager: ContactsManager = mockk(relaxed = true)
     val getConversationUseCase: GetConversationUseCase = mockk(relaxed = true)
     val authenticationContextManager: AuthenticationContextManager = mockk(relaxed = true)
+    val eventsManager: EventsManager = mockk(relaxed = true)
+    val updateMessagesUseCase: UpdateMessagesUseCase = mockk(relaxed = true)
     private val defaultAuthenticationContext = AuthenticationContext(
         name = Name("authName"),
         email = Email("authEmail"),
@@ -71,7 +76,8 @@ class ConversationViewModelTests {
                     day1Message3,
                     day1Message2,
                     day1Message1,
-                )
+                ),
+                hasPendingWrites = false
             )
         )
 
@@ -90,7 +96,9 @@ class ConversationViewModelTests {
             messagesManager = messagesManager,
             contactsManager = contactsManager,
             getConversationUseCase = getConversationUseCase,
-            targetEmail = Email("")
+            targetEmail = Email(""),
+            eventsManager = eventsManager,
+            updateMessagesUseCase = updateMessagesUseCase
         )
 
         backgroundScope.launch {
@@ -133,7 +141,8 @@ class ConversationViewModelTests {
                     day2Message3,
                     day2Message2,
                     day2Message1,
-                )
+                ),
+                hasPendingWrites = false
             )
         )
 
@@ -155,7 +164,9 @@ class ConversationViewModelTests {
             messagesManager = messagesManager,
             contactsManager = contactsManager,
             getConversationUseCase = getConversationUseCase,
-            targetEmail = Email("")
+            targetEmail = Email(""),
+            eventsManager = eventsManager,
+            updateMessagesUseCase = updateMessagesUseCase
         )
 
         backgroundScope.launch {
@@ -194,7 +205,9 @@ class ConversationViewModelTests {
             messagesManager = messagesManager,
             contactsManager = contactsManager,
             getConversationUseCase = getConversationUseCase,
-            targetEmail = Email("")
+            targetEmail = Email(""),
+            eventsManager = eventsManager,
+            updateMessagesUseCase = updateMessagesUseCase
         )
 
         backgroundScope.launch {
@@ -221,7 +234,7 @@ class ConversationViewModelTests {
             name = Name("Kdof"),
             email = Email("kdfjdo"),
             about = About("difnhdf"),
-            image = com.malakiapps.whatsappclone.domain.user.Image("dfihdgdif")
+            image = Image("dfihdgdif")
         )
         val profile2 = profile1.copy(about = About("kdfodhggk"), name = Name("kdfh"))
         
@@ -233,7 +246,9 @@ class ConversationViewModelTests {
             messagesManager = messagesManager,
             contactsManager = contactsManager,
             getConversationUseCase = getConversationUseCase,
-            targetEmail = Email("")
+            targetEmail = Email(""),
+            eventsManager = eventsManager,
+            updateMessagesUseCase = updateMessagesUseCase
         )
 
         backgroundScope.launch {
@@ -276,7 +291,9 @@ class ConversationViewModelTests {
             messagesManager = messagesManager,
             contactsManager = contactsManager,
             getConversationUseCase = getConversationUseCase,
-            targetEmail = targetEmail
+            targetEmail = targetEmail,
+            eventsManager = eventsManager,
+            updateMessagesUseCase = updateMessagesUseCase
         )
 
         backgroundScope.launch {

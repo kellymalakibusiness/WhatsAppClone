@@ -45,7 +45,8 @@ class MigrateToGoogleAccountUseCaseTests {
             day1Message1.copy(sender = ANONYMOUS_EMAIL, receiver = ANONYMOUS_EMAIL),
             day1Message2.copy(sender = ANONYMOUS_EMAIL, receiver = ANONYMOUS_EMAIL),
             day2Message3.copy(sender = ANONYMOUS_EMAIL, receiver = ANONYMOUS_EMAIL)
-        )
+        ),
+        hasPendingWrites = false
     )
 
     private val defaultAuthenticationContext = AuthenticationContext(

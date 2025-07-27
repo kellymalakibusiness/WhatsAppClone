@@ -13,6 +13,7 @@ import com.malakiapps.whatsappclone.domain.managers.EventsManager
 import com.malakiapps.whatsappclone.domain.managers.MessagesManager
 import com.malakiapps.whatsappclone.domain.managers.UserManager
 import com.malakiapps.whatsappclone.domain.messages.Message
+import com.malakiapps.whatsappclone.domain.messages.MessageStatusUpdate
 import com.malakiapps.whatsappclone.domain.messages.RawConversation
 import com.malakiapps.whatsappclone.domain.messages.SendStatus
 import com.malakiapps.whatsappclone.domain.screens.ConversationMessage
@@ -24,6 +25,7 @@ import com.malakiapps.whatsappclone.domain.screens.getMessageType
 import com.malakiapps.whatsappclone.domain.use_cases.GetConversationUseCase
 import com.malakiapps.whatsappclone.domain.use_cases.UpdateMessagesUseCase
 import com.malakiapps.whatsappclone.domain.user.About
+import com.malakiapps.whatsappclone.domain.user.AuthenticationContext
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Profile
 import com.malakiapps.whatsappclone.domain.user.Some
@@ -207,6 +209,9 @@ class ConversationViewModel(
                                 _conversation.update {
                                     convertRawConversationToMessageCards(input = rawConversation.data.copy(messages = updatedMessages))
                                 }
+
+                                //Make new messages Read
+                                markNewMessagesToReadAndOwnBriefToNoCounter(authenticationContext = authenticationContext, messages = rawConversation.data.messages)
                             }
                         }
                     }
@@ -226,6 +231,28 @@ class ConversationViewModel(
                         contactsManager.updateContactsState(listOf(contactChange))
                     }
                 }
+        }
+    }
+
+    private fun markNewMessagesToReadAndOwnBriefToNoCounter(authenticationContext: AuthenticationContext, messages: List<Message>){
+        //Looking for messages not from me, and have Two ticks, without the read
+        val notReceivedMessages = messages.filter {
+            it.sender != authenticationContext.email && it.attributes.sendStatus != SendStatus.TWO_TICKS_READ
+        }
+        if (notReceivedMessages.isNotEmpty()){
+            viewModelScope.launch {
+                //Here we want to update these passed messages to
+                updateMessagesUseCase.updateMessageSendStatus(authenticationContext = authenticationContext,
+                    messageStatusUpdate = notReceivedMessages.map {
+                        MessageStatusUpdate(
+                            target = targetEmail,
+                            messageId = it.messageId,
+                            sendStatus = SendStatus.TWO_TICKS_READ,
+                            hasNotificationCounter = false
+                        )
+                    }
+                )
+            }
         }
     }
 

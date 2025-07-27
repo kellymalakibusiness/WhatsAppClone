@@ -303,9 +303,11 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
                         .collection(MESSAGES_COLLECTION_NAME)
                         .document(receiver.value)
                         if(availableBrief.messageId == messageStatusUpdate.messageId){
-                            //We need to update the brief too. The sender brief only
+                            //We need to update the briefs too.
                             transaction.update(briefReference, ConversationBriefAttributeKeys.VIEW_STATUS.value, messageStatusUpdate.sendStatus.name,
                                 ConversationBriefAttributeKeys.NEW_MESSAGE_COUNT.value, (if (messageStatusUpdate.hasNotificationCounter) FieldValue.increment(1L) else 0L))
+
+                            //For receiver brief add the counter
                         }
                     }
                 }

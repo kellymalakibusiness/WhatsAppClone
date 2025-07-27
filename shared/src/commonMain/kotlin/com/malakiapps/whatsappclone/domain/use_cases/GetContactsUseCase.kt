@@ -5,10 +5,11 @@ import com.malakiapps.whatsappclone.domain.common.GetUserError
 import com.malakiapps.whatsappclone.domain.common.QueryContactsError
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.getOrNull
+import com.malakiapps.whatsappclone.domain.common.loggerTag2
 import com.malakiapps.whatsappclone.domain.contacts.ContactsRepository
 import com.malakiapps.whatsappclone.domain.managers.UserManager
-import com.malakiapps.whatsappclone.domain.user.Profile
 import com.malakiapps.whatsappclone.domain.user.Email
+import com.malakiapps.whatsappclone.domain.user.Profile
 import com.malakiapps.whatsappclone.domain.user.getOrNull
 import kotlinx.coroutines.flow.Flow
 
@@ -20,6 +21,9 @@ class GetContactsUseCase(
     suspend fun getListOfContacts(emails: List<Email>): Response<List<Profile>, QueryContactsError> {
         //First check if user is authenticated
         val userDetails = userManager.userDetailsState.value.getOrNull()
+
+        loggerTag2.i { "We checking while our userdetails are $userDetails" }
+        loggerTag2.i { "We checking while our user data is ${userManager.userProfileState.value.getOrNull()}" }
 
         return if(userDetails != null){
             when(val contactsResult = contactsRepository.getContacts(emails)){

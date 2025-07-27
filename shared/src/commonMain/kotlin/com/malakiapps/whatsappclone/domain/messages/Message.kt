@@ -74,7 +74,7 @@ enum class SendStatus {
     ONE_TICK,
     TWO_TICKS,
 
-    TWO_TICKS_READ
+    TWO_TICKS_READ,
 }
 
 enum class MessageUpdateType {

@@ -37,6 +37,7 @@ enum class ConversationBriefAttributeKeys(val value: String) {
     NEW_MESSAGE_COUNT("new_message_count"),
     MESSAGE_ID("message_id"),
     SENDER_EMAIL("sender_email"),
+    TARGET_EMAIL("target_email"),
     MESSAGE_VALUE("message_value"),
     TIME("time"),
     VIEW_STATUS("view_status")

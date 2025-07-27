@@ -33,10 +33,12 @@ class MigrateToGoogleAccountUseCase(
                     val conversationBrief = ConversationBrief(
                         newMessageCount = 0,
                         messageId = existingMessages.messages.first().messageId,
+                        target = availableEmail,
                         sender = availableEmail,
                         value = existingMessages.messages.first().value,
                         sendStatus = existingMessages.messages.first().attributes.sendStatus,
-                        time = existingMessages.messages.first().time
+                        time = existingMessages.messages.first().time,
+                        isSelfMessage = true
                     )
                     val result = userMessagesRepository.importAllUserMessages(owner = availableEmail, conversationBrief = conversationBrief, rawConversation = existingMessages)
 

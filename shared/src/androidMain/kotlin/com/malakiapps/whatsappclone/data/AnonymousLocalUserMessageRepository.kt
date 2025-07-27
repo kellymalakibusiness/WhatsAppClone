@@ -16,7 +16,6 @@ import com.malakiapps.whatsappclone.domain.messages.Message
 import com.malakiapps.whatsappclone.domain.messages.MessageId
 import com.malakiapps.whatsappclone.domain.messages.RawConversation
 import com.malakiapps.whatsappclone.domain.messages.ReactToMessage
-import com.malakiapps.whatsappclone.domain.messages.SendStatus
 import com.malakiapps.whatsappclone.domain.messages.UpdateMessage
 import com.malakiapps.whatsappclone.domain.user.ANONYMOUS_EMAIL
 import com.malakiapps.whatsappclone.domain.user.Email
@@ -34,7 +33,8 @@ class AnonymousLocalUserMessageRepository(
                 RawConversation(
                     contact1 = owner,
                     contact2 = owner,
-                    messages = messages
+                    messages = messages,
+                    hasPendingWrites = false
                 )
             )
         }
@@ -47,14 +47,15 @@ class AnonymousLocalUserMessageRepository(
                 RawConversation(
                     contact1 = owner,
                     contact2 = owner,
-                    messages = messages
+                    messages = messages,
+                    hasPendingWrites = false
                 )
             )
         }
     }
 
     override suspend fun sendMessage(message: Message): Response<Message, SendMessagesError> {
-        messageDao.sendMessage(message = message.toMessageEntity().copy(sendStatus = SendStatus.TWO_TICKS_READ.name))
+        messageDao.sendMessage(message = message.toMessageEntity())
 
         return Response.Success(message)
     }
@@ -91,7 +92,8 @@ class AnonymousLocalUserMessageRepository(
             RawConversation(
                 messages = result,
                 contact1 = ANONYMOUS_EMAIL,
-                contact2 = ANONYMOUS_EMAIL
+                contact2 = ANONYMOUS_EMAIL,
+                hasPendingWrites = false
             )
         )
     }

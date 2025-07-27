@@ -30,7 +30,7 @@ actual interface MessagesRepository {
     actual suspend fun sendMessage(message: Message): Response<Message, SendMessagesError>
     actual suspend fun updateMessage(updateMessage: UpdateMessage): Response<Unit, UpdateMessageError>
 
-    actual suspend fun updateMessagesReadStatus(receiver: Email, messageIds: List<Pair<Email, MessageId>>, sendStatus: SendStatus): Response<Unit, UpdateMessageError>
+    actual suspend fun updateMessagesReadStatus(receiver: Email, messageStatusUpdate: List<MessageStatusUpdate>): Response<Unit, UpdateMessageError>
 
     actual suspend fun deleteMessages(
         owner: Email,

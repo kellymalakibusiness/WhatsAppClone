@@ -77,9 +77,7 @@ import com.malakiapps.whatsappclone.presentation.view_models.DashboardViewModel
 import com.malakiapps.whatsappclone.presentation.view_models.LoginUpdateContactViewModel
 import com.malakiapps.whatsappclone.presentation.view_models.SelectContactViewModel
 import com.malakiapps.whatsappclone.presentation.view_models.UpdateUserProfileViewModel
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.consumeAsFlow
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -110,8 +108,6 @@ fun ComposeApp(
     var error: ScreenError? by rememberSaveable {
         mutableStateOf(null)
     }
-    val viewModelEventSend = Channel<Event>(Channel.UNLIMITED)
-    val eventsCollector = viewModelEventSend.consumeAsFlow()
     
 
     LaunchedEffect(lifecycleOwner.lifecycle) {

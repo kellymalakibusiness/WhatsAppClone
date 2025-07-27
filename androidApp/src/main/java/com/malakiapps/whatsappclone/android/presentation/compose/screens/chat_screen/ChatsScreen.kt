@@ -114,7 +114,7 @@ fun ChatsScreen(
 
                     items(
                         items = conversations,
-                        key = { it.email.value }
+                        key = { it.email.value + (it.lastMessage?.value ?: "") }
                     ) { conversation ->
                         MessageRow(
                             row = conversation,

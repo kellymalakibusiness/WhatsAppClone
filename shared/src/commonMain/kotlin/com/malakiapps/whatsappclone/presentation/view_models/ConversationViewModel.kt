@@ -14,6 +14,7 @@ import com.malakiapps.whatsappclone.domain.managers.MessagesManager
 import com.malakiapps.whatsappclone.domain.managers.UserManager
 import com.malakiapps.whatsappclone.domain.messages.Message
 import com.malakiapps.whatsappclone.domain.messages.RawConversation
+import com.malakiapps.whatsappclone.domain.messages.SendStatus
 import com.malakiapps.whatsappclone.domain.screens.ConversationMessage
 import com.malakiapps.whatsappclone.domain.screens.MessageCard
 import com.malakiapps.whatsappclone.domain.screens.MessageType
@@ -21,6 +22,7 @@ import com.malakiapps.whatsappclone.domain.screens.TimeCard
 import com.malakiapps.whatsappclone.domain.screens.getDayValue
 import com.malakiapps.whatsappclone.domain.screens.getMessageType
 import com.malakiapps.whatsappclone.domain.use_cases.GetConversationUseCase
+import com.malakiapps.whatsappclone.domain.use_cases.UpdateMessagesUseCase
 import com.malakiapps.whatsappclone.domain.user.About
 import com.malakiapps.whatsappclone.domain.user.Email
 import com.malakiapps.whatsappclone.domain.user.Profile
@@ -41,6 +43,7 @@ class ConversationViewModel(
     private val messagesManager: MessagesManager,
     private val contactsManager: ContactsManager,
     private val getConversationUseCase: GetConversationUseCase,
+    private val updateMessagesUseCase: UpdateMessagesUseCase,
     private val targetEmail: Email
 ) : ViewModel() {
     private val _targetContact: MutableStateFlow<Profile?> = MutableStateFlow(null)
@@ -174,11 +177,10 @@ class ConversationViewModel(
 
     private fun listenToConversationChangesAndUpdateConversation() {
         viewModelScope.launch {
-            val authenticationContext = authenticationContextManager.authenticationContextState.value.getOrNull()
-            authenticationContext?.let {
+            authenticationContextManager.authenticationContextState.value.getOrNull()?.let { authenticationContext ->
                 getConversationUseCase
                     .listenForConversationChanges(
-                        authenticationContext = it,
+                        authenticationContext = authenticationContext,
                         target = targetEmail
                     ).collect { rawConversation ->
                         when(rawConversation){
@@ -186,8 +188,24 @@ class ConversationViewModel(
                                 eventsManager.sendEvent(OnError(from = this@ConversationViewModel::class, error = rawConversation.error))
                             }
                             is Response.Success<RawConversation, GetMessagesError> -> {
+
+                                //Checking if our own messages were sent successfully
+                                val updatedMessages = if(rawConversation.data.hasPendingWrites){
+                                    var foundAllPendingWrites = false
+                                    rawConversation.data.messages.map { message ->
+                                        if(!foundAllPendingWrites && message.sender == authenticationContext.email && message.attributes.sendStatus == SendStatus.ONE_TICK){
+                                            message.copy(attributes = message.attributes.copy(sendStatus = SendStatus.LOADING))
+                                        } else {
+                                            foundAllPendingWrites = true
+                                            message
+                                        }
+                                    }
+                                } else {
+                                    rawConversation.data.messages
+                                }
+
                                 _conversation.update {
-                                    convertRawConversationToMessageCards(input = rawConversation.data)
+                                    convertRawConversationToMessageCards(input = rawConversation.data.copy(messages = updatedMessages))
                                 }
                             }
                         }

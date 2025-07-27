@@ -8,6 +8,7 @@ import com.malakiapps.whatsappclone.domain.common.loggerTag1
 import com.malakiapps.whatsappclone.domain.messages.ConversationBrief
 import com.malakiapps.whatsappclone.domain.messages.Message
 import com.malakiapps.whatsappclone.domain.messages.MessageAttributes
+import com.malakiapps.whatsappclone.domain.messages.MessageStatusUpdate
 import com.malakiapps.whatsappclone.domain.messages.MessageValue
 import com.malakiapps.whatsappclone.domain.messages.SendStatus
 import com.malakiapps.whatsappclone.domain.use_cases.GetConversationUseCase
@@ -81,10 +82,12 @@ class MessagesManager(
 
                 newValue.getOrNull()?.let { value ->
                     //Check for notifications
+                    val oneTickUpdates = mutableListOf<MessageStatusUpdate>()
                     value.forEach { brief ->
-                        if(authenticationContext.email != brief.sender && brief.sendStatus == SendStatus.ONE_TICK){
+                        //Check that its not me and it has one tick
+                        if(authenticationContext.email != brief.target && brief.sendStatus == SendStatus.ONE_TICK){
                             //If we're not in this conversation, send notification
-                            val sendStatus = if(brief.sender != currentOnConversation){
+                            val sendStatus = if(brief.target != currentOnConversation){
                                 _notificationChannel.trySend(brief)
                                 SendStatus.TWO_TICKS //Not in convo, heard the text but not open yet
                             } else {
@@ -92,10 +95,21 @@ class MessagesManager(
                                 _tonePlayerChannel.trySend(true)
                                 SendStatus.TWO_TICKS_READ //The message should be marked as read
                             }
-
-                            //Make update for readStatus
-                            updateMessagesUseCase.updateMessageSendStatus(authenticationContext = authenticationContext, messages = listOf(brief.sender to brief.messageId), sendStatus = sendStatus)
+                            oneTickUpdates.add(
+                                MessageStatusUpdate(
+                                    target = brief.target,
+                                    messageId = brief.messageId,
+                                    sendStatus = sendStatus,
+                                    hasNotificationCounter = sendStatus == SendStatus.TWO_TICKS
+                                )
+                            )
                         }
+                    }
+
+                    //Make update for readStatus
+                    if (oneTickUpdates.isNotEmpty()){
+                        //This one is mainly to let the secondary user know we have received their message
+                        updateMessagesUseCase.updateMessageSendStatus(authenticationContext = authenticationContext, messageStatusUpdate = oneTickUpdates)
                     }
 
 
@@ -115,7 +129,7 @@ class MessagesManager(
                     value = MessageValue(messageValue),
                     attributes = MessageAttributes(
                         updated = false,
-                        sendStatus = SendStatus.LOADING,
+                        sendStatus = if(currentOnConversation == authenticationContext.email) SendStatus.TWO_TICKS_READ else SendStatus.ONE_TICK,
                         isDeleted = false,
                         senderReaction = null,
                         receiverReaction = null

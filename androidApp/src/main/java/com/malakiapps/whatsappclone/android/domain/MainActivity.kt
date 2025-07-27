@@ -15,6 +15,7 @@ import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.domain.utils.compressImageToBase64
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.presentation.compose.ComposeApp
+import com.malakiapps.whatsappclone.domain.common.loggerTag1
 import com.malakiapps.whatsappclone.domain.managers.EventsManager
 import com.malakiapps.whatsappclone.presentation.view_models.MainViewModel
 import com.malakiapps.whatsappclone.presentation.view_modules.AuthenticationViewModel
@@ -94,7 +95,8 @@ class MainActivity : ComponentActivity() {
                         }
                     },
                     onShowNotification = { messageNotification ->
-                        TODO()
+                        loggerTag1.i { "We showing a notification of $messageNotification" }
+                        //TODO()
                     }
                 )
             }

@@ -10,6 +10,7 @@ import com.malakiapps.whatsappclone.domain.common.UserNotFound
 import com.malakiapps.whatsappclone.domain.common.getOrNull
 import com.malakiapps.whatsappclone.domain.common.getTodayLocalDate
 import com.malakiapps.whatsappclone.domain.common.loggerTag1
+import com.malakiapps.whatsappclone.domain.common.loggerTag2
 import com.malakiapps.whatsappclone.domain.managers.AuthenticationContextManager
 import com.malakiapps.whatsappclone.domain.managers.ContactsManager
 import com.malakiapps.whatsappclone.domain.managers.EventsManager
@@ -77,13 +78,14 @@ class DashboardViewModel(
                                         eventsManager.sendEvent(OnError(from = this@DashboardViewModel::class, error = UserNotFound))
                                         return@mapNotNull null
                                     }
+                                    loggerTag2.i { "Checking for contact from message listener" }
                                     val contactResult =
                                         contactsManager.getFriendsContacts(emails = conversations.data?.mapNotNull {
                                             //Remove the current user
-                                            if (it.sender == authenticationContext.email) {
+                                            if (it.target == authenticationContext.email) {
                                                 null
                                             } else {
-                                                it.sender
+                                                it.target
                                             }
                                         } ?: emptyList())
                                     when (contactResult) {
@@ -115,10 +117,10 @@ class DashboardViewModel(
                         _chatsScreenConversationRow.update {
                             messageMapper.messages?.map { conversationBrief ->
                                 val contactProfile =
-                                    contacts.find { it.email == conversationBrief.sender }
+                                    contacts.find { it.email == conversationBrief.target }
                                         ?: profileUser
                                 ChatsScreenConversationRow(
-                                    email = conversationBrief.sender,
+                                    email = conversationBrief.target,
                                     image = contactProfile.image,
                                     name = contactProfile.name,
                                     lastMessage = conversationBrief.value,
@@ -126,7 +128,7 @@ class DashboardViewModel(
                                     time = conversationBrief.time.getTimeValue(
                                         today = today
                                     ),
-                                    isMyMessage = conversationBrief.sender == contactProfile.email,
+                                    isMyMessage = (conversationBrief.sender != conversationBrief.target || conversationBrief.isSelfMessage),
                                     sendStatus = conversationBrief.sendStatus
                                 )
                             }

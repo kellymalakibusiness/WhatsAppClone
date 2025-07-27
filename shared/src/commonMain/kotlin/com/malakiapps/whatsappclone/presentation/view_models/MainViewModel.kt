@@ -7,12 +7,12 @@ import com.malakiapps.whatsappclone.domain.common.Error
 import com.malakiapps.whatsappclone.domain.common.LoadingEvent
 import com.malakiapps.whatsappclone.domain.common.NavigateToLogin
 import com.malakiapps.whatsappclone.domain.common.OnError
-import com.malakiapps.whatsappclone.domain.common.PlayMessageTone
 import com.malakiapps.whatsappclone.domain.common.Response
 import com.malakiapps.whatsappclone.domain.common.ShowNotification
 import com.malakiapps.whatsappclone.domain.common.UserNotFound
 import com.malakiapps.whatsappclone.domain.common.getOrNull
 import com.malakiapps.whatsappclone.domain.common.loggerTag1
+import com.malakiapps.whatsappclone.domain.common.loggerTag2
 import com.malakiapps.whatsappclone.domain.managers.AuthenticationContextManager
 import com.malakiapps.whatsappclone.domain.managers.ContactsManager
 import com.malakiapps.whatsappclone.domain.managers.EventsManager
@@ -26,9 +26,13 @@ import com.malakiapps.whatsappclone.domain.user.Profile
 import com.malakiapps.whatsappclone.domain.user.StateValue
 import com.malakiapps.whatsappclone.domain.user.UserDetails
 import com.malakiapps.whatsappclone.domain.user.UserState
+import com.malakiapps.whatsappclone.domain.user.getOrNull
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.mapNotNull
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
@@ -42,35 +46,42 @@ class MainViewModel(
     authenticationContextManager: AuthenticationContextManager,
 ): ViewModel() {
 
+    private val _authenticationContextState: StateFlow<UserState<AuthenticationContext?>> = authenticationContextManager.authenticationContextState
+
     init {
         viewModelScope.launch {
-            //Check for notifications
-            messagesManager.listenForNotifications().collect {
-                val contact = contactsManager.getFriendsContacts(listOf(it.sender)).getOrNull()?.firstOrNull() ?: run {
-                    eventsManager.sendEvent(OnError(from = this@MainViewModel::class, error = UserNotFound))
-                    null
-                }
-                val showNotification = ShowNotification(
-                    messageNotification = MessageNotification(
-                        targetImage = contact?.image,
-                        messageId = it.messageId,
-                        senderEmail = it.sender,
-                        name = contact?.name ?: Name(""),
-                        message = it.value
+            userManager
+                .userDetailsState
+                .filter { it is StateValue }
+                .flatMapLatest { userDetailsState ->
+                    messagesManager.listenForNotifications().mapNotNull { conversationBrief ->
+                        userDetailsState.getOrNull()?.let {
+                            it to conversationBrief
+                        }
+                    }
+                }.collect { input ->
+                    val userDetails = input.first
+                    val conversationBrief = input.second
+
+                    loggerTag2.i { "Checking for contact from notification listener. with context $userDetails" }
+                    val contact = contactsManager.getFriendsContacts(listOf(conversationBrief.target)).getOrNull()?.firstOrNull() ?: run {
+                        loggerTag2.i { "We on checking for notifications and failed to get contact of ${conversationBrief.target.value}"}
+                        eventsManager.sendEvent(OnError(from = this@MainViewModel::class, error = UserNotFound))
+                        null
+                    }
+                    val showNotification = ShowNotification(
+                        messageNotification = MessageNotification(
+                            targetImage = contact?.image,
+                            messageId = conversationBrief.messageId,
+                            senderEmail = conversationBrief.sender,
+                            name = contact?.name ?: Name(""),
+                            message = conversationBrief.value
+                        )
                     )
-                )
-                eventsManager.sendEvent(showNotification)
-            }
-        }
-        viewModelScope.launch {
-            //Check for tone plays
-            messagesManager.listenForTonePlayer().collect {
-                eventsManager.sendEvent(PlayMessageTone)
-            }
+                    eventsManager.sendEvent(showNotification)
+                }
         }
     }
-
-    private val _authenticationContextState: StateFlow<UserState<AuthenticationContext?>> = authenticationContextManager.authenticationContextState
 
     val selfProfileState: StateFlow<Profile?> = userManager.userProfileState.map { userState ->
         if(userState is StateValue<Profile?>){

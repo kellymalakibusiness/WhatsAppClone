@@ -23,7 +23,7 @@ expect interface MessagesRepository {
 
     suspend fun updateMessage(updateMessage: UpdateMessage): Response<Unit, UpdateMessageError>
 
-    suspend fun updateMessagesReadStatus(receiver: Email, messageIds: List<Pair<Email, MessageId>>, sendStatus: SendStatus): Response<Unit, UpdateMessageError>
+    suspend fun updateMessagesReadStatus(receiver: Email, messageStatusUpdate: List<MessageStatusUpdate>): Response<Unit, UpdateMessageError>
 
     suspend fun deleteMessages(
         owner: Email,

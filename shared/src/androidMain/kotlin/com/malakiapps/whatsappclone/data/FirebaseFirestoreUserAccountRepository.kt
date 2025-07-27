@@ -144,7 +144,7 @@ class FirebaseFirestoreUserAccountRepository : AuthenticatedUserAccountRepositor
             val updateMap = userDetailsUpdate.toUpdateUserDetailsHashMap()
 
             getUserDetailsReference(email = userDetailsUpdate.email)
-                .update(updateMap)
+                .set(updateMap, SetOptions.merge())
                 .addOnCompleteListener {
                     cont.resume(Response.Success(Unit), null)
                 }

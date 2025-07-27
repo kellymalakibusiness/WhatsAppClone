@@ -75,7 +75,8 @@ fun Module.androidModules(appBuildMode: AppBuildMode){
             targetEmail = userEmail,
             authenticationContextManager = get(),
             getConversationUseCase = get(),
-            eventsManager = get()
+            eventsManager = get(),
+            updateMessagesUseCase = get()
         )
     }
 }

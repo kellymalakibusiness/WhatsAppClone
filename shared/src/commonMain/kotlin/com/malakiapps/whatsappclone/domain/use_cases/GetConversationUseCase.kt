@@ -30,12 +30,14 @@ class GetConversationUseCase(
                         if (response.data.messages.isNotEmpty()){
                             val message = response.data.messages.first()
                             val conversationBrief = ConversationBrief(
+                                target = ANONYMOUS_EMAIL,
                                 newMessageCount = 0,
                                 messageId = message.messageId,
                                 sender = ANONYMOUS_EMAIL,
                                 value = message.value,
                                 sendStatus = message.attributes.sendStatus,
-                                time = message.time
+                                time = message.time,
+                                isSelfMessage = true
                             )
 
                             Response.Success(listOf(conversationBrief))

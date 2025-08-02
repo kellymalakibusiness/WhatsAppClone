@@ -3,6 +3,9 @@ package com.malakiapps.whatsappclone.data
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldValue
 import com.google.firebase.firestore.FirebaseFirestoreException
+import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.MetadataChanges
+import com.google.firebase.firestore.PersistentCacheSettings
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.SetOptions
 import com.google.firebase.firestore.ktx.firestore
@@ -27,6 +30,8 @@ import com.malakiapps.whatsappclone.domain.common.SendMessagesError
 import com.malakiapps.whatsappclone.domain.common.UnknownError
 import com.malakiapps.whatsappclone.domain.common.UpdateMessageError
 import com.malakiapps.whatsappclone.domain.common.getOrNull
+import com.malakiapps.whatsappclone.domain.common.getTodayLocalDateTime
+import com.malakiapps.whatsappclone.domain.common.loggerTag1
 import com.malakiapps.whatsappclone.domain.messages.ChangeMessageBody
 import com.malakiapps.whatsappclone.domain.messages.ConversationBrief
 import com.malakiapps.whatsappclone.domain.messages.DeleteMessageForBoth
@@ -50,6 +55,18 @@ import kotlinx.coroutines.tasks.await
 
 class FirebaseFirestoreMessagesRepository : MessagesRepository {
     private val firestore = Firebase.firestore
+
+    init {
+        //Make the cache size unlimited
+        val settings = FirebaseFirestoreSettings.Builder()
+            .setLocalCacheSettings(
+                PersistentCacheSettings.newBuilder()
+                    .setSizeBytes(FirebaseFirestoreSettings.CACHE_SIZE_UNLIMITED)
+                    .build()
+            )
+            .build()
+        firestore.firestoreSettings = settings
+    }
 
 
     override suspend fun getAllActiveConversations(owner: Email): Response<List<ConversationBrief>, GetMessagesError> {
@@ -114,7 +131,7 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
                 .getConversationReference(owner = owner, target = target)
                 .orderBy(MessageAttributeKeys.TIME.value, Query.Direction.DESCENDING)
                 .limit(limit.toLong())
-                .addSnapshotListener { snapshotResponse, error ->
+                .addSnapshotListener(MetadataChanges.INCLUDE) { snapshotResponse, error ->
                     if(error != null){
                         trySend(Response.Failure(UnknownError(error)))
                     }
@@ -138,7 +155,7 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
                 .getContactReference(email = owner)
                 .collection(MESSAGES_COLLECTION_NAME)
                 .orderBy(ConversationBriefAttributeKeys.TIME.value, Query.Direction.DESCENDING)
-                .addSnapshotListener { snapShotResponse, error ->
+                .addSnapshotListener(MetadataChanges.INCLUDE) { snapShotResponse, error ->
                     if(error != null){
                         trySend(Response.Failure(UnknownError(error)))
                     }
@@ -386,13 +403,12 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
 
     private fun DocumentSnapshot.toMessage(): Response<Message, GetMessagesError> {
         return data.let { document ->
-
             val message = Message(
                 messageId = document?.get(MessageAttributeKeys.MESSAGE_ID.value).toMessageId() ?: return MessageAttributeKeys.MESSAGE_ID.toParsingError(),
                 sender = document?.get(MessageAttributeKeys.SENDER.value).toEmail() ?: return MessageAttributeKeys.SENDER.toParsingError(),
                 receiver = document?.get(MessageAttributeKeys.RECEIVER.value).toEmail() ?: return MessageAttributeKeys.RECEIVER.toParsingError(),
                 value = document?.get(MessageAttributeKeys.VALUE.value).toMessageValue() ?: return MessageAttributeKeys.VALUE.toParsingError(),
-                time = document?.get(MessageAttributeKeys.TIME.value).toLocalDateTime() ?: return MessageAttributeKeys.TIME.toParsingError(),
+                time = document?.get(MessageAttributeKeys.TIME.value).toLocalDateTime() ?: getTodayLocalDateTime(),
                 attributes = (document?.get(MessageAttributeKeys.MESSAGE_ATTRIBUTES.value) as? Map<String, Any>)?.toMessageAttributes() ?: MessageAttributes.generateDefaultMessageAttributes(),
             )
 
@@ -434,7 +450,7 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
                 sender = document[ConversationBriefAttributeKeys.SENDER_EMAIL.value].toEmail() ?: return ConversationBriefAttributeKeys.SENDER_EMAIL.toParsingError(),
                 value = document[ConversationBriefAttributeKeys.MESSAGE_VALUE.value].toMessageValue() ?: return ConversationBriefAttributeKeys.MESSAGE_VALUE.toParsingError(),
                 sendStatus = document[ConversationBriefAttributeKeys.VIEW_STATUS.value].toSendStatus() ?: return ConversationBriefAttributeKeys.VIEW_STATUS.toParsingError(),
-                time =document[ConversationBriefAttributeKeys.TIME.value].toLocalDateTime() ?: return ConversationBriefAttributeKeys.TIME.toParsingError(),
+                time = document[ConversationBriefAttributeKeys.TIME.value].toLocalDateTime() ?: getTodayLocalDateTime(),
                 isSelfMessage = target == owner
             )
 

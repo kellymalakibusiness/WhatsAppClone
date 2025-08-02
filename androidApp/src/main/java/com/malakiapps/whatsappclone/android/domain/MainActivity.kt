@@ -1,8 +1,7 @@
 package com.malakiapps.whatsappclone.android.domain
 
-import android.media.AudioAttributes
 import android.media.AudioManager
-import android.media.SoundPool
+import android.media.MediaPlayer
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,7 +14,6 @@ import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.domain.utils.compressImageToBase64
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.presentation.compose.ComposeApp
-import com.malakiapps.whatsappclone.domain.common.loggerTag1
 import com.malakiapps.whatsappclone.domain.managers.EventsManager
 import com.malakiapps.whatsappclone.presentation.view_models.MainViewModel
 import com.malakiapps.whatsappclone.presentation.view_modules.AuthenticationViewModel
@@ -23,26 +21,16 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import org.koin.compose.koinInject
 
 class MainActivity : ComponentActivity() {
-    private lateinit var soundPool: SoundPool
-    private var soundId: Int = 0
+    private lateinit var mediaPlayer: MediaPlayer
+    private lateinit var messagesNotifications: MessagesNotifications
     private lateinit var audioManager: AudioManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        mediaPlayer = MediaPlayer.create(this, R.raw.conversation_tone)
 
         audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
-
-        val audioAttributes = AudioAttributes.Builder()
-            .setUsage(AudioAttributes.USAGE_GAME)
-            .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-            .build()
-
-        soundPool = SoundPool.Builder()
-            .setMaxStreams(1)
-            .setAudioAttributes(audioAttributes)
-            .build()
-
-        soundId = soundPool.load(this, R.raw.conversation_tone, 1)
+        messagesNotifications = MessagesNotifications(this)
 
         setContent {
             FakeWhatsAppTheme {
@@ -89,14 +77,12 @@ class MainActivity : ComponentActivity() {
                     },
                     onPlayMessageTone = {
                         if (!isDeviceInSilentMode()) {
-                            soundPool.setOnLoadCompleteListener { _, _, _ ->
-                                soundPool.play(soundId, 1f, 1f, 0, 0, 1f)
-                            }
+                        mediaPlayer.seekTo(0)
+                        mediaPlayer.start()
                         }
                     },
                     onShowNotification = { messageNotification ->
-                        loggerTag1.i { "We showing a notification of $messageNotification" }
-                        //TODO()
+                        messagesNotifications.showNotification(messageNotification = messageNotification)
                     }
                 )
             }
@@ -105,7 +91,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        soundPool.release()
+        mediaPlayer.release()
     }
 
     private fun isDeviceInSilentMode(): Boolean {

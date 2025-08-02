@@ -83,22 +83,26 @@ class AuthenticationViewModel(
     fun fromAnonymousToLinkWithGoogle(context: Context){
         viewModelScope.launch {
             eventsManager.sendEvent(LoadingEvent(true))
-            val credentialResponse = buildSignInCredentialManager(context)
-            val response = credentialResponse.handleUpgradeToGoogleFromAnonymous()
 
-            //React to the result from use case
-            when(response){
-                is Response.Failure<SignInResponse, AuthenticationError> -> {
-                    eventsManager.sendEvent(
-                        OnError(from = this@AuthenticationViewModel::class, error = response.error)
-                    )
+            try {
+                val credentialResponse = buildSignInCredentialManager(context)
+                val response = credentialResponse.handleUpgradeToGoogleFromAnonymous()
+
+                //React to the result from use case
+                when(response){
+                    is Response.Failure<SignInResponse, AuthenticationError> -> {
+                        eventsManager.sendEvent(
+                            OnError(from = this@AuthenticationViewModel::class, error = response.error)
+                        )
+                    }
+                    is Response.Success<SignInResponse, AuthenticationError> -> {
+                        //Do our migration of the account
+                        userManager.updateUserFromAnonymousAccount(response.data)
+                        //Go back to the dashboard
+                        eventsManager.sendEvent(GoBackToDashboard)
+                    }
                 }
-                is Response.Success<SignInResponse, AuthenticationError> -> {
-                    //Do our migration of the account
-                    userManager.updateUserFromAnonymousAccount(response.data)
-                    //Go back to the dashboard
-                    eventsManager.sendEvent(GoBackToDashboard)
-                }
+            } catch (e: GetCredentialCancellationException){
             }
             eventsManager.sendEvent(LoadingEvent(false))
         }
@@ -212,7 +216,6 @@ class AuthenticationViewModel(
                     )
                 } ?: Response.Failure(AuthenticationUserNotFound)
             } catch (e: GoogleIdTokenParsingException) {
-                Logger.i { "Failed with the error $e"}
                 return Response.Failure(AuthenticationException(e.message ?: "Unknown error"))
             }
         } else {

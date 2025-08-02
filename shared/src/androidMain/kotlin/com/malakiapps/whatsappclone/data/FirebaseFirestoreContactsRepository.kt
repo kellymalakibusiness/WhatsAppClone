@@ -3,6 +3,8 @@ package com.malakiapps.whatsappclone.data
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.firestore.PersistentCacheSettings
 import com.google.firebase.firestore.ktx.firestore
 import com.google.firebase.ktx.Firebase
 import com.malakiapps.whatsappclone.data.common.getContactReference
@@ -25,6 +27,18 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 
 class FirebaseFirestoreContactsRepository : ContactsRepository {
     private val firestore = Firebase.firestore
+
+    init {
+        //Make the cache size unlimited
+        val settings = FirebaseFirestoreSettings.Builder()
+            .setLocalCacheSettings(
+                PersistentCacheSettings.newBuilder()
+                    .setSizeBytes(FirebaseFirestoreSettings.CACHE_SIZE_UNLIMITED)
+                    .build()
+            )
+            .build()
+        firestore.firestoreSettings = settings
+    }
 
     @OptIn(ExperimentalCoroutinesApi::class)
     override suspend fun getContacts(emails: List<Email>): Response<List<Response<Profile, GetUserError>>, QueryContactsError> {

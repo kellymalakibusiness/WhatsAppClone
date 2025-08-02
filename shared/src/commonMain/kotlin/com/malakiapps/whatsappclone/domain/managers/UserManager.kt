@@ -101,9 +101,12 @@ class UserManager(
 
     suspend fun updateUserFromAnonymousAccount(signInResponse: SignInResponse) {
         val response = migrateToGoogleAccountUseCase.invoke(signInResponse)
+
         response.getOrNull()?.let { profile ->
             _selfProfileState.update { StateValue(profile) }
         }
+
+        authenticationContextManager.updateAuthentication(signInResponse.authenticationContext)
     }
 
     suspend fun updateUserContact(nameUpdate: ElementUpdateState<Name> = None, aboutUpdate: ElementUpdateState<About> = None, imageUpdate: ElementUpdateState<Image?> = None): Response<Profile, Error> {

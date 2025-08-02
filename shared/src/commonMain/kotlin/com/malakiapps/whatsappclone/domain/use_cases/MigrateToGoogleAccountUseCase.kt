@@ -51,10 +51,15 @@ class MigrateToGoogleAccountUseCase(
 
             //UPDATE THE NEW ACCOUNT WITH THE ANONYMOUS SETTINGS
             val anonymousUserAccount = anonymousUserAccountRepository.getContact(ANONYMOUS_EMAIL).getOrNull()
+            val name = if(anonymousUserAccount?.name?.value?.isNotEmpty() == true){
+                anonymousUserAccount.name
+            } else {
+                signInResponse.authenticationContext.name
+            }
             val result = userAccountRepository.upgradeContactFromAnonymous(
                 userContactUpdate = UserContactUpdate(
                     email = availableEmail,
-                    name = anonymousUserAccount?.name?.let { Some(it) } ?: None,
+                    name = Some(name),
                     about = anonymousUserAccount?.about?.let { Some(it) } ?: None,
                     image = (anonymousUserAccount?.image ?: signInResponse.initialBase64ProfileImage)?.let { Some(it) } ?: None
                 )

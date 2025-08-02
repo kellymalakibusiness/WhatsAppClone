@@ -36,6 +36,10 @@ class AuthenticationContextManager(
         }
     }
 
+    fun updateAuthentication(newAuth: AuthenticationContext){
+        _authenticationContextState.update { StateValue(newAuth) }
+    }
+
     private fun getAuthContext(): Response<AuthenticationContext, AuthenticationError> {
         return authenticationRepository.getAuthContext()?.let {
             Response.Success(it)

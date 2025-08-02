@@ -27,6 +27,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
+import com.malakiapps.whatsappclone.domain.common.loggerTag1
 import com.malakiapps.whatsappclone.domain.messages.MessageId
 import com.malakiapps.whatsappclone.domain.messages.MessageValue
 import com.malakiapps.whatsappclone.domain.messages.SendStatus
@@ -76,7 +77,7 @@ fun ConversationScreen(target: Profile?, messages: List<MessageCard>?, onBackPre
                     .imePadding()
             ){
                 val listState = rememberLazyListState()
-                LaunchedEffect(messages?.size) {
+                LaunchedEffect(messages?.firstOrNull()) {
                     if (messages != null && messages.isNotEmpty()) {
                         listState.scrollToItem(0)
                     }

@@ -29,8 +29,8 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.android.R
+import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -158,6 +158,7 @@ fun MessageTextField(messageValue: String, onMessageChange: (String)-> Unit, onR
 private fun MessageTextFieldPrev() {
     FakeWhatsAppTheme {
         Surface(
+            color = MaterialTheme.colorScheme.background
         ) {
             MessageTextField(
                 modifier = Modifier.padding(8.dp),

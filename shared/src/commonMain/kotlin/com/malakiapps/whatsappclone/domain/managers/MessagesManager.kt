@@ -7,6 +7,7 @@ import com.malakiapps.whatsappclone.domain.common.getTodayLocalDateTime
 import com.malakiapps.whatsappclone.domain.messages.ConversationBrief
 import com.malakiapps.whatsappclone.domain.messages.Message
 import com.malakiapps.whatsappclone.domain.messages.MessageAttributes
+import com.malakiapps.whatsappclone.domain.messages.MessageId
 import com.malakiapps.whatsappclone.domain.messages.MessageStatusUpdate
 import com.malakiapps.whatsappclone.domain.messages.MessageValue
 import com.malakiapps.whatsappclone.domain.messages.SendStatus
@@ -134,6 +135,14 @@ class MessagesManager(
                     )
                 )
                 sendMessageUseCase.invoke(authenticationContext, message)
+            }
+        }
+    }
+
+    fun sendReaction(messageId: MessageId, reaction: String, isSender: Boolean, targetEmail: Email){
+        scope.launch {
+            getAuthenticationContext()?.let { authenticationContext ->
+                updateMessagesUseCase.updateMessageReaction(authenticationContext, messageId, reaction, isSender, targetEmail)
             }
         }
     }

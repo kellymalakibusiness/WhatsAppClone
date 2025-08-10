@@ -41,7 +41,7 @@ import com.malakiapps.whatsappclone.domain.user.Profile
 import com.malakiapps.whatsappclone.domain.user.TimeValue
 
 @Composable
-fun ConversationScreen(target: Profile?, messages: List<MessageCard>?, onBackPress: () -> Unit, onSendMessage: (String) -> Unit, onProfileClick: () -> Unit, onSendReaction: (String, MessageId) -> Unit, modifier: Modifier = Modifier) {
+fun ConversationScreen(target: Profile?, messages: List<MessageCard>?, onBackPress: () -> Unit, onSendMessage: (String) -> Unit, onProfileClick: () -> Unit, onSendReaction: (String, MessageId, Boolean) -> Unit, modifier: Modifier = Modifier) {
     var messageText by remember {
         mutableStateOf("")
     }
@@ -98,12 +98,15 @@ fun ConversationScreen(target: Profile?, messages: List<MessageCard>?, onBackPre
                                     if(card.messageType == MessageType.RECEIVED){
                                         ReceivedMessageBubble(
                                             conversationMessage = card,
+                                            onSendReaction = { reaction, messageId ->
+                                                onSendReaction(reaction, messageId, false)
+                                            }
                                         )
                                     } else {
                                         SentMessageBubble(
                                             conversationMessage = card,
                                             onSendReaction = { reaction, messageId ->
-                                                onSendReaction(reaction, messageId)
+                                                onSendReaction(reaction, messageId, true)
                                             }
                                         )
                                     }
@@ -192,7 +195,7 @@ private fun ConversationScreenPrev() {
             onBackPress = {},
             onProfileClick = {},
             onSendMessage = {},
-            onSendReaction = {_, _ ->},
+            onSendReaction = {_, _, _ ->},
             target = Profile(
                 name = Name("Kevin Durant"),
                 about = About(""),

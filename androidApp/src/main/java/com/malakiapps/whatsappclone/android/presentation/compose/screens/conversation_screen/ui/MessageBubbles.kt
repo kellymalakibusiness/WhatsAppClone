@@ -55,90 +55,169 @@ import com.malakiapps.whatsappclone.domain.screens.TimeCard
 import com.malakiapps.whatsappclone.domain.user.TimeValue
 
 @Composable
-fun ReceivedMessageBubble(conversationMessage: ConversationMessage, modifier: Modifier = Modifier) {
+fun ReceivedMessageBubble(conversationMessage: ConversationMessage, onSendReaction: (String, MessageId) -> Unit, modifier: Modifier = Modifier) {
     var messageBottomPadding by remember { mutableStateOf(0.dp) }
+    val density = LocalDensity.current
+    var showReactions by remember { mutableStateOf(false) }
     val ninetyPercentOfScreen = (LocalConfiguration.current.screenWidthDp * 0.9f).dp
+    var onPressFocus by remember { mutableStateOf(false) }
     val bubbleShape = if (conversationMessage.isStartOfReply) {
         ReceivedMessageShape()
     } else {
         RoundedCornerShape(8.dp)
     }
+    var messageHeight by remember { mutableStateOf(0) }
     val sizedModifier = modifier.requiredSizeIn(
         minWidth = 120.dp,
         maxWidth = ninetyPercentOfScreen,
         minHeight = 40.dp,
         maxHeight = Dp.Infinity
-    )
+    ).pointerInput(conversationMessage.isSelected) {
+            if (!conversationMessage.isSelected) {
+                detectTapGestures(
+                    onLongPress = {
+                        showReactions = true
+                    },
+                    onPress = {
+                        onPressFocus = true
+                        tryAwaitRelease()
+                        onPressFocus = false
+                    }
+                )
+            }
+        }
 
     Box(
         modifier = Modifier.fillMaxWidth()
     ) {
-        Surface(
-            shape = bubbleShape,
-            tonalElevation = 16.dp,
-            shadowElevation = 0.8.dp,
-            color = MaterialTheme.colorScheme.background,
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .padding(
-                    bottom = if (conversationMessage.previousMessageType != MessageType.RECEIVED) {
-                        8.dp
-                    } else {
-                        2.dp
-                    },
-                    start = if (conversationMessage.isStartOfReply) {
-                        0.dp
-                    } else {
-                        8.dp
+        Box {
+            Surface(
+                shape = bubbleShape,
+                tonalElevation = 16.dp,
+                shadowElevation = 0.8.dp,
+                color = MaterialTheme.colorScheme.background,
+                modifier = Modifier
+                    .padding(horizontal = 8.dp)
+                    .padding(
+                        bottom = if (conversationMessage.previousMessageType != MessageType.RECEIVED) {
+                            8.dp
+                        } else {
+                            2.dp
+                        },
+                        start = if (conversationMessage.isStartOfReply) {
+                            0.dp
+                        } else {
+                            8.dp
+                        }
+                    )
+                    .onGloballyPositioned { coordinates ->
+                        messageHeight = coordinates.size.height
                     }
-                )
-        ) {
-            Box(
-                modifier = sizedModifier.padding(
-                    start = if (conversationMessage.isStartOfReply) {
-                        8.dp
-                    } else {
-                        0.dp
-                    }
-                )
             ) {
-                val rect1 = remember { mutableStateOf<Rect?>(null) }
-                val rect2 = remember { mutableStateOf<Rect?>(null) }
-                val messageStartPadding = if (conversationMessage.isStartOfReply) {
-                    22.dp
-                } else {
-                    14.dp
+                Box(
+                    modifier = sizedModifier.padding(
+                        start = if (conversationMessage.isStartOfReply) {
+                            8.dp
+                        } else {
+                            0.dp
+                        }
+                    )
+                ) {
+                    val rect1 = remember { mutableStateOf<Rect?>(null) }
+                    val rect2 = remember { mutableStateOf<Rect?>(null) }
+                    val messageStartPadding = if (conversationMessage.isStartOfReply) {
+                        22.dp
+                    } else {
+                        14.dp
+                    }
+                    if(onPressFocus){
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f))
+                        )
+                    }
+                    Text(
+                        text = conversationMessage.message.value,
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier
+                            .padding(bottom = messageBottomPadding)
+                            .padding(
+                                start = messageStartPadding,
+                                top = 8.dp,
+                                end = 8.dp,
+                                bottom = 8.dp
+                            )
+                            .onGloballyPositioned(onGloballyPositioned = {
+                                rect1.value = it.boundsInWindow()
+                            })
+                    )
+
+
+                    Text(
+                        text = conversationMessage.time.value,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(end = 8.dp, bottom = 4.dp)
+                            .onGloballyPositioned(onGloballyPositioned = {
+                                rect2.value = it.boundsInWindow()
+                            }),
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+
+                    LaunchedEffect(rect1.value, rect2.value) {
+                        val r1 = rect1.value
+                        val r2 = rect2.value
+                        if (r1 != null && r2 != null && r1.overlaps(r2)) {
+                            //Now check if we're in the second or more row
+                            messageBottomPadding += 12.dp
+                        }
+                    }
                 }
-                Text(
-                    text = conversationMessage.message.value,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier
-                        .padding(bottom = messageBottomPadding)
-                        .padding(start = messageStartPadding, top = 8.dp, end = 8.dp, bottom = 8.dp)
-                        .onGloballyPositioned(onGloballyPositioned = {
-                            rect1.value = it.boundsInWindow()
-                        })
-                )
-
-
-                Text(
-                    text = conversationMessage.time.value,
+            }
+            if(conversationMessage.senderReaction != null || conversationMessage.receiverReaction != null){
+                Surface(
+                    shape = CircleShape,
+                    tonalElevation = 16.dp,
+                    shadowElevation = 0.8.dp,
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .padding(end = 8.dp, bottom = 4.dp)
-                        .onGloballyPositioned(onGloballyPositioned = {
-                            rect2.value = it.boundsInWindow()
-                        }),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-
-                LaunchedEffect(rect1.value, rect2.value) {
-                    val r1 = rect1.value
-                    val r2 = rect2.value
-                    if (r1 != null && r2 != null && r1.overlaps(r2)) {
-                        //Now check if we're in the second or more row
-                        messageBottomPadding += 12.dp
+                        .padding(
+                            end = 16.dp,
+                            top = (with(density) {
+                                messageHeight.toDp() +
+                                        if(messageBottomPadding.value > 0){
+                                            16.dp - messageBottomPadding
+                                        } else {
+                                            (-4).dp
+                                        }
+                                                }).coerceAtLeast(0.dp),
+                            bottom = 8.dp),
+                ){
+                    Row(
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    ) {
+                        conversationMessage.senderReaction?.let { availableReaction ->
+                            Text(
+                                availableReaction,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                        conversationMessage.receiverReaction?.let { availableReaction ->
+                            if(conversationMessage.senderReaction != availableReaction){
+                                Text(
+                                    availableReaction,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+                        }
+                        if (conversationMessage.senderReaction != null && conversationMessage.receiverReaction != null) {
+                            Text(
+                                "2",
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
                     }
                 }
             }
@@ -148,6 +227,21 @@ fun ReceivedMessageBubble(conversationMessage: ConversationMessage, modifier: Mo
                 modifier = Modifier
                     .matchParentSize()
                     .background(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+            )
+        }
+
+        if(showReactions){
+            ReactionsRow(
+                messageId = conversationMessage.messageId,
+                activeReaction = conversationMessage.receiverReaction,
+                onSendReaction = { reaction, messageId ->
+                    onSendReaction(reaction, messageId)
+                    showReactions = false
+                },
+                density = density,
+                onDismissRequest = {
+                    showReactions = false
+                }
             )
         }
     }
@@ -166,6 +260,7 @@ fun SentMessageBubble(conversationMessage: ConversationMessage, onSendReaction: 
     } else {
         RoundedCornerShape(8.dp)
     }
+    var messageHeight by remember { mutableStateOf(0) }
     val sizedModifier = modifier
         .requiredSizeIn(
             minWidth = 120.dp,
@@ -204,100 +299,150 @@ fun SentMessageBubble(conversationMessage: ConversationMessage, onSendReaction: 
                 )
         ) {
             Spacer(Modifier.weight(1f))
-            Surface(
-                shape = bubbleShape,
-                tonalElevation = 16.dp,
-                shadowElevation = 0.8.dp,
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.padding(
-                    end = if (conversationMessage.isStartOfReply) {
-                        0.dp
-                    } else {
-                        8.dp
-                    }
-                )
-            ) {
-                Box(
-                    modifier = sizedModifier
-                ) {
-                    val rect1 = remember { mutableStateOf<Rect?>(null) }
-                    val rect2 = remember { mutableStateOf<Rect?>(null) }
-                    val messageEndPadding = if (conversationMessage.isStartOfReply) {
-                        14.dp
-                    } else {
-                        22.dp
-                    }
-                    if(onPressFocus){
-                        Box(
-                            modifier = Modifier
-                                .matchParentSize()
-                                .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f))
+            Box {
+                Surface(
+                    shape = bubbleShape,
+                    tonalElevation = 16.dp,
+                    shadowElevation = 0.8.dp,
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    modifier = Modifier
+                        .padding(
+                            end = if (conversationMessage.isStartOfReply) {
+                                0.dp
+                            } else {
+                                8.dp
+                            }
                         )
-                    }
-                    Text(
-                        text = conversationMessage.message.value,
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier
-                            .padding(bottom = messageBottomPadding)
-                            .padding(
-                                end = messageEndPadding,
-                                top = 8.dp,
-                                start = 8.dp,
-                                bottom = 8.dp
+                        .onGloballyPositioned { coordinates ->
+                            messageHeight = coordinates.size.height
+                        }
+                ) {
+                    Box(
+                        modifier = sizedModifier
+                    ) {
+                        val rect1 = remember { mutableStateOf<Rect?>(null) }
+                        val rect2 = remember { mutableStateOf<Rect?>(null) }
+                        val messageEndPadding = if (conversationMessage.isStartOfReply) {
+                            14.dp
+                        } else {
+                            22.dp
+                        }
+                        if(onPressFocus){
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f))
                             )
-                            .onGloballyPositioned(onGloballyPositioned = {
-                                rect1.value = it.boundsInWindow()
-                            })
-                    )
+                        }
+                        Text(
+                            text = conversationMessage.message.value,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier
+                                .padding(bottom = messageBottomPadding)
+                                .padding(
+                                    end = messageEndPadding,
+                                    top = 8.dp,
+                                    start = 8.dp,
+                                    bottom = 8.dp
+                                )
+                                .onGloballyPositioned(onGloballyPositioned = {
+                                    rect1.value = it.boundsInWindow()
+                                })
+                        )
 
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        verticalAlignment = Alignment.CenterVertically,
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
 
+                            modifier = Modifier
+                                .align(Alignment.BottomEnd)
+                                .padding(
+                                    end = if (conversationMessage.isStartOfReply) {
+                                        16.dp
+                                    } else {
+                                        8.dp
+                                    }, bottom = 4.dp
+                                )
+                                .onGloballyPositioned(onGloballyPositioned = {
+                                    rect2.value = it.boundsInWindow()
+                                })
+                        ) {
+                            Text(
+                                text = conversationMessage.time.value,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                            Icon(
+                                painter = painterResource(
+                                    when (conversationMessage.sendStatus) {
+                                        SendStatus.LOADING -> R.drawable.loading_icon
+                                        SendStatus.ONE_TICK -> R.drawable.outline_check_24
+                                        SendStatus.TWO_TICKS -> R.drawable.double_tick_icon
+                                        SendStatus.TWO_TICKS_READ -> R.drawable.blue_double_tick_icon
+                                    }
+                                ),
+                                modifier = Modifier.size(18.dp),
+                                contentDescription = null,
+                                tint = if (conversationMessage.sendStatus == SendStatus.TWO_TICKS_READ) {
+                                    Color(0xff4097e7)
+                                } else {
+                                    MaterialTheme.colorScheme.secondary
+                                }
+                            )
+                        }
+
+                        LaunchedEffect(rect1.value, rect2.value) {
+                            val r1 = rect1.value
+                            val r2 = rect2.value
+                            if (r1 != null && r2 != null && r1.overlaps(r2)) {
+                                //Now check if we're in the second or more row
+                                messageBottomPadding += 12.dp
+                            }
+                        }
+                    }
+                }
+                if(conversationMessage.senderReaction != null || conversationMessage.receiverReaction != null){
+                    Surface(
+                        shape = CircleShape,
+                        tonalElevation = 16.dp,
+                        shadowElevation = 0.8.dp,
                         modifier = Modifier
                             .align(Alignment.BottomEnd)
                             .padding(
-                                end = if (conversationMessage.isStartOfReply) {
-                                    16.dp
-                                } else {
-                                    8.dp
-                                }, bottom = 4.dp
-                            )
-                            .onGloballyPositioned(onGloballyPositioned = {
-                                rect2.value = it.boundsInWindow()
-                            })
-                    ) {
-                        Text(
-                            text = conversationMessage.time.value,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                        Icon(
-                            painter = painterResource(
-                                when (conversationMessage.sendStatus) {
-                                    SendStatus.LOADING -> R.drawable.loading_icon
-                                    SendStatus.ONE_TICK -> R.drawable.outline_check_24
-                                    SendStatus.TWO_TICKS -> R.drawable.double_tick_icon
-                                    SendStatus.TWO_TICKS_READ -> R.drawable.blue_double_tick_icon
-                                }
-                            ),
-                            modifier = Modifier.size(18.dp),
-                            contentDescription = null,
-                            tint = if (conversationMessage.sendStatus == SendStatus.TWO_TICKS_READ) {
-                                Color(0xff4097e7)
-                            } else {
-                                MaterialTheme.colorScheme.secondary
+                                end = 16.dp,
+                                top = (with(density) {
+                                    messageHeight.toDp() +
+                                            if(messageBottomPadding.value > 0){
+                                                16.dp - messageBottomPadding
+                                            } else {
+                                                (-4).dp
+                                            }
+                                }).coerceAtLeast(0.dp))
+                    ){
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        ) {
+                            conversationMessage.senderReaction?.let { availableReaction ->
+                                Text(
+                                    availableReaction,
+                                    style = MaterialTheme.typography.bodySmall
+                                )
                             }
-                        )
-                    }
-
-                    LaunchedEffect(rect1.value, rect2.value) {
-                        val r1 = rect1.value
-                        val r2 = rect2.value
-                        if (r1 != null && r2 != null && r1.overlaps(r2)) {
-                            //Now check if we're in the second or more row
-                            messageBottomPadding += 12.dp
+                            conversationMessage.receiverReaction?.let { availableReaction ->
+                                if(conversationMessage.senderReaction != availableReaction){
+                                    Text(
+                                        availableReaction,
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                            }
+                            if (conversationMessage.senderReaction != null && conversationMessage.receiverReaction != null) {
+                                Text(
+                                    "2",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
                         }
                     }
                 }
@@ -314,7 +459,10 @@ fun SentMessageBubble(conversationMessage: ConversationMessage, onSendReaction: 
             ReactionsRow(
                 messageId = conversationMessage.messageId,
                 activeReaction = conversationMessage.senderReaction,
-                onSendReaction = onSendReaction,
+                onSendReaction = { reaction, messageId ->
+                    onSendReaction(reaction, messageId)
+                    showReactions = false
+                },
                 density = density,
                 onDismissRequest = {
                     showReactions = false
@@ -401,8 +549,8 @@ private fun SentMessageShapePrev() {
             sendStatus = SendStatus.TWO_TICKS,
             isStartOfReply = false,
             isSelected = false,
-            senderReaction = null,
-            receiverReaction = null
+            senderReaction = "😂",
+            receiverReaction = "🙏🏾"
         ),
         ConversationMessage(
             messageId = MessageId(""),
@@ -413,20 +561,20 @@ private fun SentMessageShapePrev() {
             sendStatus = SendStatus.TWO_TICKS_READ,
             isStartOfReply = true,
             isSelected = false,
-            senderReaction = "😭",
+            senderReaction = "👍",
             receiverReaction = null
         ),
         ConversationMessage(
             messageId = MessageId(""),
-            message = MessageValue("Message from another person😂"),
+            message = MessageValue("lol"),
             messageType = MessageType.RECEIVED,
             previousMessageType = MessageType.SENT,
             time = TimeValue("12:48"),
             sendStatus = SendStatus.TWO_TICKS,
             isStartOfReply = true,
             isSelected = false,
-            senderReaction = null,
-            receiverReaction = null
+            senderReaction = "🙏🏾",
+            receiverReaction = "👌"
         )
     )
 
@@ -497,6 +645,7 @@ private fun SentMessageShapePrev() {
                                 if (card.messageType == MessageType.RECEIVED) {
                                     ReceivedMessageBubble(
                                         conversationMessage = card,
+                                        onSendReaction = {_, _ ->}
                                     )
                                 } else {
                                     SentMessageBubble(

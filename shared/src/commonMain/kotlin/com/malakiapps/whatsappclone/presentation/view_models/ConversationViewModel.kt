@@ -97,8 +97,8 @@ class ConversationViewModel(
         messagesManager.sendMessage(messageValue)
     }
 
-    fun sendReaction(reaction: String, messageId: MessageId) {
-        //TODO()
+    fun sendReaction(reaction: String, messageId: MessageId, isSender: Boolean) {
+        messagesManager.sendReaction(messageId, reaction, isSender, targetEmail)
     }
 
     private fun convertRawConversationToMessageCards(input: RawConversation): List<MessageCard>? {

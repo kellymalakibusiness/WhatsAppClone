@@ -31,7 +31,6 @@ import com.malakiapps.whatsappclone.domain.common.UnknownError
 import com.malakiapps.whatsappclone.domain.common.UpdateMessageError
 import com.malakiapps.whatsappclone.domain.common.getOrNull
 import com.malakiapps.whatsappclone.domain.common.getTodayLocalDateTime
-import com.malakiapps.whatsappclone.domain.common.loggerTag1
 import com.malakiapps.whatsappclone.domain.messages.ChangeMessageBody
 import com.malakiapps.whatsappclone.domain.messages.ConversationBrief
 import com.malakiapps.whatsappclone.domain.messages.DeleteMessageForBoth
@@ -249,7 +248,7 @@ class FirebaseFirestoreMessagesRepository : MessagesRepository {
             }
             is ReactToMessage -> {
                 val reactorKey = if(updateMessage.isSender) MessageAttributeKeys.SENDER_REACTION else MessageAttributeKeys.RECEIVER_REACTION
-                hashMapOf("${MessageAttributeKeys.MESSAGE_ATTRIBUTES}.${reactorKey}" to updateMessage.addReaction)
+                hashMapOf("${MessageAttributeKeys.MESSAGE_ATTRIBUTES.value}.${reactorKey.value}" to updateMessage.addReaction)
             }
         }
 

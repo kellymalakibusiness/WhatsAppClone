@@ -1,6 +1,6 @@
 A pixel-perfect WhatsApp clone built natively for Android using Kotlin & Jetpack Compose.
 This project replicates the official WhatsApp UI exactly 1:1 and enables real-time messaging via Firebase.
-It includes offline caching, secure authentication, and a clean, scalable architecture.
+It includes offline caching, secure authentication, and a clean, scalable architecture.<br><br>
 
 
 
@@ -19,7 +19,7 @@ iv.	🔐 Secure Authentication – Firebase Auth with email sign-in.
 
 v.⚡ Modern Architecture – MVVM + Repository pattern with Koin for DI.
 
-vi. 🌓 Dark Mode Support – Fully compatible with system theme settings.
+vi. 🌓 Dark Mode Support – Fully compatible with system theme settings.<br><br>
 
 
 
@@ -44,7 +44,7 @@ vii. Architecture: MVVM + Repository Pattern
 
 viii. Asynchronous: Kotlin Coroutines & Flow
 
-ix. Image Loading: Coil
+ix. Image Loading: Coil<br><br>
 
 
 
@@ -55,7 +55,7 @@ ix. Image Loading: Coil
 ![PHOTO-2025-08-10-17-03-47 2](https://github.com/user-attachments/assets/7c36ef5d-9945-4b86-a2b7-e2fa37d9dcce)
 ![PHOTO-2025-08-10-17-03-46 2](https://github.com/user-attachments/assets/1bd69851-e21f-4c90-9c41-a6104b6b9d25)
 
-
+<br><br>
 
 📜 License
 

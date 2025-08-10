@@ -7,27 +7,27 @@ It includes offline caching, secure authentication, and a clean, scalable archit
 ✨ Features
 
 
-	•	📱 Exact WhatsApp UI – Matches colors, typography, spacing, and layouts.
-	•	💬 Real-Time Messaging – Powered by Firebase Firestore snapshot listeners.
-	•	📶 Offline Support – Messages stored locally in Room for seamless offline usage.
-	•	🔐 Secure Authentication – Firebase Auth with phone and email sign-in.
-	•	⚡ Modern Architecture – MVVM + Repository pattern with Koin for DI.
-	•	🌓 Dark Mode Support – Fully compatible with system theme settings.
+i.	📱 Exact WhatsApp UI – Matches colors, typography, spacing, and layouts.
+ii. 💬 Real-Time Messaging – Powered by Firebase Firestore snapshot listeners.
+iii. 📶 Offline Support – Messages stored locally with firestore and Room for seamless offline usage.
+iv.	🔐 Secure Authentication – Firebase Auth with email sign-in.
+v.⚡ Modern Architecture – MVVM + Repository pattern with Koin for DI.
+vi. 🌓 Dark Mode Support – Fully compatible with system theme settings.
 
 ⸻
 
 🛠 Tech Stack
 
 
-	•	Language: Kotlin
-	•	UI: Jetpack Compose
-	•	Local Database: Room
-	•	Remote Database: Firebase Firestore
-	•	Authentication: Firebase Auth
-	•	Dependency Injection: Koin
-	•	Architecture: MVVM + Repository Pattern
-	•	Asynchronous: Kotlin Coroutines & Flow
-	•	Image Loading: Coil
+	i.	Language: Kotlin
+	ii.	UI: Jetpack Compose
+	iii. Local Database: Room
+	iv.	Remote Database: Firebase Firestore
+	v.	Authentication: Firebase Auth
+	vi.	Dependency Injection: Koin
+	vii. Architecture: MVVM + Repository Pattern
+	viii. Asynchronous: Kotlin Coroutines & Flow
+	ix. Image Loading: Coil
 
 ⸻
 

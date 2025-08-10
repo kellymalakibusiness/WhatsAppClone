@@ -2,6 +2,8 @@ package com.malakiapps.whatsappclone.android.presentation.compose.screens.conver
 
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,6 +15,7 @@ import androidx.compose.foundation.layout.requiredSizeIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -26,15 +29,21 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Popup
 import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
 import com.malakiapps.whatsappclone.domain.messages.MessageId
@@ -146,7 +155,10 @@ fun ReceivedMessageBubble(conversationMessage: ConversationMessage, modifier: Mo
 }
 
 @Composable
-fun SentMessageBubble(conversationMessage: ConversationMessage, modifier: Modifier = Modifier) {
+fun SentMessageBubble(conversationMessage: ConversationMessage, onSendReaction: (String, MessageId) -> Unit, modifier: Modifier = Modifier) {
+    val density = LocalDensity.current
+    var showReactions by remember { mutableStateOf(false) }
+    var onPressFocus by remember { mutableStateOf(false) }
     var messageBottomPadding by remember { mutableStateOf(0.dp) }
     val ninetyPercentOfScreen = (LocalConfiguration.current.screenWidthDp * 0.9f).dp
     val bubbleShape = if (conversationMessage.isStartOfReply) {
@@ -154,12 +166,27 @@ fun SentMessageBubble(conversationMessage: ConversationMessage, modifier: Modifi
     } else {
         RoundedCornerShape(8.dp)
     }
-    val sizedModifier = modifier.requiredSizeIn(
-        minWidth = 120.dp,
-        maxWidth = ninetyPercentOfScreen,
-        minHeight = 40.dp,
-        maxHeight = Dp.Infinity
-    )
+    val sizedModifier = modifier
+        .requiredSizeIn(
+            minWidth = 120.dp,
+            maxWidth = ninetyPercentOfScreen,
+            minHeight = 40.dp,
+            maxHeight = Dp.Infinity
+        )
+        .pointerInput(conversationMessage.isSelected) {
+            if (!conversationMessage.isSelected) {
+                detectTapGestures(
+                    onLongPress = {
+                        showReactions = true
+                    },
+                    onPress = {
+                        onPressFocus = true
+                        tryAwaitRelease()
+                        onPressFocus = false
+                    }
+                )
+            }
+        }
 
     Box(
         modifier = Modifier.fillMaxWidth()
@@ -199,6 +226,13 @@ fun SentMessageBubble(conversationMessage: ConversationMessage, modifier: Modifi
                         14.dp
                     } else {
                         22.dp
+                    }
+                    if(onPressFocus){
+                        Box(
+                            modifier = Modifier
+                                .matchParentSize()
+                                .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f))
+                        )
                     }
                     Text(
                         text = conversationMessage.message.value,
@@ -276,6 +310,17 @@ fun SentMessageBubble(conversationMessage: ConversationMessage, modifier: Modifi
                     .background(color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
             )
         }
+        if(showReactions){
+            ReactionsRow(
+                messageId = conversationMessage.messageId,
+                activeReaction = conversationMessage.senderReaction,
+                onSendReaction = onSendReaction,
+                density = density,
+                onDismissRequest = {
+                    showReactions = false
+                }
+            )
+        }
     }
 }
 
@@ -316,6 +361,8 @@ private fun SentMessageShapePrev() {
             time = TimeValue("12:45"),
             isStartOfReply = false,
             isSelected = false,
+            senderReaction = null,
+            receiverReaction = null
         ),
         TimeCard(
             key = "12345",
@@ -330,6 +377,8 @@ private fun SentMessageShapePrev() {
             time = TimeValue("12:45"),
             isStartOfReply = false,
             isSelected = false,
+            senderReaction = null,
+            receiverReaction = null
         ),
         ConversationMessage(
             messageId = MessageId(""),
@@ -340,6 +389,8 @@ private fun SentMessageShapePrev() {
             time = TimeValue("12:45"),
             isStartOfReply = true,
             isSelected = false,
+            senderReaction = null,
+            receiverReaction = null
         ),
         ConversationMessage(
             messageId = MessageId(""),
@@ -350,6 +401,8 @@ private fun SentMessageShapePrev() {
             sendStatus = SendStatus.TWO_TICKS,
             isStartOfReply = false,
             isSelected = false,
+            senderReaction = null,
+            receiverReaction = null
         ),
         ConversationMessage(
             messageId = MessageId(""),
@@ -359,7 +412,9 @@ private fun SentMessageShapePrev() {
             time = TimeValue("12:47"),
             sendStatus = SendStatus.TWO_TICKS_READ,
             isStartOfReply = true,
-            isSelected = true,
+            isSelected = false,
+            senderReaction = "😭",
+            receiverReaction = null
         ),
         ConversationMessage(
             messageId = MessageId(""),
@@ -369,7 +424,9 @@ private fun SentMessageShapePrev() {
             time = TimeValue("12:48"),
             sendStatus = SendStatus.TWO_TICKS,
             isStartOfReply = true,
-            isSelected = true,
+            isSelected = false,
+            senderReaction = null,
+            receiverReaction = null
         )
     )
 
@@ -383,6 +440,8 @@ private fun SentMessageShapePrev() {
             sendStatus = SendStatus.LOADING,
             isStartOfReply = true,
             isSelected = false,
+            senderReaction = null,
+            receiverReaction = null
         ),
         ConversationMessage(
             messageId = MessageId(""),
@@ -393,6 +452,8 @@ private fun SentMessageShapePrev() {
             sendStatus = SendStatus.ONE_TICK,
             isStartOfReply = false,
             isSelected = false,
+            senderReaction = null,
+            receiverReaction = null
         ),
         ConversationMessage(
             messageId = MessageId(""),
@@ -403,6 +464,8 @@ private fun SentMessageShapePrev() {
             sendStatus = SendStatus.TWO_TICKS,
             isStartOfReply = true,
             isSelected = false,
+            senderReaction = null,
+            receiverReaction = null
         ),
         ConversationMessage(
             messageType = MessageType.RECEIVED,
@@ -413,6 +476,8 @@ private fun SentMessageShapePrev() {
             sendStatus = SendStatus.TWO_TICKS,
             isStartOfReply = true,
             isSelected = false,
+            senderReaction = null,
+            receiverReaction = null
         ),
 
 
@@ -435,7 +500,8 @@ private fun SentMessageShapePrev() {
                                     )
                                 } else {
                                     SentMessageBubble(
-                                        conversationMessage = card
+                                        conversationMessage = card,
+                                        onSendReaction = {_, _ ->}
                                     )
                                 }
                             }
@@ -454,4 +520,72 @@ private fun SentMessageShapePrev() {
             }
         }
     }
+}
+
+@Composable
+private fun ReactionsRow(messageId: MessageId, activeReaction: String?, density: Density, onSendReaction: (String, MessageId) -> Unit, onDismissRequest: () -> Unit) {
+    Popup(
+        alignment = Alignment.TopCenter,
+        offset = with(density){
+            IntOffset(
+                0.dp.roundToPx(),
+                (-64).dp.roundToPx())
+        },
+        onDismissRequest = onDismissRequest
+    ) {
+        Surface(
+            shape = CircleShape,
+            tonalElevation = 16.dp,
+            shadowElevation = 2.dp,
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Row(
+                modifier = Modifier.padding(8.dp)
+            ) {
+                listOf(
+                    "👍",
+                    "❤️",
+                    "🎉",
+                    "🙏",
+                    "😭",
+                    "😂"
+
+                ).forEach { action ->
+                    ReactionButton(
+                        value = action,
+                        isSelected = activeReaction == action,
+                        onClick = {
+                            onSendReaction(action, messageId)
+                        }
+                    )
+                }
+            }
+        }
+
+    }
+}
+
+@Composable
+private fun ReactionButton(value: String, isSelected: Boolean, onClick: () -> Unit) {
+    val modifier = if (isSelected) {
+        Modifier
+            .clip(CircleShape)
+            .background(MaterialTheme.colorScheme.secondary.copy(alpha = 0.3f))
+            .clickable {
+                onClick()
+            }
+            .padding(8.dp)
+    } else {
+        Modifier
+            .clip(CircleShape)
+            .clickable {
+                onClick()
+            }
+            .padding(8.dp)
+    }
+    Text(
+        text = value,
+        style = MaterialTheme.typography.titleLarge,
+        modifier = modifier
+    )
 }

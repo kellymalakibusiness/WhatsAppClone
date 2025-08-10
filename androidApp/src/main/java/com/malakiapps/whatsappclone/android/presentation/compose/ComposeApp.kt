@@ -284,6 +284,9 @@ fun ComposeApp(
                     onBackPress = {
                         navController.navigateUp()
                     },
+                    onSendReaction = { reaction, messageId ->
+                        conversationViewModel.sendReaction(reaction, messageId)
+                    }
                 )
             }
 

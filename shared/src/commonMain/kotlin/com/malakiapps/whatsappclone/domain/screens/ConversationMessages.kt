@@ -15,6 +15,8 @@ data class ConversationMessage(
     override val key: String = messageId.value,
     val messageId: MessageId,
     val message: MessageValue,
+    val senderReaction: String?,
+    val receiverReaction: String?,
     val time: TimeValue,
     val previousMessageType: MessageType,
     val sendStatus: SendStatus,

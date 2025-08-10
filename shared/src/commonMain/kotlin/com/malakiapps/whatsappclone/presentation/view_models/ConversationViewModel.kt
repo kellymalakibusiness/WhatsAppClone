@@ -13,6 +13,7 @@ import com.malakiapps.whatsappclone.domain.managers.EventsManager
 import com.malakiapps.whatsappclone.domain.managers.MessagesManager
 import com.malakiapps.whatsappclone.domain.managers.UserManager
 import com.malakiapps.whatsappclone.domain.messages.Message
+import com.malakiapps.whatsappclone.domain.messages.MessageId
 import com.malakiapps.whatsappclone.domain.messages.MessageStatusUpdate
 import com.malakiapps.whatsappclone.domain.messages.RawConversation
 import com.malakiapps.whatsappclone.domain.messages.SendStatus
@@ -96,6 +97,10 @@ class ConversationViewModel(
         messagesManager.sendMessage(messageValue)
     }
 
+    fun sendReaction(reaction: String, messageId: MessageId) {
+        //TODO()
+    }
+
     private fun convertRawConversationToMessageCards(input: RawConversation): List<MessageCard>? {
         val today = getTodayLocalDate()
         var currentBufferType = input.messages.firstOrNull()?.getMessageType(targetEmail) ?: MessageType.None
@@ -113,6 +118,8 @@ class ConversationViewModel(
                             ConversationMessage(
                                 messageId = messageOnBuffer.messageId,
                                 message = messageOnBuffer.value,
+                                senderReaction = messageOnBuffer.attributes.senderReaction,
+                                receiverReaction = messageOnBuffer.attributes.receiverReaction,
                                 time = messageOnBuffer.time.time.toParsedTimeValue(),
                                 sendStatus = messageOnBuffer.attributes.sendStatus,
                                 messageType = currentBufferType,
@@ -137,6 +144,8 @@ class ConversationViewModel(
                                 ConversationMessage(
                                     messageId = messageOnBuffer.messageId,
                                     message = messageOnBuffer.value,
+                                    senderReaction = messageOnBuffer.attributes.senderReaction,
+                                    receiverReaction = messageOnBuffer.attributes.receiverReaction,
                                     time = messageOnBuffer.time.time.toParsedTimeValue(),
                                     sendStatus = messageOnBuffer.attributes.sendStatus,
                                     messageType = currentBufferType,
@@ -161,6 +170,8 @@ class ConversationViewModel(
                         ConversationMessage(
                             messageId = messageOnBuffer.messageId,
                             message = messageOnBuffer.value,
+                            senderReaction = messageOnBuffer.attributes.senderReaction,
+                            receiverReaction = messageOnBuffer.attributes.receiverReaction,
                             time = messageOnBuffer.time.time.toParsedTimeValue(),
                             sendStatus = messageOnBuffer.attributes.sendStatus,
                             messageType = currentBufferType,

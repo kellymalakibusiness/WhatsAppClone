@@ -27,7 +27,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.malakiapps.whatsappclone.android.R
 import com.malakiapps.whatsappclone.android.presentation.FakeWhatsAppTheme
-import com.malakiapps.whatsappclone.domain.common.loggerTag1
 import com.malakiapps.whatsappclone.domain.messages.MessageId
 import com.malakiapps.whatsappclone.domain.messages.MessageValue
 import com.malakiapps.whatsappclone.domain.messages.SendStatus
@@ -42,7 +41,7 @@ import com.malakiapps.whatsappclone.domain.user.Profile
 import com.malakiapps.whatsappclone.domain.user.TimeValue
 
 @Composable
-fun ConversationScreen(target: Profile?, messages: List<MessageCard>?, onBackPress: () -> Unit, onSendMessage: (String) -> Unit, onProfileClick: () -> Unit, modifier: Modifier = Modifier) {
+fun ConversationScreen(target: Profile?, messages: List<MessageCard>?, onBackPress: () -> Unit, onSendMessage: (String) -> Unit, onProfileClick: () -> Unit, onSendReaction: (String, MessageId) -> Unit, modifier: Modifier = Modifier) {
     var messageText by remember {
         mutableStateOf("")
     }
@@ -102,7 +101,10 @@ fun ConversationScreen(target: Profile?, messages: List<MessageCard>?, onBackPre
                                         )
                                     } else {
                                         SentMessageBubble(
-                                            conversationMessage = card
+                                            conversationMessage = card,
+                                            onSendReaction = { reaction, messageId ->
+                                                onSendReaction(reaction, messageId)
+                                            }
                                         )
                                     }
                                 }
@@ -142,46 +144,55 @@ private fun ConversationScreenPrev() {
         ConversationScreen(
             messages = listOf(
                 ConversationMessage(
-                    messageId = MessageId(""),
+                    messageId = MessageId("mfu4hf893"),
                     message = MessageValue("banaa mi pia natafuta padi kama wajua store yoyote iko open enda ubuy ucon alafu unambie nilipe uje nayo"),
                     previousMessageType = MessageType.SENT,
                     messageType = MessageType.RECEIVED,
                     sendStatus = SendStatus.TWO_TICKS_READ,
                     time = TimeValue("12:45"),
-                    isStartOfReply = true
+                    isStartOfReply = true,
+                    senderReaction = null,
+                    receiverReaction = null
                 ),
                 ConversationMessage(
-                    messageId = MessageId(""),
+                    messageId = MessageId("435"),
                     message = MessageValue("Aah ata basi tutaenda na wewe majioni watakuwa wamefungua"),
                     messageType = MessageType.SENT,
                     previousMessageType = MessageType.SENT,
                     time = TimeValue("12:47"),
                     sendStatus = SendStatus.TWO_TICKS_READ,
-                    isStartOfReply = false
+                    isStartOfReply = false,
+                    senderReaction = null,
+                    receiverReaction = null
                 ),
                 ConversationMessage(
-                    messageId = MessageId(""),
+                    messageId = MessageId("12345"),
                     message = MessageValue("Three four five six seven eight"),
                     messageType = MessageType.SENT,
                     previousMessageType = MessageType.RECEIVED,
                     time = TimeValue("12:47"),
                     sendStatus = SendStatus.TWO_TICKS_READ,
-                    isStartOfReply = true
+                    isStartOfReply = true,
+                    senderReaction = null,
+                    receiverReaction = null
                 ),
                 ConversationMessage(
-                    messageId = MessageId(""),
+                    messageId = MessageId("12"),
                     message = MessageValue( "Eeh😂"),
                     messageType = MessageType.RECEIVED,
                     previousMessageType = MessageType.None,
                     time = TimeValue("12:48"),
                     sendStatus = SendStatus.TWO_TICKS,
                     isStartOfReply = true,
-                    isSelected = true
+                    isSelected = true,
+                    senderReaction = null,
+                    receiverReaction = null
                 )
             ),
             onBackPress = {},
             onProfileClick = {},
             onSendMessage = {},
+            onSendReaction = {_, _ ->},
             target = Profile(
                 name = Name("Kevin Durant"),
                 about = About(""),
